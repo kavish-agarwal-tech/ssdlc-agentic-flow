@@ -4,6 +4,27 @@ A CLI that turns requirements into reviewed engineering artifacts, generated cod
 
 The implementation follows the original assignment and [SupplementaryPrompt.txt](SupplementaryPrompt.txt). The supported execution toolchain is **Python**. The offline mock generates a greeting fixture; real workloads use DeepSeek.
 
+## Key features
+
+| Feature | What the solution does |
+|---|---|
+| **Human control at three gates** | Requires explicit approval of requirements, architecture/ADRs and the final release. Blocking ambiguity must be clarified before approval. |
+| **Stateful LangGraph workflow** | Handles conditional routing, parallel generation, synchronization, bounded revisions and durable pause/resume. |
+| **Independent code and test generation** | Runs both branches concurrently from the same approved design. The test agent does not receive generated implementation; shared quality review follows their join. |
+| **Actual testing and packaging** | Executes Ruff, Python compilation, pytest and wheel building. Checks that mapped acceptance tests ran and passed, including earlier slices in the final candidate. |
+| **Targeted failure recovery** | Classifies failures and returns to code, tests, design, architecture or requirements. Invalidates affected evidence, reuses a valid sibling where possible and stops when budgets are exhausted. |
+| **Versioned, reviewable artifacts** | Stores immutable JSON versions, Markdown for section-based documents and raw code/test files. SQLite manages indexes, audit and checkpoint state. |
+| **Brownfield change support** | Snapshots existing source, analyzes impact and assembles a changed candidate without modifying the supplied source directory. |
+| **Traceability and inspection** | Connects requirement IDs, acceptance criteria, artifacts, reviews and executed tests. CLI commands expose saved state, audit integrity, timing/count metrics and exports. |
+| **Real and offline model modes** | Uses DeepSeek for live reasoning and a labeled deterministic greeting fixture for repeatable tests without an API key. |
+| **Documented release readiness** | Produces one engineering/operations report with measured evidence, risks, setup, release notes and rollback guidance before final approval. |
+
+The design keeps probabilistic model proposals separate from deterministic approvals, routing and tool evidence. There is one combined planning/design response, one shared quality review and one release-documentation stage, keeping the workflow compact.
+
+**Validation status:** the mock E2E completes with real tools; live DeepSeek requirement analysis has reached genuine human gates. A completed live URL-shortener release and its analytics extension remain pending. See [measured evidence](docs/testing.md#recorded-evidence) and the [enhancement backlog](docs/enhancements.md).
+
+Start with [installation](#1-install), then [the offline demo](#2-verify-locally-without-an-api-key) or [a real workload](#4-run-a-real-workload). For the design, see the [component diagram](docs/architecture.md) and [workflow diagram](docs/orchestration.md).
+
 ## 1. Install
 
 Prerequisites: Python 3.11 or later, a checkout of this repository, and internet access for initial dependency installation. Use PowerShell from the repository root. Calling the virtual-environment interpreter directly avoids activation and execution-policy problems.
