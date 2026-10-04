@@ -1,0 +1,124 @@
+import http.client
+import json
+from threading import Thread
+
+import pytest
+
+from url_shortener import Store, create_server
+
+POLICY = __EXPIRATION_POLICY__
+
+
+def new_link(store, url):
+    return store.create(url, ttl=3600 if POLICY and POLICY["mandatory"] else None)
+
+
+@pytest.fixture
+def service(tmp_path):
+    server = create_server(str(tmp_path / "links.sqlite"), port=0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield server
+    server.shutdown()
+    thread.join(timeout=3)
+    server.server_close()
+    server.store.close()
+
+
+def request(server, method, path, data=None, content_type="application/json"):
+    connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+    try:
+        if POLICY and POLICY["mandatory"] and isinstance(data, dict) and set(data) == {"url"}:
+            data = {**data, "ttl_seconds": 3600}
+        body = data if isinstance(data, bytes) else json.dumps(data) if data is not None else None
+        connection.request(method, path, body, {"Content-Type": content_type})
+        response = connection.getresponse()
+        return response.status, dict(response.getheaders()), json.loads(response.read())
+    finally:
+        connection.close()
+
+
+def test_create(service):
+    status, _, data = request(service, "POST", "/links", {"url": "https://example.org/page"})
+    assert status == 201
+    assert data["short_url"] == "/r/" + data["code"]
+    assert service.store.analytics(data["code"])["clicks"] == 0
+
+
+def test_redirect_and_count(service):
+    code = new_link(service.store, "https://example.org/path?a=1")
+    for _ in range(2):
+        status, headers, _ = request(service, "GET", "/r/" + code)
+        assert status == 302
+        assert headers["Location"] == "https://example.org/path?a=1"
+        assert headers["Cache-Control"] == "no-store"
+    status, _, data = request(service, "GET", f"/links/{code}/analytics")
+    assert status == 200
+    assert data["clicks"] == 2
+    assert data["code"] == code
+
+
+def test_unknown(service):
+    for path in ("/r/ffff", "/r/bad!", "/links/ffff/analytics", "/missing"):
+        assert request(service, "GET", path)[0] == 404
+
+
+def test_restart(tmp_path):
+    database = str(tmp_path / "restart.sqlite")
+    store = Store(database)
+    code = new_link(store, "https://example.org")
+    store.resolve(code)
+    store.close()
+    reopened = Store(database)
+    try:
+        assert reopened.analytics(code)["clicks"] == 1
+        assert reopened.resolve(code) == (302, "https://example.org")
+        assert new_link(reopened, "https://example.org") != code
+    finally:
+        reopened.close()
+
+
+def test_invalid_url(service):
+    for url in ["javascript:alert(1)", "file:///tmp/x", "https://a\r\nX: y", "", None, "https://user:password@example.org", "https://example.org/" + "x" * 2048]:
+        assert request(service, "POST", "/links", {"url": url})[0] == 400
+        assert service.store.connection.execute("SELECT COUNT(*) FROM links").fetchone()[0] == 0
+
+
+def test_invalid_body(service):
+    assert request(service, "POST", "/links", b"{")[0] == 400
+    assert request(service, "POST", "/links", ["https://example.org"])[0] == 400
+    assert request(service, "POST", "/links", {"url": "https://example.org", "alias": "x"})[0] == 400
+    assert request(service, "POST", "/links", {"url": "https://example.org"}, "text/plain")[0] == 415
+
+
+def test_duplicates(service):
+    a = new_link(service.store, "https://example.org")
+    b = new_link(service.store, "https://example.org")
+    assert a != b
+
+
+def test_health(service):
+    status, _, data = request(service, "GET", "/health")
+    assert status == 200
+    assert data == {"status": "ok"}
+
+
+def test_store_failure(service):
+    service.store.close()
+    status, _, data = request(service, "POST", "/links", {"url": "https://example.org"})
+    assert status == 503
+    assert data == {"error": "STORE_UNAVAILABLE"}
+    assert request(service, "GET", "/health")[0] == 200
+
+
+def test_delivery_files():
+    from pathlib import Path
+
+    import tomllib
+
+    metadata = tomllib.loads(Path("pyproject.toml").read_text())
+    assert metadata["project"]["name"] == "demo-url-shortener"
+    assert "url_shortener" in metadata["tool"]["setuptools"]["py-modules"]
+    assert "python -m url_shortener" in Path("README.md").read_text()
+
+__FEATURE_TESTS__

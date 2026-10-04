@@ -127,6 +127,8 @@ class Runtime:
                 raise ValueError("Expected one pending human gate")
             gate = pending[0].value
             allowed_actions = list(gate["actions"])
+            if gate.get("gate") == "requirement" and "revise" not in allowed_actions:
+                allowed_actions.append("revise")
             planning_scope_stop = gate.get("reason", "").startswith(
                 "Planning proposed a scope change:"
             )

@@ -4,7 +4,7 @@ The diagram groups related nodes to show the normal lifecycle. Blue marks human 
 
 ```mermaid
 flowchart TD
-  R["Requirement analysis"] --> H1["Human: clarify, then approve requirement"]
+  R["Requirement analysis"] --> H1["Human: review requirement<br/>clarify only product blockers"]
   H1 --> A["Architecture author + independent review"]
   A --> H2["Human: approve architecture and ADRs"]
   H2 --> B["Brownfield impact<br/>brownfield runs only"]
@@ -35,6 +35,10 @@ Greenfield and ambiguous runs skip brownfield impact. Architecture revisions occ
 ## Decisions and findings
 
 Blocking questions must be clarified; clarification creates a new requirement version requiring separate approval. Architecture approval covers its ADRs. Approvals record actor, rationale and exact current reference; stale references are rejected. Final approval records readiness only.
+
+Explicit input settles product intent without another confirmation questionnaire. Design choices and consistent defaults are recorded as assumptions for the normal requirement review or deferred to architecture. Non-blocking questions do not require individual answers. Genuine unresolved product decisions or contradictions still block approval; the agent must not strengthen guarantees or change scope to manufacture a blocker.
+
+At a requirement gate, choose `revise` to request a better draft in the rationale without answering the old questions. This also works for previously saved requirement interrupts. The agent reanalyzes the same input and preserves prior explicit answers, then stops for review of the new unapproved version. Choose `clarify` when supplying answers to genuine blockers; `approve` remains a separate decision.
 
 BLOCKER and HIGH findings prevent normal progress. A human can explicitly accept eligible unresolved non-BLOCKER findings; BLOCKER risk cannot be accepted. Omission of an earlier finding does not resolve it. Resolution needs the same finding ID, a newer artifact, actual change, author response and reviewer verification. Interactive views hide settled findings from risk-acceptance choices while preserving history.
 

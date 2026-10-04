@@ -1,104 +1,8 @@
-"""Explicit offline fixture provider. This is not an LLM or a URL-shortener builder."""
+"""Explicit deterministic assignment workers and legacy greeting test fixture."""
 
 from ssdlc.models import ARCHITECTURE_SECTIONS, DESIGN_SECTIONS
 
 MINIMAL_REQUIREMENT = "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior."
-
-URL_QUESTIONS = [
-    (
-        "aliases",
-        "Are custom aliases required?",
-        "Affects uniqueness, collision handling and abuse prevention.",
-        ["Generated codes only", "Allow custom aliases"],
-        "Generated codes only",
-    ),
-    (
-        "expiration",
-        "Are links permanent, optional TTL, or default TTL?",
-        "Determines redirect semantics, cleanup and retention.",
-        ["Permanent", "Optional TTL", "Default 30-day TTL"],
-        "Permanent",
-    ),
-    (
-        "auth",
-        "Who may create links and view analytics?",
-        "Determines authorization boundaries and sensitive data exposure.",
-        ["Authenticated owners", "Public creation; private analytics", "Public demo only"],
-        "Authenticated owners",
-    ),
-    (
-        "schemes",
-        "Which URL schemes are allowed?",
-        "Controls unsafe protocol redirects.",
-        ["HTTP and HTTPS", "HTTPS only"],
-        "HTTP and HTTPS",
-    ),
-    (
-        "duplicates",
-        "Do duplicate targets share a code?",
-        "Changes deduplication, ownership and uniqueness guarantees.",
-        ["New code per creation", "Deduplicate per owner"],
-        "New code per creation",
-    ),
-    (
-        "analytics",
-        "What analytics fields and consistency are required?",
-        "Affects transaction costs, privacy and correctness under retries.",
-        ["Exact durable total count", "Eventually consistent aggregate counts"],
-        "Exact durable total count",
-    ),
-    (
-        "scale",
-        "What scale, latency and availability targets apply?",
-        "Drives capacity, topology and prototype/production differences.",
-        [
-            "Local prototype; production targets to be specified",
-            "Specify throughput, p95 latency and SLO",
-        ],
-        "Local prototype; production targets to be specified",
-    ),
-    (
-        "ownership",
-        "What is the authoritative redirect record and outage behavior?",
-        "Prevents serving stale links or inventing missing records.",
-        ["Durable database; fail closed with 503", "Cache may serve stale redirects"],
-        "Durable database; fail closed with 503",
-    ),
-    (
-        "cache",
-        "May clients cache redirects?",
-        "Interacts with mutable links, deletion and analytics accuracy.",
-        ["302 with no-store", "Cacheable permanent redirects"],
-        "302 with no-store",
-    ),
-    (
-        "mutability",
-        "Can links be changed, disabled or deleted?",
-        "Defines lifecycle, ownership checks and analytics history.",
-        ["Immutable MVP", "Owner-managed disable/delete"],
-        "Immutable MVP",
-    ),
-    (
-        "abuse",
-        "What rate limits and malicious-target protections are required?",
-        "A public redirect service is an abuse target; controls affect availability.",
-        [
-            "Local-only demo; production abuse controls required later",
-            "Authenticated quotas and malicious-target checks",
-        ],
-        "Authenticated quotas and malicious-target checks",
-    ),
-    (
-        "retention",
-        "How long are mappings and analytics retained; what may logs contain?",
-        "Determines privacy, storage growth and cleanup/change controls.",
-        [
-            "Mappings permanent; aggregate counts only; no target URLs in logs",
-            "Specify deletion and retention schedule",
-        ],
-        "Mappings permanent; aggregate counts only; no target URLs in logs",
-    ),
-]
 
 
 def question(identifier, unclear, why, options, recommendation):
@@ -119,6 +23,21 @@ class MockProvider:
     name = "mock-fixture-v1"
 
     def generate(self, role, instructions, context, schema):
+        from ssdlc import url_demo
+
+        text = context.get(
+            "original_text",
+            context.get("requirement", {}).get("content", {}).get("original_text", ""),
+        )
+        if role == "failure_analysis":
+            text = (
+                context.get("active_artifacts", {})
+                .get("requirement", {})
+                .get("content", {})
+                .get("original_text", "")
+            )
+        if url_demo.supported(text):
+            return url_demo.generate(role, context)
         if role == "requirement":
             text = context["original_text"]
             if "greeting" in text.lower():
@@ -158,22 +77,6 @@ class MockProvider:
                 ]
                 criteria = [("AC1", "FR1", "Expiration semantics follow explicit human decisions")]
                 functional = {"FR1": text}
-            elif "url" in text.lower():
-                questions = [question(*values) for values in URL_QUESTIONS]
-                criteria = [
-                    (f"AC{i}", f"FR{i}", value)
-                    for i, value in enumerate(
-                        [
-                            "Create a short URL from a valid target",
-                            "Redirect known codes and reject unknown codes safely",
-                            "Persist mappings durably",
-                            "Expose authorized analytics",
-                            "Expose health and readiness",
-                        ],
-                        1,
-                    )
-                ]
-                functional = {ref: description for _, ref, description in criteria}
             else:
                 questions = [
                     question(

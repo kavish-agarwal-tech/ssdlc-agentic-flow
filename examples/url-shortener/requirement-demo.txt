@@ -1,0 +1,39 @@
+DETERMINISTIC URL SHORTENER — LOCAL ASSIGNMENT DEMO
+
+Build a small, single-process Python URL shortener with SQLite persistence.
+Product policy: permanent links, anonymous access, no deletion, no custom aliases,
+no deduplication, no rate limiting and no distributed components. Each creation
+gets a new code. Count successful redirects synchronously. No DNS checks or target
+fetching are required. This is a local prototype, not a public production service.
+
+Functional requirements:
+FR1 Create a link from an HTTP/HTTPS URL using POST /links; return 201 and code/short_url.
+FR2 GET /r/{code} returns 302 with the exact target in Location and Cache-Control: no-store;
+    unknown or malformed codes return 404.
+FR3 Store links durably in SQLite; links and counts survive restart and codes are not reused.
+FR4 Increment a link's click count once per successful redirect, transactionally.
+FR5 GET /links/{code}/analytics returns the code and click count; unknown codes return 404.
+FR6 GET /health returns 200 with status ok without depending on database availability.
+
+Nonfunctional requirements:
+NFR1 Validate JSON and URL input: HTTP/HTTPS only, no credentials or control characters,
+     URL maximum 2048 characters, body maximum 8192 bytes, no unknown request fields.
+NFR2 Use parameterized SQL, sanitize errors and omit target/client details from logs;
+     database failure returns 503 rather than successful creation or a zero count.
+NFR3 Run locally with Python standard-library HTTPServer, a single serving process and
+     synchronous SQLite transactions; no API key or network needed for generation/tests.
+NFR4 Deliver readable source, independent pytest tests, README, build metadata and wheel.
+
+Acceptance criteria:
+AC1 [FR1] Creating a valid URL returns 201, a code and its /r/{code} short path.
+AC2 [FR2] Redirect returns exact Location, 302 and no-store; it does not fetch the target.
+AC3 [FR2] Unknown and malformed codes return 404.
+AC4 [FR3] Mappings and counts survive closing/reopening the same SQLite database.
+AC5 [FR4] Two successful redirects produce a count of two; creation starts at zero.
+AC6 [FR5] Analytics returns count and code or 404 for an unknown code.
+AC7 [FR6] Health returns 200 and status ok even if the database is unavailable.
+AC8 [NFR1] Invalid URL, fields, JSON or media type are rejected without creating a link.
+AC9 [NFR2] Store failure returns a sanitized 503; no private error details are exposed.
+AC10 [FR1] Creating the same target twice produces distinct codes.
+AC11 [NFR4] Source, test coverage, README and build metadata are present; the workflow
+     separately executes tests and wheel build before final human release approval.

@@ -149,6 +149,8 @@ def unanswered_questions(gate):
 
 def available_actions(gate, artifact_refs=(), branch_errors=None):
     actions = list(gate["actions"])
+    if gate.get("gate") == "requirement" and "revise" not in actions:
+        actions.append("revise")
     if any((branch_errors or {}).values()) and "accept_risk" in actions:
         actions.remove("accept_risk")
     planning_scope_stop = gate.get("reason", "").startswith("Planning proposed a scope change:")
@@ -239,8 +241,13 @@ def prompt_decision(gate, artifact_refs=(), actions=None, input_fn=None, output_
             output_fn("Choose generation, planning_design or requirement.")
         if target != "generation":
             decision["revision_target"] = target
-    if action in {"clarify", "revise"}:
-        questions = unanswered_questions(gate)
+    if action == "clarify":
+        questions = [
+            question
+            for question in unanswered_questions(gate)
+            if question.get("human_confirmation_required", True)
+            or question.get("classification") == "BLOCKING_AMBIGUITY"
+        ]
         answers = {}
         for question in questions:
             output_fn(f"\n{question['id']}: {question['unclear']}")
@@ -335,7 +342,8 @@ def main(argv=None):
     parser.add_argument(
         "--provider",
         choices=["deepseek", "mock"],
-        help="deepseek for real reasoning or mock for the offline greeting fixture",
+        default="mock",
+        help="mock: default offline deterministic workers; deepseek: optional real-LLM extension",
     )
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
     parser.add_argument(
@@ -380,7 +388,21 @@ def main(argv=None):
         help="New output directory; defaults to <home>/deliverables/<run>/release-v<version>",
     )
     demo = commands.add_parser("demo")
-    demo.add_argument("--run", default="minimal-demo")
+    demo.add_argument(
+        "scenario",
+        nargs="?",
+        choices=["greenfield", "ambiguous", "brownfield", "greeting"],
+        default="greenfield",
+    )
+    demo.add_argument("--run")
+    demo.add_argument(
+        "--from-run",
+        default="demo-greenfield",
+        help="Brownfield: packaged prior demo run; --source overrides",
+    )
+    demo.add_argument(
+        "--source", type=Path, help="Brownfield: prior generated application's directory"
+    )
     demo.add_argument(
         "--scripted",
         action="store_true",
@@ -388,14 +410,16 @@ def main(argv=None):
     )
     args = parser.parse_args(argv)
     try:
-        load_env_file(args.env_file)
+        # An existing real-key .env must not switch the offline evaluation path.
+        if args.provider == "deepseek":
+            load_env_file(args.env_file)
         if args.verbose:
             logging.basicConfig(level=logging.INFO, format="%(message)s")
-        if args.command == "demo":
-            if args.provider and args.provider != "mock":
-                raise ValueError("Fixture demo requires the mock provider")
-            provider = MockProvider()
-        elif args.provider == "mock" or args.command in {
+        if args.command == "demo" and args.scripted and args.provider != "mock":
+            raise ValueError(
+                "Scripted synthetic decisions are permitted only for deterministic demos"
+            )
+        if args.provider == "mock" or args.command in {
             "inspect",
             "audit",
             "metrics",
@@ -413,7 +437,8 @@ def main(argv=None):
         with Runtime(
             args.home,
             provider=provider,
-            allow_execution=args.allow_local_execution,
+            allow_execution=args.allow_local_execution
+            or (args.command == "demo" and args.provider == "mock"),
         ) as runtime:
             if args.command == "start":
                 with interactive_progress(args.interactive):
@@ -457,7 +482,31 @@ def main(argv=None):
             elif args.command == "package":
                 emit(runtime.package(args.run, args.output))
             elif args.command == "demo":
-                result = runtime.start(MINIMAL_REQUIREMENT, args.run)
+                from ssdlc.url_demo import AMBIGUOUS_INPUT, BROWNFIELD_INPUT, GREENFIELD_INPUT
+
+                text = {
+                    "greenfield": GREENFIELD_INPUT,
+                    "ambiguous": AMBIGUOUS_INPUT,
+                    "brownfield": BROWNFIELD_INPUT,
+                    "greeting": MINIMAL_REQUIREMENT,
+                }[args.scenario]
+                run = args.run or "demo-" + args.scenario
+                scenario = "greenfield" if args.scenario == "greeting" else args.scenario
+                source = args.source
+                if scenario == "brownfield" and source is None:
+                    source = (
+                        args.home / "deliverables" / args.from_run / "release-v1" / "application"
+                    )
+                    if not source.is_dir():
+                        raise ValueError(
+                            "Complete demo greenfield first, or supply --source / --from-run"
+                        )
+                result = runtime.start(text, run, scenario, source)
+                print(
+                    "MOCK / DETERMINISTIC MODE"
+                    if args.provider == "mock"
+                    else "OPTIONAL REAL-LLM MODE"
+                )
                 if args.scripted:
                     for _ in range(5):
                         if not result["interrupts"]:
@@ -471,15 +520,34 @@ def main(argv=None):
                             "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
                             "artifact_ref": gate["artifact_ref"],
                         }
-                        if (
-                            gate["gate"] == "requirement"
-                            and not gate["artifact"]["content"]["decisions"]
+                        if gate["gate"] == "requirement" and any(
+                            q["classification"] == "BLOCKING_AMBIGUITY"
+                            for q in unanswered_questions(gate)
                         ):
                             decision.update(
-                                action="clarify", answers={"blank": "Reject with ValueError"}
+                                action="clarify",
+                                answers=(
+                                    {"blank": "Reject with ValueError"}
+                                    if args.scenario == "greeting"
+                                    else {
+                                        "optional": "Optional",
+                                        "ttl": "No default",
+                                        "expired": "410",
+                                        "retention": "Retain",
+                                    }
+                                ),
                             )
-                        result = runtime.resume(args.run, decision)
-                emit(summary(result))
+                        result = runtime.resume(run, decision)
+                    emit(summary(result))
+                else:
+                    with interactive_progress(True):
+                        result = interactive_session(runtime, result)
+                        report_interactive_result(result)
+                if (
+                    args.provider == "mock"
+                    and result["state"]["workflow_status"] == "READY_FOR_DEPLOYMENT"
+                ):
+                    emit(runtime.package(run))
     except (ValueError, RuntimeError, OSError) as exc:
         parser.exit(2, f"ssdlc: {exc}\n")
 

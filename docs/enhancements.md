@@ -1,34 +1,28 @@
-# Pending work and possible enhancements
+# Deferred work and limitations
 
-This is a planning backlog, not an implementation claim or a commitment to build a larger platform. Priorities favor making the current Python CLI easier to use and proving it on a real workload.
+The submission priority is the three reproducible offline scenarios defined by [SupplementaryPrompt.txt](../SupplementaryPrompt.txt). Deterministic workers are the primary path; DeepSeek is an optional extension. Broader provider repair and production-like URL requirements are deferred.
 
-## Pending validation
+## Current limits
 
-| Priority | Work | Current evidence and completion condition |
+| Area | Limit |
+|---|---|
+| Agent behavior | Bounded templates implement the documented URL-shortener scenarios, not arbitrary specifications or repositories. |
+| Generated app | Local HTTPServer, one serving process, synchronous SQLite counts; no baseline TTL, auth, deletion, alias, rate limit, DNS policy or distributed worker. |
+| Expiration | Four bounded choices; retain or delete on access. No scheduler, reactivation or production retention framework. |
+| Brownfield | Inspects the previous deterministic app and enables daily counts; does not infer historical daily buckets or general code migrations. |
+| Execution | Runs trusted demo source/build hooks on the host; path/environment guards are not process isolation. |
+| Governance | Local actor names, local audit hash chain, no authenticated multi-user approvals. |
+| Optional LLM | Kept behind Provider; successful deterministic runs do not prove live-model reliability. |
+
+## Possible enhancements after submission
+
+| Priority | Enhancement | Small next step |
 |---|---|---|
-| P1 | Complete the real DeepSeek greenfield URL shortener | A complete permanent-link draft now defines 15 requirements and 28 mapped criteria; the older TTL run is retained. Completion needs real analysis, requirement/architecture approval, workflow-generated code/tests, passing tools/build and final approval. |
-| P1 | Complete expiration behavior validation | Confirmed policy is saved in requirement v2; approval and implementation are pending. Verify permanent-by-default links, HTTP 410, retention, final expiration and scheduled cleanup against generated tests. |
-| P1 | Run a real analytics brownfield extension | Mock/source-snapshot integration tests exist. A live run needs generated URL-shortener source, impact/compatibility evidence and final approval. |
+| P2 | Friendlier artifact review | Summarize changes and assumptions at gates while preserving complete documents and exact version references. |
+| P2 | Interrupted-process recovery | Add explicit stale-lease recovery after checking that the owning process stopped. |
+| P2 | Execution isolation | Add a tested isolation boundary only if untrusted generated code must be run. |
+| P2 | Wider installed-wheel scenario coverage | Greenfield has been checked from the installed platform wheel; extend that check to the other CLI paths without new services or model calls. |
+| P3 | Additional bounded scenario | Add one requested product change with independent tests; avoid generic repository automation. |
+| P3 | Production URL-shortener controls | Define a separate requirement for authentication, abuse protection, production HTTP hosting and capacity before implementing them. |
 
-The [live evidence summary](../examples/url-shortener/refactor-analysis.json) is a dated record, not live state. Use `inspect` with the correct local `--home` for present status.
-
-## Proposed improvements
-
-| Priority | Enhancement | Current limitation | Small next step |
-|---|---|---|---|
-| P1 | Clearer artifact review before final approval | The approved delivery package has readable requirement/plan documents; interactive gates still show large JSON payloads. | Reuse readable summaries at the gates, retaining authoritative JSON, exact IDs and explicit decisions. |
-| P1 | Stronger alignment with human intent | Schemas cannot establish that every proposed requirement or performance target was requested. | Highlight new assumptions, acceptance criteria and changed decisions before approval. |
-| P1 | Early stack/dependency feasibility checks | Architecture can propose packages/languages the fixed executor cannot run; candidate tools install nothing. | Check approved stack/packages against the CLI environment before generation and stop with actionable feedback. |
-| P2 | Better failure/retry guidance | Model diagnosis can be wrong; renewing a budget may repeat failures. | Summarize failed commands and affected versions; add regression examples for misclassification. |
-| P2 | More quality evidence | Static checks include shared API declarations, Ruff and compilation; coverage, type checking and dependency-security scans are not implemented. | Add one explicitly configured check at a time and report measured results. |
-| P2 | Broader interface checks | Shared declaration stubs check explicit signatures, fields and direct application imports; inheritance, dynamic imports and runtime injection behavior need tests/review. | Extend checks only for a demonstrated mismatch; retain independent runtime acceptance tests. |
-| P2 | Realistic multi-slice validation | The real-tool fixture is a small greeting; controls do not prove broad model effectiveness. | Exercise cumulative files/tests, migrations and recovery with a compact workload; record live-model evidence separately. |
-| P2 | Checkpoint/interruption recovery | Removed-node checkpoints need a fresh run; a killed process may leave a lease. | Add compatibility checks and an explicit stale-lease recovery path after confirming the owning process stopped. |
-| P2 | Usage/cost visibility | Metrics report counts/durations, not token usage or spend. | Record provider-reported usage; distinguish measured usage from cost estimates. |
-| P2 | Distribution fingerprints at build time | Delivery manifests hash exported wheels; existing build evidence does not fingerprint each wheel when created. | Record wheel checksums during build and verify them again at packaging. |
-| P2 | Isolated generated-code execution | Code/build hooks run on the host; guards are not process isolation. | If needed beyond a trusted demo, add one tested isolation boundary with time/resource/network controls. |
-| P3 | Authenticated approvals/external audit | Actor names are local assertions; audit storage is local. | Add identity and external audit retention when multi-user or production governance is required. |
-
-## Outside the current scope
-
-A UI, distributed workers, multi-provider routing, automatic deployment and more language toolchains are possible future directions. Each needs a concrete requirement and independent validation. Restoring generic factories or orchestration layers would work against the current simplification.
+No cloud deployment, UI, policy DSL, distributed locking, generalized provider fallback, multi-language runtime or enterprise audit is planned for the current assignment. Live DeepSeek completion and the historical large requirement remain optional future exercises, not unfinished core submission requirements.

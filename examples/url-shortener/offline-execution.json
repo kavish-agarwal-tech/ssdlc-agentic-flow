@@ -1,0 +1,371 @@
+{
+  "evidence_type": "actual_offline_deterministic_assignment_execution",
+  "recorded_at": "2026-10-04T19:15:04.073471+00:00",
+  "notice": "MOCK / DETERMINISTIC MODE. Real LangGraph/tools/tests/build/package; synthetic demo decisions only, not real product authorization or LLM generation.",
+  "scenarios": [
+    {
+      "scenario": "greenfield",
+      "run": "demo-greenfield",
+      "provider": "mock-fixture-v1",
+      "status": "READY_FOR_DEPLOYMENT",
+      "audit_valid": true,
+      "active_artifacts": {
+        "requirement": "requirement@1",
+        "architecture": "architecture@1",
+        "ADR-001": "ADR-001@1",
+        "plan": "plan@1",
+        "code:url-shortener": "code:url-shortener@1",
+        "tests:url-shortener": "tests:url-shortener@1",
+        "quality:url-shortener": "quality:url-shortener@1",
+        "validation:url-shortener": "validation:url-shortener@1",
+        "acceptance:url-shortener": "acceptance:url-shortener@1",
+        "release_report": "release_report@1",
+        "build": "build@1",
+        "release": "release@1"
+      },
+      "requirement_questions": 0,
+      "initial_questions": 0,
+      "acceptance_count": 11,
+      "executed_test_cases": 10,
+      "approvals": [
+        {
+          "id": "9022d02023594f5d8bb86e0a41142017",
+          "artifact_ref": "requirement@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:38.565838+00:00"
+        },
+        {
+          "id": "29993b45d19e4c3784f8a2f61da1fb6e",
+          "artifact_ref": "architecture@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:38.691265+00:00"
+        },
+        {
+          "id": "d076671189ae46c884832e4312f0124a",
+          "artifact_ref": "ADR-001@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:38.693368+00:00"
+        },
+        {
+          "id": "5766aa367d41497da9aaf2d561213d2e",
+          "artifact_ref": "release@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:46.301682+00:00"
+        }
+      ],
+      "tools": [
+        {
+          "tool": "lint",
+          "exit_status": 0,
+          "duration": 0.19844549999106675,
+          "output_summary": "All checks passed!\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "static",
+          "exit_status": 0,
+          "duration": 0.18130209995433688,
+          "output_summary": "",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "test",
+          "exit_status": 0,
+          "duration": 5.173723799991421,
+          "output_summary": "..........                                                               [100%]\n10 passed in 4.40s\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "build",
+          "exit_status": 0,
+          "duration": 1.5374002000316978,
+          "output_summary": "running egg_info\ncreating demo_url_shortener.egg-info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\ncopying url_shortener.py -> build\\lib\nrunning egg_info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncopying build\\lib\\url_shortener.py -> build\\bdist.win-amd64\\wheel\\.\nrunning install_egg_info\nCopying demo_url_shortener.egg-info to build\\bdist.win-amd64\\wheel\\.\\demo_url_shortener-0.1.0-py3.14.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\demo_url_shortener-0.1.0.dist-info\\WHEEL\ncreating 'C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\offline-submission\\\\runs\\\\demo-greenfield\\\\candidates\\\\278b262baa91082c19601db5\\\\dist\\\\.tmp-6cb9jzhj\\\\demo_url_shortener-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'url_shortener.py'\nadding 'demo_url_shortener-0.1.0.dist-info/METADATA'\nadding 'demo_url_shortener-0.1.0.dist-info/WHEEL'\nadding 'demo_url_shortener-0.1.0.dist-info/entry_points.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/top_level.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built demo_url_shortener-0.1.0-py3-none-any.whl\n* Getting build dependencies for wheel...\n* Building wheel...\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        }
+      ],
+      "stages": [
+        "requirement",
+        "requirement_approval",
+        "architecture",
+        "architecture_review",
+        "architecture_approval",
+        "planning_design",
+        "branch_generate",
+        "synchronize",
+        "quality_review",
+        "validate",
+        "acceptance",
+        "release_readiness",
+        "build",
+        "release_gate",
+        "release_approval"
+      ],
+      "delivery": ".ssdlc\\offline-submission\\deliverables\\demo-greenfield\\release-v1"
+    },
+    {
+      "scenario": "ambiguous",
+      "run": "demo-ambiguous",
+      "provider": "mock-fixture-v1",
+      "status": "READY_FOR_DEPLOYMENT",
+      "audit_valid": true,
+      "active_artifacts": {
+        "requirement": "requirement@2",
+        "architecture": "architecture@1",
+        "ADR-001": "ADR-001@1",
+        "plan": "plan@1",
+        "code:url-shortener": "code:url-shortener@1",
+        "tests:url-shortener": "tests:url-shortener@1",
+        "quality:url-shortener": "quality:url-shortener@1",
+        "validation:url-shortener": "validation:url-shortener@1",
+        "acceptance:url-shortener": "acceptance:url-shortener@1",
+        "release_report": "release_report@1",
+        "build": "build@1",
+        "release": "release@1"
+      },
+      "requirement_questions": 0,
+      "initial_questions": 4,
+      "acceptance_count": 12,
+      "executed_test_cases": 11,
+      "approvals": [
+        {
+          "id": "a8d15ee36dce444aa1a1aaad14c24238",
+          "artifact_ref": "requirement@2",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:47.261354+00:00"
+        },
+        {
+          "id": "2d0a271a704d476aa8e308f6d81922b4",
+          "artifact_ref": "architecture@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:47.388206+00:00"
+        },
+        {
+          "id": "dbcffb88580c44d1b65ab4f063e9efcd",
+          "artifact_ref": "ADR-001@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:47.390235+00:00"
+        },
+        {
+          "id": "aff6f3a6f0c848d9a49f13b762b2ed02",
+          "artifact_ref": "release@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:54.779274+00:00"
+        }
+      ],
+      "tools": [
+        {
+          "tool": "lint",
+          "exit_status": 0,
+          "duration": 0.11470639996696264,
+          "output_summary": "All checks passed!\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "static",
+          "exit_status": 0,
+          "duration": 0.15113220002967864,
+          "output_summary": "",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "test",
+          "exit_status": 0,
+          "duration": 5.1618905999930575,
+          "output_summary": "...........                                                              [100%]\n11 passed in 4.50s\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "build",
+          "exit_status": 0,
+          "duration": 1.502563099958934,
+          "output_summary": "running egg_info\ncreating demo_url_shortener.egg-info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\ncopying url_shortener.py -> build\\lib\nrunning egg_info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncopying build\\lib\\url_shortener.py -> build\\bdist.win-amd64\\wheel\\.\nrunning install_egg_info\nCopying demo_url_shortener.egg-info to build\\bdist.win-amd64\\wheel\\.\\demo_url_shortener-0.1.0-py3.14.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\demo_url_shortener-0.1.0.dist-info\\WHEEL\ncreating 'C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\offline-submission\\\\runs\\\\demo-ambiguous\\\\candidates\\\\5df5d386c877c8de967e00a4\\\\dist\\\\.tmp-fouihwm4\\\\demo_url_shortener-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'url_shortener.py'\nadding 'demo_url_shortener-0.1.0.dist-info/METADATA'\nadding 'demo_url_shortener-0.1.0.dist-info/WHEEL'\nadding 'demo_url_shortener-0.1.0.dist-info/entry_points.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/top_level.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built demo_url_shortener-0.1.0-py3-none-any.whl\n* Getting build dependencies for wheel...\n* Building wheel...\n",
+          "artifact_refs": [
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        }
+      ],
+      "stages": [
+        "requirement",
+        "requirement_approval",
+        "architecture",
+        "architecture_review",
+        "architecture_approval",
+        "planning_design",
+        "branch_generate",
+        "synchronize",
+        "quality_review",
+        "validate",
+        "acceptance",
+        "release_readiness",
+        "build",
+        "release_gate",
+        "release_approval"
+      ],
+      "delivery": ".ssdlc\\offline-submission\\deliverables\\demo-ambiguous\\release-v1"
+    },
+    {
+      "scenario": "brownfield",
+      "run": "demo-brownfield",
+      "provider": "mock-fixture-v1",
+      "status": "READY_FOR_DEPLOYMENT",
+      "audit_valid": true,
+      "active_artifacts": {
+        "requirement": "requirement@1",
+        "architecture": "architecture@1",
+        "ADR-001": "ADR-001@1",
+        "snapshot": "snapshot@1",
+        "impact": "impact@1",
+        "plan": "plan@1",
+        "code:url-shortener": "code:url-shortener@1",
+        "tests:url-shortener": "tests:url-shortener@1",
+        "quality:url-shortener": "quality:url-shortener@1",
+        "validation:url-shortener": "validation:url-shortener@1",
+        "acceptance:url-shortener": "acceptance:url-shortener@1",
+        "release_report": "release_report@1",
+        "build": "build@1",
+        "release": "release@1"
+      },
+      "requirement_questions": 0,
+      "initial_questions": 0,
+      "acceptance_count": 12,
+      "executed_test_cases": 11,
+      "approvals": [
+        {
+          "id": "0089f9aa0f804fafab13059019cf98fc",
+          "artifact_ref": "requirement@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:55.628314+00:00"
+        },
+        {
+          "id": "1f57f4273f3e4c26ab1b0c077cef8e01",
+          "artifact_ref": "architecture@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:55.775247+00:00"
+        },
+        {
+          "id": "83121a0d857e4ec5a79885edc425bc38",
+          "artifact_ref": "ADR-001@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:14:55.777897+00:00"
+        },
+        {
+          "id": "677270826e714eeea5170b38fa07ef1f",
+          "artifact_ref": "release@1",
+          "actor": "synthetic-demo-human",
+          "decision": "approve",
+          "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+          "timestamp": "2026-10-04T19:15:03.324825+00:00"
+        }
+      ],
+      "tools": [
+        {
+          "tool": "lint",
+          "exit_status": 0,
+          "duration": 0.11594010004773736,
+          "output_summary": "All checks passed!\n",
+          "artifact_refs": [
+            "snapshot@1",
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "static",
+          "exit_status": 0,
+          "duration": 0.12637349998112768,
+          "output_summary": "",
+          "artifact_refs": [
+            "snapshot@1",
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "test",
+          "exit_status": 0,
+          "duration": 5.246837400016375,
+          "output_summary": "...........                                                              [100%]\n11 passed in 4.58s\n",
+          "artifact_refs": [
+            "snapshot@1",
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        },
+        {
+          "tool": "build",
+          "exit_status": 0,
+          "duration": 1.455304899951443,
+          "output_summary": "running egg_info\ncreating demo_url_shortener.egg-info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\ncopying url_shortener.py -> build\\lib\nrunning egg_info\nwriting demo_url_shortener.egg-info\\PKG-INFO\nwriting dependency_links to demo_url_shortener.egg-info\\dependency_links.txt\nwriting entry points to demo_url_shortener.egg-info\\entry_points.txt\nwriting top-level names to demo_url_shortener.egg-info\\top_level.txt\nreading manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\nwriting manifest file 'demo_url_shortener.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncopying build\\lib\\url_shortener.py -> build\\bdist.win-amd64\\wheel\\.\nrunning install_egg_info\nCopying demo_url_shortener.egg-info to build\\bdist.win-amd64\\wheel\\.\\demo_url_shortener-0.1.0-py3.14.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\demo_url_shortener-0.1.0.dist-info\\WHEEL\ncreating 'C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\offline-submission\\\\runs\\\\demo-brownfield\\\\candidates\\\\b0602838990d95238b94fc99\\\\dist\\\\.tmp-1yppok08\\\\demo_url_shortener-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'url_shortener.py'\nadding 'demo_url_shortener-0.1.0.dist-info/METADATA'\nadding 'demo_url_shortener-0.1.0.dist-info/WHEEL'\nadding 'demo_url_shortener-0.1.0.dist-info/entry_points.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/top_level.txt'\nadding 'demo_url_shortener-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built demo_url_shortener-0.1.0-py3-none-any.whl\n* Getting build dependencies for wheel...\n* Building wheel...\n",
+          "artifact_refs": [
+            "snapshot@1",
+            "code:url-shortener@1",
+            "tests:url-shortener@1"
+          ]
+        }
+      ],
+      "stages": [
+        "requirement",
+        "requirement_approval",
+        "architecture",
+        "architecture_review",
+        "architecture_approval",
+        "brownfield",
+        "planning_design",
+        "branch_generate",
+        "synchronize",
+        "quality_review",
+        "validate",
+        "acceptance",
+        "release_readiness",
+        "build",
+        "release_gate",
+        "release_approval"
+      ],
+      "delivery": ".ssdlc\\offline-submission\\deliverables\\demo-brownfield\\release-v1"
+    }
+  ]
+}

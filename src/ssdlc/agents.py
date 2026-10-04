@@ -58,6 +58,29 @@ CONTRACTS = {
     ),
 }
 
+schema, instructions = CONTRACTS["requirement"]
+CONTRACTS["requirement"] = (
+    schema,
+    instructions
+    + " Minimize clarification burden. Treat explicit choices in original_text and supplied "
+    "answers as requirement intent; do not ask the user to repeat them. Intent is not artifact "
+    "approval: an empty answers object means no prior clarification, not missing authority to "
+    "analyze the draft. The separate requirement approval gate reviews the whole artifact and "
+    "its stated assumptions/defaults; never create an open question merely asking permission "
+    "to approve or trust the draft. Ask only about a genuinely unresolved product choice or "
+    "contradiction that materially changes observable behavior, security, privacy, data lifetime "
+    "or scope. These questions are BLOCKING_AMBIGUITY with human_confirmation_required=true. "
+    "Do not invent conflicts by strengthening the stated guarantees. Ordinary interpretation, "
+    "parameter names, status precedence, code alphabet, module/constructor names, store topology, "
+    "resolver wiring, metrics surface and operator command syntax consistent with the intent "
+    "belong in assumptions or downstream architecture/design, not separate human questions. "
+    "Non-blocking details and proposed defaults have human_confirmation_required=false; prefer "
+    "putting them in assumptions instead of open_questions. Preserve stated retention, privacy "
+    "and failure behavior rather than replacing them with a stronger delivery promise. Group "
+    "closely related real blockers and ask each once; never manufacture questions to fill a "
+    "checklist. A sufficiently explicit input should return open_questions=[].",
+)
+
 # A JSON object schema cannot express all required domain section names unless
 # they are enumerated; include them in instructions and verify them in gates.
 for role, required_sections in {

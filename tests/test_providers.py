@@ -55,7 +55,11 @@ def test_configured_output_budget_is_sent_and_does_not_change_resume_identity(mo
 
     monkeypatch.setattr("urllib.request.urlopen", open_request)
     provider = provider_from_environment(
-        {"DEEPSEEK_API_KEY": "test-key", "LLM_MAX_OUTPUT_TOKENS": "65536"}
+        {
+            "LLM_PROVIDER": "deepseek",
+            "DEEPSEEK_API_KEY": "test-key",
+            "LLM_MAX_OUTPUT_TOKENS": "65536",
+        }
     )
     assert provider.name == DeepSeekProvider(api_key="test-key").name
     with pytest.raises(ProviderError, match="max_tokens=65536.*LLM_MAX_OUTPUT_TOKENS"):

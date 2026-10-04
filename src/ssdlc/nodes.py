@@ -97,7 +97,7 @@ class Nodes(Engine):
                     "gate": "requirement",
                     "artifact_ref": state["active"]["requirement"],
                     "artifact": artifact,
-                    "actions": ["clarify", "approve", "reject"],
+                    "actions": ["clarify", "approve", "revise", "reject"],
                 }
             )
         )

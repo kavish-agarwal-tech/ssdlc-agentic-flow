@@ -29,6 +29,9 @@ class Validity(StrEnum):
 
 class Question(Model):
     id: str
+    uncertainty_type: Literal[
+        "PRODUCT_AMBIGUITY", "ARCHITECTURE_DECISION", "NON_BLOCKING_ASSUMPTION"
+    ] = "PRODUCT_AMBIGUITY"
     classification: Literal[
         "BLOCKING_AMBIGUITY",
         "NON_BLOCKING_AMBIGUITY",
@@ -41,7 +44,7 @@ class Question(Model):
     recommendation: str
     reasoning: str
     recommendation_is_binding: Literal[False] = False
-    human_confirmation_required: bool = True
+    human_confirmation_required: bool = False
 
 
 class Criterion(Model):

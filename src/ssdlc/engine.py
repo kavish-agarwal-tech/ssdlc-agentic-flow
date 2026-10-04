@@ -65,6 +65,27 @@ class Engine:
             reject_secrets(json.dumps(raw))
             result = schema.model_validate(raw)
             if role == "requirement":
+                if any(
+                    question.uncertainty_type != "PRODUCT_AMBIGUITY"
+                    and (
+                        question.human_confirmation_required
+                        or question.classification == "BLOCKING_AMBIGUITY"
+                    )
+                    for question in result.open_questions
+                ):
+                    raise ValueError("Only PRODUCT_AMBIGUITY may block requirement approval")
+                if any(
+                    question.human_confirmation_required
+                    and question.classification != "BLOCKING_AMBIGUITY"
+                    for question in result.open_questions
+                ):
+                    raise ValueError(
+                        "Non-blocking questions/defaults must not require separate human "
+                        "confirmation. Put design choices and proposed defaults in assumptions "
+                        "for normal artifact review. Only a genuinely unresolved material "
+                        "product decision may be BLOCKING_AMBIGUITY and require clarification. "
+                        "Preserve genuine blockers; do not simply hide or demote them."
+                    )
                 requirement_refs = set(result.functional_requirements) | set(
                     result.non_functional_requirements
                 )

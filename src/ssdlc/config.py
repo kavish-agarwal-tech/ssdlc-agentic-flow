@@ -32,7 +32,7 @@ def load_env_file(path: Path):
 
 def provider_from_environment(env=None):
     values = os.environ if env is None else env
-    name = values.get("LLM_PROVIDER", "deepseek")
+    name = values.get("LLM_PROVIDER", "mock")
     if name == "mock":
         return MockProvider()
     if name != "deepseek":

@@ -8,7 +8,9 @@ flowchart LR
   CLI --> Runtime["Runtime<br/>run identity and local lease"]
   Runtime --> Graph["LangGraph<br/>routing, parallel join, interrupts"]
   Graph --> Nodes["Nodes and policy<br/>typed proposals, approvals, evidence gates"]
-  Nodes --> Provider["Provider protocol<br/>DeepSeek or mock fixture"]
+  Nodes --> Provider["Provider protocol"]
+  Provider --> Mock["PRIMARY: deterministic workers<br/>URL-shortener templates"]
+  Provider --> DeepSeek["OPTIONAL: DeepSeek<br/>real-LLM extension"]
   Nodes --> Executor["Local executor<br/>Ruff, compile, pytest, wheel"]
   Nodes --> Repository["Artifact repository"]
   Repository --> Files["Filesystem<br/>versions, documents, source, candidates"]
@@ -24,7 +26,7 @@ flowchart LR
 | Runtime | `runtime.py` | Bind run/provider identity, open stores, snapshot brownfield input, start/resume workflows and report metrics. |
 | Graph | `graph.py`, `state.py` | Explicit conditional routes, parallel branch map merges and the join barrier. |
 | Engineering and policy | `nodes.py`, `engine.py`, `agents.py`, `models.py`, `policy.py` | Typed role contracts, semantic validation, bounded calls/reviews, exact approvals, invalidation and release gates. |
-| Providers | `providers.py`, `mock.py` | DeepSeek JSON-mode HTTP calls or the deterministic greeting fixture; no synthetic fallback. |
+| Providers | `providers.py`, `mock.py`, `url_demo.py`, `templates/` | Primary deterministic URL-shortener workers and independent source/test templates; optional DeepSeek JSON-mode HTTP calls. No synthetic fallback. |
 | Persistence | `persistence.py` | Immutable content files, Markdown/source companions, mutable metadata and a local audit hash chain. |
 | Tools | `tools.py` | Confined candidate materialization and actual fixed Python commands with captured evidence. |
 | Delivery packaging | `packaging.py`, `Runtime.package` | Export an approved release as a readable folder/ZIP, with named documents, source/tests, wheel, artifact references and evidence. No model calls or workflow changes. |
@@ -38,6 +40,21 @@ One Plan response contains ordered vertical slices with requirement references, 
 Each slice also contains a shared Python API contract as declaration stubs. Planning validates it before either generator runs; generated public signatures, data fields and direct test imports are checked before shared review. Persistent contract mismatches return to planning under the existing replan budget. Runtime behavior remains subject to independent tests, review and actual execution.
 
 Pydantic validates shape. Stage validators enforce exact references, coverage, meaningful required sections, dependency order, paths, file ownership and criterion-to-test mappings. Responses enter the cache only after validation; cached responses are checked again. Strict schemas can still reject a model response after bounded repair attempts, so model availability does not guarantee success.
+
+Default agents are deterministic specialized workers, not LLM simulations. They produce structured requirement, architecture/design, review, code, test, impact and readiness artifacts for bounded assignment scenarios. `PRODUCT_AMBIGUITY` may block requirements; `ARCHITECTURE_DECISION` and `NON_BLOCKING_ASSUMPTION` belong in normal artifact review. Greenfield has six functional requirements, four nonfunctional requirements, eleven criteria and zero clarification questions. Expiration asks four product questions. Brownfield parses the supplied module and patches daily analytics while preserving its source and database records.
+
+## Generated application
+
+```mermaid
+flowchart LR
+  Client["Local HTTP client"] --> Server["HTTPServer / create_server"]
+  Server -->|create / redirect / analytics| Store["Store: validate and transact"]
+  Store --> SQLite["links.sqlite<br/>mappings + synchronous counts"]
+  Server -->|GET /health| Health["Liveness: 200 / status ok"]
+  Store -->|database failure| Error["Sanitized 503"]
+```
+
+The application's SQLite database is separate from the platform's checkpoint/audit databases. The server binds loopback and never fetches a target. SQLite transactions commit creation and successful redirect counts; generated tests reopen the same file to verify durability. The daily extension adds a table and enables transactional UTC buckets; the expiration scenario stores chosen TTLs separately so prior mappings stay permanent.
 
 ## Filesystem and database boundary
 

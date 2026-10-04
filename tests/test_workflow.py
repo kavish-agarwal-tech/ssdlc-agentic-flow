@@ -18,7 +18,7 @@ from ssdlc.cli import (
 from ssdlc.mock import MINIMAL_REQUIREMENT, MockProvider
 from ssdlc.nodes import junit_test_id
 from ssdlc.persistence import digest
-from ssdlc.policy import Policy
+from ssdlc.policy import Policy, approved
 from ssdlc.runtime import Runtime
 
 
@@ -264,6 +264,112 @@ def test_requirement_provenance_fields_are_system_owned(tmp_path):
         assert requirement["decisions"] == {}
 
 
+def test_nonblocking_default_is_reviewed_with_requirement(tmp_path):
+    class DefaultsProvider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "requirement":
+                question = result["open_questions"][0]
+                question["classification"] = "PROPOSED_DEFAULT"
+                question.pop("human_confirmation_required")
+            return result
+
+    with Runtime(tmp_path, provider=DefaultsProvider()) as runtime:
+        result = runtime.start(MINIMAL_REQUIREMENT, "defaults")
+        gate = result["interrupts"][0]
+        assert "approve" in available_actions(gate)
+        assert gate["artifact"]["approval_status"] == "DRAFT"
+        result = decide(runtime, "defaults", result)
+        assert approved(result["state"], "requirement")["approval_status"] == "APPROVED"
+
+
+def test_blocking_classification_cannot_be_bypassed_by_confirmation_flag(tmp_path):
+    class BlockerProvider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "requirement":
+                result["open_questions"][0]["human_confirmation_required"] = False
+            return result
+
+    with Runtime(tmp_path, provider=BlockerProvider()) as runtime:
+        result = runtime.start(MINIMAL_REQUIREMENT, "blocker")
+        assert "approve" not in available_actions(result["interrupts"][0])
+        with pytest.raises(ValueError, match="Clarify"):
+            decide(runtime, "blocker", result)
+
+
+def test_optional_question_confirmation_is_repaired_without_hiding_blocker(tmp_path):
+    class RepairProvider(MockProvider):
+        def __init__(self):
+            self.contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "requirement":
+                self.contexts.append(context)
+                optional = {**result["open_questions"][0], "id": "layout"}
+                optional["classification"] = "NON_BLOCKING_AMBIGUITY"
+                optional["human_confirmation_required"] = len(self.contexts) == 1
+                result["open_questions"].append(optional)
+            return result
+
+    provider = RepairProvider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = runtime.start(MINIMAL_REQUIREMENT, "repair")
+        assert len(provider.contexts) == 2
+        assert "Non-blocking questions" in provider.contexts[1]["validation_feedback"]
+        questions = result["interrupts"][0]["artifact"]["content"]["open_questions"]
+        assert questions[0]["classification"] == "BLOCKING_AMBIGUITY"
+        assert questions[1]["human_confirmation_required"] is False
+        with pytest.raises(ValueError, match="Clarify"):
+            decide(runtime, "repair", result)
+
+
+def test_requirement_revision_needs_no_answers_and_still_requires_approval(tmp_path):
+    with Runtime(tmp_path) as runtime:
+        result = runtime.start(MINIMAL_REQUIREMENT, "revise-draft")
+        gate = result["interrupts"][0]
+        replies = iter(["revise", "reviewer", "Reduce unnecessary questions"])
+        decision = prompt_decision(gate, input_fn=lambda _: next(replies), output_fn=lambda _: None)
+        assert "answers" not in decision
+        result = runtime.resume("revise-draft", decision)
+        assert result["interrupts"][0]["artifact_ref"] == "requirement@2"
+        assert result["interrupts"][0]["artifact"]["approval_status"] == "DRAFT"
+        assert result["state"]["answers"] == {}
+        assert "architecture" not in result["state"]["active"]
+        assert runtime.repo.verify_audit("revise-draft")
+
+
+def test_cli_clarify_only_asks_blocking_questions():
+    gate = {
+        "gate": "requirement",
+        "artifact_ref": "requirement@1",
+        "actions": ["clarify", "approve", "revise", "reject"],
+        "artifact": {
+            "content": {
+                "open_questions": [
+                    {
+                        "id": "optional",
+                        "classification": "PROPOSED_DEFAULT",
+                        "human_confirmation_required": False,
+                        "unclear": "File layout?",
+                    },
+                    {
+                        "id": "blocking",
+                        "classification": "BLOCKING_AMBIGUITY",
+                        "human_confirmation_required": False,
+                        "unclear": "Blank behavior?",
+                        "options": ["Reject", "Allow"],
+                    },
+                ]
+            }
+        },
+    }
+    replies = iter(["clarify", "reviewer", "Resolve blank behavior", "1"])
+    decision = prompt_decision(gate, input_fn=lambda _: next(replies), output_fn=lambda _: None)
+    assert decision["answers"] == {"blocking": "Reject"}
+
+
 def test_file_bundle_agent_prompts_require_all_contract_fields():
     for role in ("coding", "test_design"):
         instructions = CONTRACTS[role][1]
@@ -505,7 +611,7 @@ def test_interactive_actions_hide_approval_with_unanswered_question():
         },
     }
 
-    assert available_actions(gate) == ["clarify", "reject"]
+    assert available_actions(gate) == ["clarify", "reject", "revise"]
 
 
 def test_interactive_session_resumes_until_workflow_finishes():
