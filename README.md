@@ -124,6 +124,8 @@ From the repository root:
 
 Use the original `--home`; global flags precede the subcommand. Restart an open CLI after source updates. Generic/live execution requires `--allow-local-execution`. At safe stops inspect evidence first; `retry` renews a bounded budget and never skips tests. Requirement revisions retain history and need new approval.
 
+Validation temporary files live inside the run workspace, outside its candidate, so pytest does not depend on shared Windows temp-folder permissions. A safe stop includes the failed tool command and output; fix that reported cause before retrying.
+
 Default delivery:
 
 ```text

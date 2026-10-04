@@ -832,6 +832,16 @@ class Nodes(Engine):
                     "reason": state.get("safe_stop_reason"),
                     "findings": list(state["findings"].values()),
                     "recovery_node": state.get("recovery_node"),
+                    "failed_tools": [
+                        {
+                            key: result.get(key)
+                            for key in ("tool", "command", "exit_status", "output_summary")
+                        }
+                        for result in {
+                            r["tool"]: r for r in state.get("tool_results", {}).values()
+                        }.values()
+                        if result.get("exit_status") != 0
+                    ],
                     "actions": actions,
                     "options": "Inspect evidence, correct the provider/tool configuration, explicitly renew a bounded budget, or abort.",
                     "revision_targets": ["generation", "planning_design", "requirement"]

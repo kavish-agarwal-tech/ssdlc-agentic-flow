@@ -26,9 +26,10 @@ LOADED_SOURCE_FINGERPRINT = source_fingerprint()
 
 
 class LLMProgressHandler(logging.Handler):
-    def __init__(self, stream=None):
+    def __init__(self, stream=None, real_llm=True):
         super().__init__(logging.INFO)
         self.stream = stream or sys.stderr
+        self.worker_label = "LLM" if real_llm else "Deterministic agent"
         self.animated = getattr(self.stream, "isatty", lambda: False)()
         self.active = {}
         self._state_lock = Lock()
@@ -50,11 +51,13 @@ class LLMProgressHandler(logging.Handler):
                 details = json.loads(event.get("rationale", "{}"))
                 self._complete(details.get("operation", ""), role)
             elif action == "retry_attempted":
-                self._status(f"[retry] LLM response for {role} needs correction; retrying")
+                self._status(
+                    f"[retry] {self.worker_label} response for {role} needs correction; retrying"
+                )
             elif action == "agent_failure":
-                self._status(f"[working] LLM attempt for {role} failed validation")
+                self._status(f"[working] {self.worker_label} attempt for {role} failed validation")
             elif action == "safe_stop":
-                self._finish_all("LLM activity stopped")
+                self._finish_all(f"{self.worker_label} activity stopped")
         except (TypeError, ValueError, KeyError):
             self.handleError(record)
 
@@ -62,7 +65,7 @@ class LLMProgressHandler(logging.Handler):
         with self._state_lock:
             self.active[operation] = role
             if not self.animated:
-                self.stream.write(f"[wait] LLM: {role} is working...\n")
+                self.stream.write(f"[wait] {self.worker_label}: {role} is working...\n")
                 self.stream.flush()
 
     def _complete(self, operation, role):
@@ -72,7 +75,9 @@ class LLMProgressHandler(logging.Handler):
                 return
             if self.animated:
                 self.stream.write("\r" + " " * 100 + "\r")
-            self.stream.write(f"[done] LLM response received for {completed_role}\n")
+            self.stream.write(
+                f"[done] {self.worker_label} response received for {completed_role}\n"
+            )
             self.stream.flush()
 
     def _status(self, message):
@@ -96,7 +101,9 @@ class LLMProgressHandler(logging.Handler):
             with self._state_lock:
                 if self.active:
                     roles = ", ".join(dict.fromkeys(self.active.values()))
-                    self.stream.write(f"\r[{next(self.frames)}] Waiting for LLM: {roles}...")
+                    self.stream.write(
+                        f"\r[{next(self.frames)}] Waiting for {self.worker_label}: {roles}..."
+                    )
                     self.stream.flush()
 
     def close(self):
@@ -107,13 +114,13 @@ class LLMProgressHandler(logging.Handler):
 
 
 @contextmanager
-def interactive_progress(enabled):
+def interactive_progress(enabled, real_llm=True):
     if not enabled:
         yield
         return
     logger = logging.getLogger("ssdlc.audit")
     previous_level = logger.level
-    handler = LLMProgressHandler()
+    handler = LLMProgressHandler(real_llm=real_llm)
     logger.setLevel(logging.INFO)
     logger.addHandler(handler)
     try:
@@ -441,7 +448,7 @@ def main(argv=None):
             or (args.command == "demo" and args.provider == "mock"),
         ) as runtime:
             if args.command == "start":
-                with interactive_progress(args.interactive):
+                with interactive_progress(args.interactive, args.provider == "deepseek"):
                     result = runtime.start(
                         args.requirement.read_text(encoding="utf-8"),
                         args.run,
@@ -454,7 +461,7 @@ def main(argv=None):
                         emit(summary(result))
             elif args.command == "resume":
                 if args.interactive:
-                    with interactive_progress(True):
+                    with interactive_progress(True, args.provider == "deepseek"):
                         result = runtime.inspect(args.run)
                         result = interactive_session(runtime, result)
                         report_interactive_result(result)
@@ -540,7 +547,7 @@ def main(argv=None):
                         result = runtime.resume(run, decision)
                     emit(summary(result))
                 else:
-                    with interactive_progress(True):
+                    with interactive_progress(True, args.provider == "deepseek"):
                         result = interactive_session(runtime, result)
                         report_interactive_result(result)
                 if (

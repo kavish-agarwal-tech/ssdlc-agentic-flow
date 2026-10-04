@@ -48,11 +48,15 @@ The independent Test Design worker consumes approved requirements/design only. I
 
 Tools run in the assembled candidate using the CLI interpreter. They install no dependencies and strip application credentials from child environments. The known demo enables execution; generic/live runs require `--allow-local-execution`. Candidate fingerprints and all mapped executed tests must pass before final approval. Packaging checks approval, audit and evidence integrity again.
 
+Each tool invocation uses a unique `runs/<run>/tool-tmp/<id>/` directory for temporary files. Pytest receives an explicit `--basetemp` beneath it, avoiding shared Windows `pytest-of-unknown` permissions. Temporary directories stay outside the candidate and are not exported in the application package. Safe stops show failed tool commands/output; deterministic progress is labeled as an agent rather than an LLM call.
+
 The application is a local prototype with synchronous SQLite counting. Health is liveness, not readiness. HTTPServer, local actor identities and filesystem guards do not establish production hosting, authentication or process isolation. Metrics count tool events; JUnit reports individual tests. No coverage percentage or model-quality score is claimed.
 
 ## Recorded evidence
 
 On October 4, 2026, local verification passed **108 platform tests**, Ruff lint/format checks and a platform wheel build. A separately installed platform wheel completed the actual greenfield workflow and folder/ZIP packaging using its bundled templates. The three recorded scenarios passed **10, 11 and 11 generated application tests**, respectively, plus compilation, lint and wheel build. These are measured results from the default deterministic path.
+
+The Windows temp-directory recovery follow-up passed **111 platform tests** and the wheel build. The user's `demo-greenfield` run retried validation with workspace-owned temporary directories, passed its ten application tests and build, and reached the separate final human release gate. Its earlier failed attempts remain in audit history; no final approval was supplied by the recovery.
 
 The [offline execution summary](../examples/url-shortener/offline-execution.json) records dated scenario results, actual tool output, approvals, artifact references, JUnit counts and audit integrity. These are deterministic template results with synthetic approvals, not live-LLM evidence. Rerun validation after future changes.
 

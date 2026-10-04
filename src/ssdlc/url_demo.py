@@ -398,11 +398,18 @@ def review(role, context):
 
 
 def failure_analysis(context):
-    results = [value for value in context["tool_results"].values() if value.get("exit_status") != 0]
+    latest = {value["tool"]: value for value in context["tool_results"].values()}
+    results = [value for value in latest.values() if value.get("exit_status") != 0]
     output = json.dumps(results).lower()
     if any(
         fragment in output
-        for fragment in ("no module named", "filenotfounderror", "command timed out")
+        for fragment in (
+            "no module named",
+            "filenotfounderror",
+            "command timed out",
+            "permissionerror",
+            "access is denied",
+        )
     ):
         category = "ENVIRONMENT_OR_TOOLING"
     elif "importerror" in output:
@@ -415,10 +422,29 @@ def failure_analysis(context):
         category = "IMPLEMENTATION_DEFECT"
     else:
         category = "ENVIRONMENT_OR_TOOLING"
+    failed = results[0] if results else {}
+    lines = failed.get("output_summary", "").splitlines()
+    detail = next(
+        (
+            line.strip()
+            for line in lines
+            if any(
+                term in line.lower()
+                for term in (
+                    "permissionerror",
+                    "no module named",
+                    "importerror",
+                    "assertionerror",
+                    "command timed out",
+                )
+            )
+        ),
+        next((line.strip() for line in lines if line.strip()), "No failed output available"),
+    )
     return dict(
         category=category,
         evidence=["Failed saved tool results: " + json.dumps(results)],
-        reasoning="Deterministic classification from actual failed tool output; bounded retry, no model diagnosis",
+        reasoning=f"{category}: {failed.get('tool', 'tool')} exited {failed.get('exit_status', 'unknown')}: {detail[:350]}. Correct the reported cause before retrying.",
     )
 
 

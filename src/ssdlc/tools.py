@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path, PurePosixPath
 
-from ssdlc.models import ToolResult
+from ssdlc.models import ToolResult, uid
 
 
 class ToolError(ValueError):
@@ -118,7 +118,13 @@ class Executor:
             )
         if not cwd.resolve().is_relative_to(self.workspace) or cwd.is_symlink():
             raise ToolError("Execution directory outside configured workspace")
-        command = self.commands[tool]
+        command = list(self.commands[tool])
+        # Keep each invocation away from shared Windows pytest/temp directories.
+        # Outside the candidate: temporary output must not change its fingerprint.
+        scratch = safe_path(self.workspace, f"tool-tmp/{uid()}")
+        scratch.mkdir(parents=True, exist_ok=False)
+        if tool == "test":
+            command.extend(["--basetemp", str(scratch / "pytest")])
         reject_secrets(" ".join(command))
         allowed = {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "COMSPEC", "PATHEXT"}
         env = {key: value for key, value in os.environ.items() if key.upper() in allowed}
@@ -128,6 +134,9 @@ class Executor:
                 "PYTHONNOUSERSITE": "1",
                 "PIP_NO_INDEX": "1",
                 "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+                "TEMP": str(scratch),
+                "TMP": str(scratch),
+                "TMPDIR": str(scratch),
             }
         )
         before = tree_digest(cwd)
