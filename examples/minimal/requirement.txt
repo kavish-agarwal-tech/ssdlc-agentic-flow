@@ -1,0 +1,1 @@
+Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.

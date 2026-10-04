@@ -1,0 +1,1 @@
+Add click analytics grouped by short URL and expose an analytics API. Inspect the existing service first, assess APIs, persistence, compatibility, tests and regression risks, and clarify ownership and analytics consistency before changing code.

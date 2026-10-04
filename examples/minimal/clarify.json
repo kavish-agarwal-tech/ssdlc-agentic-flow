@@ -1,0 +1,7 @@
+{
+  "actor": "local-operator",
+  "action": "clarify",
+  "rationale": "Blank names are invalid; confirm the validation contract.",
+  "artifact_ref": "requirement@1",
+  "answers": {"blank": "Reject with ValueError"}
+}

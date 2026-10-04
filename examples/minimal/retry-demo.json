@@ -1,0 +1,5 @@
+{
+  "actor": "synthetic-demo-human",
+  "action": "retry",
+  "rationale": "SCRIPTED FIXTURE ONLY: isolated Ruff configuration from the parent repository; rerun deterministic validation."
+}

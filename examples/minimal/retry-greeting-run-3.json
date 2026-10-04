@@ -1,0 +1,5 @@
+{
+  "actor": "local-operator",
+  "action": "retry",
+  "rationale": "Retry after reviewing the planning safe-stop evidence."
+}

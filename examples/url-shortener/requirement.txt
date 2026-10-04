@@ -1,0 +1,13 @@
+Build a production-oriented URL Shortener service from scratch with core APIs, analytics, and reliability considerations. Treat this as a GREENFIELD workload.
+
+Initial functional intent:
+1. Create a shortened URL from a valid long URL.
+2. Return a short code / short URL.
+3. Redirect a short URL to the original long URL.
+4. Track basic click/redirect analytics.
+5. Expose a way to retrieve analytics for a short URL.
+6. Persist URL mappings.
+7. Handle invalid or unknown short codes safely.
+8. Provide health/readiness behavior suitable for local deployment/demo.
+
+These are initial intentions, not approved complete requirements. Identify missing decisions about expiration, authentication, URL schemes, duplicates, uniqueness, analytics consistency, availability, scale, authoritative records, outage behavior, caching, mutability, abuse prevention, logging, and retention. For blocking questions, explain why it matters, offer alternatives and a non-binding recommendation, and wait for human confirmation. Do not hard-code a product stack. Architecture and implementation must follow explicit approved requirements.

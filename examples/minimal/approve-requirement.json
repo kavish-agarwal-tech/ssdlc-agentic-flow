@@ -1,0 +1,6 @@
+{
+  "actor": "local-operator",
+  "action": "approve",
+  "rationale": "Reviewed normalized requirements and explicit blank-name decision.",
+  "artifact_ref": "requirement@2"
+}

@@ -1,0 +1,2988 @@
+{
+  "state": {
+    "workflow_run_id": "initial-demo",
+    "project_id": "initial-demo",
+    "scenario_type": "greenfield",
+    "workflow_status": "READY_FOR_DEPLOYMENT",
+    "original_text": "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.",
+    "workspace": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo",
+    "provider_id": "mock-fixture-v1",
+    "artifacts": {
+      "requirement@1": {
+        "id": "requirement",
+        "version": 1,
+        "kind": "requirement",
+        "content": {
+          "original_text": "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.",
+          "normalized_requirement": "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.",
+          "functional_requirements": {
+            "FR1": "Return a greeting",
+            "FR2": "Validate input"
+          },
+          "non_functional_requirements": {
+            "NFR1": "Local deterministic validation, no secrets in logs"
+          },
+          "invariants": [
+            "Only approved requirements drive implementation"
+          ],
+          "assumptions": [
+            "Offline fixture analysis; human validation required"
+          ],
+          "open_questions": [
+            {
+              "id": "blank",
+              "classification": "BLOCKING_AMBIGUITY",
+              "unclear": "How should blank names behave?",
+              "why_it_matters": "Defines the public validation contract.",
+              "options": [
+                "Reject with ValueError",
+                "Use World"
+              ],
+              "recommendation": "Reject with ValueError",
+              "reasoning": "Conservative starting point; confirm the actual product constraints.",
+              "recommendation_is_binding": false,
+              "human_confirmation_required": true
+            }
+          ],
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "requirement_ref": "FR1",
+              "description": "Greeting trims a non-empty string and returns Hello, <name>!"
+            },
+            {
+              "id": "AC2",
+              "requirement_ref": "FR2",
+              "description": "Blank names raise ValueError; non-strings raise TypeError."
+            }
+          ],
+          "changes_from_previous_version": [],
+          "reason_for_change": "Initial analysis",
+          "initiating_actor": "requirement_agent",
+          "human_input": {},
+          "decisions": {}
+        },
+        "dependencies": [],
+        "validity": "SUPERSEDED",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:15.570544+00:00",
+        "digest": "961ff98b2b26c13557af1a43e5451139749d0193535715a180e60919ec496cc0"
+      },
+      "requirement@2": {
+        "id": "requirement",
+        "version": 2,
+        "kind": "requirement",
+        "content": {
+          "original_text": "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.",
+          "normalized_requirement": "Create a Python greeting library: greet(name) returns Hello, <trimmed name>! Reject non-string inputs and clarify blank-name behavior.",
+          "functional_requirements": {
+            "FR1": "Return a greeting",
+            "FR2": "Validate input"
+          },
+          "non_functional_requirements": {
+            "NFR1": "Local deterministic validation, no secrets in logs"
+          },
+          "invariants": [
+            "Only approved requirements drive implementation"
+          ],
+          "assumptions": [
+            "Offline fixture analysis; human validation required"
+          ],
+          "open_questions": [
+            {
+              "id": "blank",
+              "classification": "BLOCKING_AMBIGUITY",
+              "unclear": "How should blank names behave?",
+              "why_it_matters": "Defines the public validation contract.",
+              "options": [
+                "Reject with ValueError",
+                "Use World"
+              ],
+              "recommendation": "Reject with ValueError",
+              "reasoning": "Conservative starting point; confirm the actual product constraints.",
+              "recommendation_is_binding": false,
+              "human_confirmation_required": true
+            }
+          ],
+          "acceptance_criteria": [
+            {
+              "id": "AC1",
+              "requirement_ref": "FR1",
+              "description": "Greeting trims a non-empty string and returns Hello, <name>!"
+            },
+            {
+              "id": "AC2",
+              "requirement_ref": "FR2",
+              "description": "Blank names raise ValueError; non-strings raise TypeError."
+            }
+          ],
+          "changes_from_previous_version": [
+            "Reanalyzed with human input or failure evidence"
+          ],
+          "reason_for_change": "Human clarification / governed re-planning",
+          "initiating_actor": "requirement_agent",
+          "human_input": {
+            "blank": "Reject with ValueError"
+          },
+          "decisions": {
+            "blank": "Reject with ValueError"
+          }
+        },
+        "dependencies": [],
+        "validity": "VALID",
+        "approval_status": "APPROVED",
+        "approver": "synthetic-demo-human",
+        "approval_timestamp": "2026-10-03T22:44:15.873989+00:00",
+        "created_at": "2026-10-03T22:44:15.720719+00:00",
+        "digest": "17a2e1be36047312b87681fb23bb21a1d06725be46edf48d5b53d75c2bb95d39"
+      },
+      "architecture@1": {
+        "id": "architecture",
+        "version": 1,
+        "kind": "architecture",
+        "content": {
+          "sections": {
+            "open_decisions": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "goals": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "performance": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "system_of_record": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "failure_behavior": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "observability": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "data_model": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "resiliency": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "scalability": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "security": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "responsibilities": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "reliability": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "data_ownership": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "operations": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "tradeoffs": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "risks": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "components": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "alternatives": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "interfaces": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "availability": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "context": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "consistency": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "assumptions": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "deployment": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "target_state": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "scope": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture.",
+            "constraints": "Pure greeting function; validation at public boundary; no shared state, storage or network. Scope: approved synthetic greeting fixture."
+          },
+          "requirement_mapping": {
+            "FR1": "greeting.greet",
+            "FR2": "greeting.greet",
+            "NFR1": "greeting.greet"
+          },
+          "technology_stack": {
+            "language": "Python",
+            "framework": "standard library",
+            "test": "pytest",
+            "build": "setuptools",
+            "persistence": "none"
+          },
+          "adrs": [
+            {
+              "adr_id": "ADR-001",
+              "decision": "Python library",
+              "context": "Small deterministic local greeting API",
+              "alternatives": [
+                {
+                  "description": "Python library",
+                  "advantages": [
+                    "Portable"
+                  ],
+                  "disadvantages": [
+                    "Requires runtime"
+                  ],
+                  "complexity": "Low",
+                  "operational_impact": "Local library",
+                  "security_impact": "No network or storage",
+                  "reliability_impact": "Deterministic pure function",
+                  "scalability_impact": "Caller-managed",
+                  "cost_implication": "No service cost"
+                },
+                {
+                  "description": "Java library",
+                  "advantages": [
+                    "Portable"
+                  ],
+                  "disadvantages": [
+                    "Requires runtime"
+                  ],
+                  "complexity": "Higher build setup",
+                  "operational_impact": "Local library",
+                  "security_impact": "No network or storage",
+                  "reliability_impact": "Deterministic pure function",
+                  "scalability_impact": "Caller-managed",
+                  "cost_implication": "No service cost"
+                }
+              ],
+              "recommendation": "Python library",
+              "tradeoffs": [
+                "Runtime dependency; smallest implementation for fixture"
+              ],
+              "rationale": "Fits approved synthetic scope",
+              "requirement_refs": [
+                "FR1",
+                "FR2"
+              ],
+              "review_refs": [],
+              "decision_owner": "human",
+              "affected_artifacts": [
+                "plan",
+                "lld",
+                "code",
+                "tests"
+              ]
+            }
+          ]
+        },
+        "dependencies": [
+          "requirement@2"
+        ],
+        "validity": "VALID",
+        "approval_status": "APPROVED",
+        "approver": "synthetic-demo-human",
+        "approval_timestamp": "2026-10-03T22:44:16.041617+00:00",
+        "created_at": "2026-10-03T22:44:15.886482+00:00",
+        "digest": "4b557f0a4a02bab37f1bbdb2fa258d0351f51a9547e79d137f4953b148750357"
+      },
+      "ADR-001@1": {
+        "id": "ADR-001",
+        "version": 1,
+        "kind": "adr",
+        "content": {
+          "adr_id": "ADR-001",
+          "decision": "Python library",
+          "context": "Small deterministic local greeting API",
+          "alternatives": [
+            {
+              "description": "Python library",
+              "advantages": [
+                "Portable"
+              ],
+              "disadvantages": [
+                "Requires runtime"
+              ],
+              "complexity": "Low",
+              "operational_impact": "Local library",
+              "security_impact": "No network or storage",
+              "reliability_impact": "Deterministic pure function",
+              "scalability_impact": "Caller-managed",
+              "cost_implication": "No service cost"
+            },
+            {
+              "description": "Java library",
+              "advantages": [
+                "Portable"
+              ],
+              "disadvantages": [
+                "Requires runtime"
+              ],
+              "complexity": "Higher build setup",
+              "operational_impact": "Local library",
+              "security_impact": "No network or storage",
+              "reliability_impact": "Deterministic pure function",
+              "scalability_impact": "Caller-managed",
+              "cost_implication": "No service cost"
+            }
+          ],
+          "recommendation": "Python library",
+          "tradeoffs": [
+            "Runtime dependency; smallest implementation for fixture"
+          ],
+          "rationale": "Fits approved synthetic scope",
+          "requirement_refs": [
+            "FR1",
+            "FR2"
+          ],
+          "review_refs": [],
+          "decision_owner": "human",
+          "affected_artifacts": [
+            "plan",
+            "lld",
+            "code",
+            "tests"
+          ]
+        },
+        "dependencies": [
+          "architecture@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "APPROVED",
+        "approver": "synthetic-demo-human",
+        "approval_timestamp": "2026-10-03T22:44:16.044026+00:00",
+        "created_at": "2026-10-03T22:44:15.889367+00:00",
+        "digest": "26e44bb0a1e4e5c07b5cda3941fa6b5733fa58cb9851a7134f0fb05c07d06dd9"
+      },
+      "plan@1": {
+        "id": "plan",
+        "version": 1,
+        "kind": "plan",
+        "content": {
+          "slices": [
+            {
+              "id": "greeting",
+              "title": "Validated greeting end to end",
+              "depends_on": [],
+              "requirement_refs": [
+                "FR1",
+                "FR2"
+              ],
+              "acceptance_criteria": [
+                "AC1",
+                "AC2"
+              ],
+              "design_artifacts": [
+                "lld:greeting"
+              ],
+              "risks": [
+                "Input boundary ambiguity"
+              ],
+              "required_reviews": [
+                "code",
+                "tests"
+              ],
+              "deterministic_validation": [
+                "lint",
+                "static",
+                "test",
+                "build"
+              ],
+              "human_gates": [
+                "architecture",
+                "release"
+              ]
+            }
+          ],
+          "rationale": "One coherent vertical slice",
+          "proposed_scope_changes": []
+        },
+        "dependencies": [
+          "requirement@2",
+          "architecture@1",
+          "ADR-001@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:16.059126+00:00",
+        "digest": "f470fbb8b9d9a9868b3b02e78cc8de29793694d98c81e8e29b6dc1208a5ed52d"
+      },
+      "lld:greeting@1": {
+        "id": "lld:greeting",
+        "version": 1,
+        "kind": "lld",
+        "content": {
+          "slice_id": "greeting",
+          "sections": {
+            "sequence": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "components": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "logging": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "interfaces": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "test_seams": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "metrics": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "implementation_notes": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "contracts": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "errors": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "persistence": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "concurrency": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "data_structures": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "layout": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors.",
+            "validation": "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors."
+          },
+          "requirement_refs": [
+            "FR1",
+            "FR2"
+          ],
+          "adr_refs": [
+            "ADR-001"
+          ],
+          "acceptance_criteria": [
+            "AC1",
+            "AC2"
+          ]
+        },
+        "dependencies": [
+          "plan@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:16.072852+00:00",
+        "digest": "86d5a29bb64eaf2829688524f734ae3e6f165655623a0627c8c419d4855c9c4f"
+      },
+      "code:greeting@1": {
+        "id": "code:greeting",
+        "version": 1,
+        "kind": "code",
+        "content": {
+          "files": {
+            "greeting.py": "def greet(name: str) -> str:\n    if not isinstance(name, str):\n        raise TypeError(\"name must be a string\")\n    name = name.strip()\n    if not name:\n        raise ValueError(\"name cannot be blank\")\n    return f\"Hello, {name}!\"\n",
+            "pyproject.toml": "[build-system]\nrequires = [\"setuptools>=77\"]\nbuild-backend = \"setuptools.build_meta\"\n\n[project]\nname = \"synthetic-greeting\"\nversion = \"0.1.0\"\nrequires-python = \">=3.11\"\n\n[tool.setuptools]\npy-modules = [\"greeting\"]\n\n[tool.pytest.ini_options]\npythonpath = [\".\"]\njunit_family = \"legacy\"\n"
+          },
+          "change_summary": "Implement approved greeting fixture",
+          "criterion_tests": {},
+          "deviations": []
+        },
+        "dependencies": [
+          "lld:greeting@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:16.108006+00:00",
+        "digest": "7542d62cb5de97dd1a0f6af054102f13076be38ab136bc65a1cfebf262c00659"
+      },
+      "tests:greeting@1": {
+        "id": "tests:greeting",
+        "version": 1,
+        "kind": "tests",
+        "content": {
+          "files": {
+            "tests/test_greeting.py": "import pytest\n\nfrom greeting import greet\n\n\ndef test_greeting():\n    assert greet(\"  Ada  \") == \"Hello, Ada!\"\n    assert greet(\"世界\") == \"Hello, 世界!\"\n\n\ndef test_blank():\n    with pytest.raises(ValueError):\n        greet(\"   \")\n    with pytest.raises(ValueError):\n        greet(\"\")\n\n\ndef test_type():\n    with pytest.raises(TypeError):\n        greet(None)\n"
+          },
+          "change_summary": "Independent acceptance tests",
+          "criterion_tests": {
+            "AC1": [
+              "tests/test_greeting.py::test_greeting"
+            ],
+            "AC2": [
+              "tests/test_greeting.py::test_blank",
+              "tests/test_greeting.py::test_type"
+            ]
+          },
+          "deviations": []
+        },
+        "dependencies": [
+          "lld:greeting@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:16.109450+00:00",
+        "digest": "90914015d1b56d192fa99001c3859b9b5f24b7444c74e3c4e57b676b9a22382d"
+      },
+      "validation:greeting@1": {
+        "id": "validation:greeting",
+        "version": 1,
+        "kind": "validation",
+        "content": {
+          "results": [
+            {
+              "id": "98a92c03b420488ab247956c0dae40c3",
+              "tool": "lint",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "ruff",
+                "check",
+                "."
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 1,
+              "duration": 0.19338269997388124,
+              "output_summary": "I001 [*] Import block is un-sorted or un-formatted\n --> tests\\test_greeting.py:1:1\n  |\n1 | / import pytest\n2 | |\n3 | | from greeting import greet\n  | |__________________________^\nhelp: Organize imports\n  |\n1 | import pytest\n  -\n2 | from greeting import greet\n  |\n\nFound 1 error.\n[*] 1 fixable with the `--fix` option.\n",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:44:16.362550+00:00"
+            },
+            {
+              "id": "08b775148e6343279163ce2f0b407dbf",
+              "tool": "static",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "compileall",
+                "-q",
+                "."
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 0,
+              "duration": 0.2430261999834329,
+              "output_summary": "",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:44:16.612126+00:00"
+            },
+            {
+              "id": "38a5ea6b623f45d183988da0436bf752",
+              "tool": "test",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "pytest",
+                "-q",
+                "--junitxml=.results.xml"
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 0,
+              "duration": 1.2129077999852598,
+              "output_summary": "...                                                                      [100%]\n3 passed in 0.08s\n",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:44:17.831771+00:00"
+            }
+          ],
+          "candidate": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077"
+        },
+        "dependencies": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "validity": "SUPERSEDED",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:44:17.832018+00:00",
+        "digest": "5e80a6f27c983c3c5802f14261547652260d7be39235d9e0652fe4a375935957"
+      },
+      "validation:greeting@2": {
+        "id": "validation:greeting",
+        "version": 2,
+        "kind": "validation",
+        "content": {
+          "results": [
+            {
+              "id": "b552ea0fdb7b4603bb02a7564d23c827",
+              "tool": "lint",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "ruff",
+                "check",
+                "--isolated",
+                "."
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 0,
+              "duration": 0.1554240999976173,
+              "output_summary": "All checks passed!\n",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:45:02.742634+00:00"
+            },
+            {
+              "id": "3e24461f9ea74b0088c9f6e5fa127554",
+              "tool": "static",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "compileall",
+                "-q",
+                "."
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 0,
+              "duration": 0.17729969997890294,
+              "output_summary": "",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:45:02.927171+00:00"
+            },
+            {
+              "id": "f6b4be932c2849ada2d4c412586cca77",
+              "tool": "test",
+              "command": [
+                "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+                "-m",
+                "pytest",
+                "-q",
+                "--junitxml=.results.xml"
+              ],
+              "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+              "exit_status": 0,
+              "duration": 0.9564958999399096,
+              "output_summary": "...                                                                      [100%]\n3 passed in 0.07s\n",
+              "artifact_refs": [
+                "code:greeting@1",
+                "tests:greeting@1"
+              ],
+              "environment": {
+                "python": "3.14.6",
+                "platform": "win32"
+              },
+              "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+              "created_at": "2026-10-03T22:45:03.891532+00:00"
+            }
+          ],
+          "candidate": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077"
+        },
+        "dependencies": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:45:03.891699+00:00",
+        "digest": "02e2807c360db2a00eb766b20ae24362aae6c0aa60c735ae6cf94e7fa89fee0a"
+      },
+      "acceptance:greeting@1": {
+        "id": "acceptance:greeting",
+        "version": 1,
+        "kind": "acceptance",
+        "content": {
+          "criteria": {
+            "AC1": [
+              "tests/test_greeting.py::test_greeting"
+            ],
+            "AC2": [
+              "tests/test_greeting.py::test_blank",
+              "tests/test_greeting.py::test_type"
+            ]
+          },
+          "passed_tests": [
+            "tests/test_greeting.py::test_blank",
+            "tests/test_greeting.py::test_greeting",
+            "tests/test_greeting.py::test_type"
+          ]
+        },
+        "dependencies": [
+          "validation:greeting@2"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:45:03.921350+00:00",
+        "digest": "b6660923a70fbebda4387a44c36bb6f5f51297c0f0ba7fad91148ce40db12111"
+      },
+      "documentation@1": {
+        "id": "documentation",
+        "version": 1,
+        "kind": "documentation",
+        "content": {
+          "sections": {
+            "setup": "Install the generated wheel in a virtual environment.",
+            "api": "greet(name: str) -> str; blank raises ValueError, non-string raises TypeError.",
+            "configuration": "No environment variables required.",
+            "architecture": "Single pure Python module; no persistence.",
+            "adrs": "Python standard library chosen for the approved synthetic fixture.",
+            "tests": "Consult deterministic validation artifacts; coverage percentage is not measured.",
+            "operations": "Library has no service health endpoint or migrations.",
+            "release_notes": "Initial greeting library.",
+            "rollback": "Restore the previous approved package/artifact pointer; no database migration.",
+            "limitations": "Offline fixture; not a generated production application.",
+            "tradeoffs": "Small package with synchronous pure function.",
+            "deployment": "Human deployment authorization required; this system never deploys.",
+            "packaging": "Wheel built using the trusted Python tool profile."
+          }
+        },
+        "dependencies": [
+          "acceptance:greeting@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:45:03.935821+00:00",
+        "digest": "d1f998fa106b29287334dc4a97969f2e5cbac355d90cd9df0b9125e281e44d4b"
+      },
+      "release_report@1": {
+        "id": "release_report",
+        "version": 1,
+        "kind": "release_report",
+        "content": {
+          "sections": {
+            "setup": "Install the generated wheel in a virtual environment.",
+            "api": "greet(name: str) -> str; blank raises ValueError, non-string raises TypeError.",
+            "configuration": "No environment variables required.",
+            "architecture": "Single pure Python module; no persistence.",
+            "adrs": "Python standard library chosen for the approved synthetic fixture.",
+            "tests": "Consult deterministic validation artifacts; coverage percentage is not measured.",
+            "operations": "Library has no service health endpoint or migrations.",
+            "release_notes": "Initial greeting library.",
+            "rollback": "Restore the previous approved package/artifact pointer; no database migration.",
+            "limitations": "Offline fixture; not a generated production application.",
+            "tradeoffs": "Small package with synchronous pure function.",
+            "deployment": "Human deployment authorization required; this system never deploys.",
+            "packaging": "Wheel built using the trusted Python tool profile."
+          }
+        },
+        "dependencies": [
+          "documentation@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:45:03.948334+00:00",
+        "digest": "b4323fdbfd5970fdcddc103806d133d0ea299cb3551925e0dc4d6bb09976571b"
+      },
+      "build@1": {
+        "id": "build",
+        "version": 1,
+        "kind": "build",
+        "content": {
+          "id": "18cc5c748132484988044d67c152a822",
+          "tool": "build",
+          "command": [
+            "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+            "-m",
+            "build",
+            "--wheel",
+            "--no-isolation"
+          ],
+          "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+          "exit_status": 0,
+          "duration": 1.9431098001077771,
+          "output_summary": "running egg_info\ncreating synthetic_greeting.egg-info\nwriting synthetic_greeting.egg-info\\PKG-INFO\nwriting dependency_links to synthetic_greeting.egg-info\\dependency_links.txt\nwriting top-level names to synthetic_greeting.egg-info\\top_level.txt\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nreading manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\ncopying greeting.py -> build\\lib\nrunning egg_info\nwriting synthetic_greeting.egg-info\\PKG-INFO\nwriting dependency_links to synthetic_greeting.egg-info\\dependency_links.txt\nwriting top-level names to synthetic_greeting.egg-info\\top_level.txt\nreading manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncopying build\\lib\\greeting.py -> build\\bdist.win-amd64\\wheel\\.\nrunning install_egg_info\nCopying synthetic_greeting.egg-info to build\\bdist.win-amd64\\wheel\\.\\synthetic_greeting-0.1.0-py3.14.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\synthetic_greeting-0.1.0.dist-info\\WHEEL\ncreating 'C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\\\\dist\\\\.tmp-6deq9ctc\\\\synthetic_greeting-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'greeting.py'\nadding 'synthetic_greeting-0.1.0.dist-info/METADATA'\nadding 'synthetic_greeting-0.1.0.dist-info/WHEEL'\nadding 'synthetic_greeting-0.1.0.dist-info/top_level.txt'\nadding 'synthetic_greeting-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built synthetic_greeting-0.1.0-py3-none-any.whl\n* Getting build dependencies for wheel...\n* Building wheel...\n",
+          "artifact_refs": [
+            "code:greeting@1",
+            "tests:greeting@1"
+          ],
+          "environment": {
+            "python": "3.14.6",
+            "platform": "win32"
+          },
+          "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+          "created_at": "2026-10-03T22:45:05.911073+00:00"
+        },
+        "dependencies": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "DRAFT",
+        "approver": null,
+        "approval_timestamp": null,
+        "created_at": "2026-10-03T22:45:05.915524+00:00",
+        "digest": "87f158db5b64b30b354b395d658962605daf0a22a3f5824816d2dde3cd62a0e5"
+      },
+      "release@1": {
+        "id": "release",
+        "version": 1,
+        "kind": "release",
+        "content": {
+          "summary": "Deterministic gates passed; human sign-off pending",
+          "candidate": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+          "file_digest": "2c784f475dac974875ee00776dfc031287d25cccc3337d95bc8e1e352d20251f"
+        },
+        "dependencies": [
+          "build@1",
+          "documentation@1",
+          "release_report@1"
+        ],
+        "validity": "VALID",
+        "approval_status": "APPROVED",
+        "approver": "synthetic-demo-human",
+        "approval_timestamp": "2026-10-03T22:45:18.741806+00:00",
+        "created_at": "2026-10-03T22:45:05.926491+00:00",
+        "digest": "e86a667d82a371e3c508e02ba5a4a9a972e7eeef7bc6a73462ffde167ce13291"
+      }
+    },
+    "active": {
+      "requirement": "requirement@2",
+      "architecture": "architecture@1",
+      "ADR-001": "ADR-001@1",
+      "plan": "plan@1",
+      "lld:greeting": "lld:greeting@1",
+      "code:greeting": "code:greeting@1",
+      "tests:greeting": "tests:greeting@1",
+      "validation:greeting": "validation:greeting@2",
+      "acceptance:greeting": "acceptance:greeting@1",
+      "documentation": "documentation@1",
+      "release_report": "release_report@1",
+      "build": "build@1",
+      "release": "release@1"
+    },
+    "findings": {},
+    "approvals": {
+      "302bb0397b884aa39d53ce41d54e211b": {
+        "id": "302bb0397b884aa39d53ce41d54e211b",
+        "artifact_ref": "requirement@2",
+        "actor": "synthetic-demo-human",
+        "decision": "approve",
+        "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+        "timestamp": "2026-10-03T22:44:15.873989+00:00"
+      },
+      "848ec5aa5c8140419c5380605f115fa9": {
+        "id": "848ec5aa5c8140419c5380605f115fa9",
+        "artifact_ref": "architecture@1",
+        "actor": "synthetic-demo-human",
+        "decision": "approve",
+        "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+        "timestamp": "2026-10-03T22:44:16.041617+00:00"
+      },
+      "393fef01bc214d9a91c23cc6ec8bbb55": {
+        "id": "393fef01bc214d9a91c23cc6ec8bbb55",
+        "artifact_ref": "ADR-001@1",
+        "actor": "synthetic-demo-human",
+        "decision": "approve",
+        "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+        "timestamp": "2026-10-03T22:44:16.044026+00:00"
+      },
+      "48dc102f497a4440ac939f402b26a7ac": {
+        "id": "48dc102f497a4440ac939f402b26a7ac",
+        "artifact_ref": "release@1",
+        "actor": "synthetic-demo-human",
+        "decision": "approve",
+        "rationale": "SCRIPTED FIXTURE ONLY: reviewed actual passing evidence; readiness only",
+        "timestamp": "2026-10-03T22:45:18.741806+00:00"
+      }
+    },
+    "tool_results": {
+      "98a92c03b420488ab247956c0dae40c3": {
+        "id": "98a92c03b420488ab247956c0dae40c3",
+        "tool": "lint",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "ruff",
+          "check",
+          "."
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 1,
+        "duration": 0.19338269997388124,
+        "output_summary": "I001 [*] Import block is un-sorted or un-formatted\n --> tests\\test_greeting.py:1:1\n  |\n1 | / import pytest\n2 | |\n3 | | from greeting import greet\n  | |__________________________^\nhelp: Organize imports\n  |\n1 | import pytest\n  -\n2 | from greeting import greet\n  |\n\nFound 1 error.\n[*] 1 fixable with the `--fix` option.\n",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:44:16.362550+00:00"
+      },
+      "08b775148e6343279163ce2f0b407dbf": {
+        "id": "08b775148e6343279163ce2f0b407dbf",
+        "tool": "static",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "compileall",
+          "-q",
+          "."
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 0.2430261999834329,
+        "output_summary": "",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:44:16.612126+00:00"
+      },
+      "38a5ea6b623f45d183988da0436bf752": {
+        "id": "38a5ea6b623f45d183988da0436bf752",
+        "tool": "test",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "--junitxml=.results.xml"
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 1.2129077999852598,
+        "output_summary": "...                                                                      [100%]\n3 passed in 0.08s\n",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:44:17.831771+00:00"
+      },
+      "b552ea0fdb7b4603bb02a7564d23c827": {
+        "id": "b552ea0fdb7b4603bb02a7564d23c827",
+        "tool": "lint",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "ruff",
+          "check",
+          "--isolated",
+          "."
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 0.1554240999976173,
+        "output_summary": "All checks passed!\n",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:45:02.742634+00:00"
+      },
+      "3e24461f9ea74b0088c9f6e5fa127554": {
+        "id": "3e24461f9ea74b0088c9f6e5fa127554",
+        "tool": "static",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "compileall",
+          "-q",
+          "."
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 0.17729969997890294,
+        "output_summary": "",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:45:02.927171+00:00"
+      },
+      "f6b4be932c2849ada2d4c412586cca77": {
+        "id": "f6b4be932c2849ada2d4c412586cca77",
+        "tool": "test",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "--junitxml=.results.xml"
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 0.9564958999399096,
+        "output_summary": "...                                                                      [100%]\n3 passed in 0.07s\n",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:45:03.891532+00:00"
+      },
+      "18cc5c748132484988044d67c152a822": {
+        "id": "18cc5c748132484988044d67c152a822",
+        "tool": "build",
+        "command": [
+          "C:\\Users\\16122\\learn\\schwab-assignment\\.venv\\Scripts\\python.exe",
+          "-m",
+          "build",
+          "--wheel",
+          "--no-isolation"
+        ],
+        "cwd": "C:\\Users\\16122\\learn\\schwab-assignment\\.ssdlc\\runs\\initial-demo\\candidates\\2c784f475dac974875ee0077",
+        "exit_status": 0,
+        "duration": 1.9431098001077771,
+        "output_summary": "running egg_info\ncreating synthetic_greeting.egg-info\nwriting synthetic_greeting.egg-info\\PKG-INFO\nwriting dependency_links to synthetic_greeting.egg-info\\dependency_links.txt\nwriting top-level names to synthetic_greeting.egg-info\\top_level.txt\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nreading manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nrunning bdist_wheel\nrunning build\nrunning build_py\ncreating build\\lib\ncopying greeting.py -> build\\lib\nrunning egg_info\nwriting synthetic_greeting.egg-info\\PKG-INFO\nwriting dependency_links to synthetic_greeting.egg-info\\dependency_links.txt\nwriting top-level names to synthetic_greeting.egg-info\\top_level.txt\nreading manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\nwriting manifest file 'synthetic_greeting.egg-info\\SOURCES.txt'\ninstalling to build\\bdist.win-amd64\\wheel\nrunning install\nrunning install_lib\ncreating build\\bdist.win-amd64\\wheel\ncopying build\\lib\\greeting.py -> build\\bdist.win-amd64\\wheel\\.\nrunning install_egg_info\nCopying synthetic_greeting.egg-info to build\\bdist.win-amd64\\wheel\\.\\synthetic_greeting-0.1.0-py3.14.egg-info\nrunning install_scripts\ncreating build\\bdist.win-amd64\\wheel\\synthetic_greeting-0.1.0.dist-info\\WHEEL\ncreating 'C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\\\\dist\\\\.tmp-6deq9ctc\\\\synthetic_greeting-0.1.0-py3-none-any.whl' and adding 'build\\\\bdist.win-amd64\\\\wheel' to it\nadding 'greeting.py'\nadding 'synthetic_greeting-0.1.0.dist-info/METADATA'\nadding 'synthetic_greeting-0.1.0.dist-info/WHEEL'\nadding 'synthetic_greeting-0.1.0.dist-info/top_level.txt'\nadding 'synthetic_greeting-0.1.0.dist-info/RECORD'\nremoving build\\bdist.win-amd64\\wheel\nSuccessfully built synthetic_greeting-0.1.0-py3-none-any.whl\n* Getting build dependencies for wheel...\n* Building wheel...\n",
+        "artifact_refs": [
+          "code:greeting@1",
+          "tests:greeting@1"
+        ],
+        "environment": {
+          "python": "3.14.6",
+          "platform": "win32"
+        },
+        "workspace_digest": "33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf",
+        "created_at": "2026-10-03T22:45:05.911073+00:00"
+      }
+    },
+    "reviews": {
+      "architecture@1": {
+        "complete": true,
+        "findings": [],
+        "resolutions": []
+      },
+      "code:greeting@1": {
+        "complete": true,
+        "findings": [],
+        "resolutions": []
+      },
+      "tests:greeting@1": {
+        "complete": true,
+        "findings": [],
+        "resolutions": []
+      }
+    },
+    "counters": {
+      "architecture_review": 0,
+      "review:code:greeting": 0,
+      "review:tests:greeting": 0,
+      "replans": 0
+    },
+    "branch_errors": {
+      "code": "",
+      "tests": ""
+    },
+    "current_slice": "greeting",
+    "completed_slices": [
+      "greeting"
+    ],
+    "answers": {
+      "blank": "Reject with ValueError"
+    },
+    "feedback": {
+      "category": "ENVIRONMENT_OR_TOOLING",
+      "evidence": [
+        "See persisted tool results"
+      ],
+      "reasoning": "Fixture provider cannot diagnose arbitrary failures; escalate to the operator."
+    },
+    "route": "end",
+    "safe_stop_reason": "",
+    "recovery_node": "validate",
+    "created_at": "2026-10-03T22:44:15.553516+00:00",
+    "updated_at": "2026-10-03T22:45:18.748086+00:00"
+  },
+  "interrupts": [],
+  "next": [],
+  "audit": [
+    {
+      "event_id": "204abfe3af56606ad74122f52a9c3c1a3c8392687ed01c0e51ee08b835e263ba",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.554098+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "workflow_created",
+      "stage": "start",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "greenfield",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "fdeab804f60ded57e63174f061f1c8bd3b528147479fe8ebbd7abd33dbda51f2",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.564326+00:00",
+      "actor_type": "agent",
+      "actor_id": "requirement",
+      "action": "agent_started",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "50575c8da6233d193bcdec992f8b9c45400fb223bedec07d86b13f41aeb6536e",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "6e4b187db492fb563ea78e32d4e4fad2af09670e23fb21a8fa72a6502dc13795",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.568533+00:00",
+      "actor_type": "agent",
+      "actor_id": "requirement",
+      "action": "agent_completed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"50575c8da6233d193bcdec992f8b9c45400fb223bedec07d86b13f41aeb6536e\", \"duration\": 0.004050100105814636}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "8ca23080e099d2eafc350ea7ffb95a73f59ca8ea4309cf58748574484f90a55a",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.572036+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "requirement_version_created",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "19f4b65202a2488beeb31043aac5b80b12a48d9c6bb66564c7defbe2a53a2085",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.573410+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "human_question_raised",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "[{\"id\": \"blank\", \"classification\": \"BLOCKING_AMBIGUITY\", \"unclear\": \"How should blank names behave?\", \"why_it_matters\": \"Defines the public validation contract.\", \"options\": [\"Reject with ValueError\", \"Use World\"], \"recommendation\": \"Reject with ValueError\", \"reasoning\": \"Conservative starting point; confirm the actual product constraints.\", \"recommendation_is_binding\": false, \"human_confirmation_required\": true}]",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d2128f501b82f4efc45b776a89c75e95dc9e4fb46c72585dec76db9e797d5e5e",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.574803+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.011029500048607588, \"active\": {}, \"counters\": {}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "c63416345cb867da23154be8b1e37432d050b71ac25dc2c9e53f5132b5fa3d78",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.704695+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_gate_resumed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"clarify\",\"rationale\":\"SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product\",\"artifact_ref\":\"requirement@1\",\"answers\":{\"blank\":\"Reject with ValueError\"},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d1485c25945fde52517730a2f0f63be0ee3dfd39ea3da7c696af273d1d476d00",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.708755+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_response_received",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "895f9cb37b3f1cd2a3dc275eba63c9c69df9a990e8889fa2c099cc82b8b45c17",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.711327+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "requirement_approval",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.002621700055897236, \"active\": {\"requirement\": \"requirement@1\"}, \"counters\": {}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "7426798633ada202008a9583026b83611b4e3ce4e3666341805425847d4b69ad",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.715447+00:00",
+      "actor_type": "agent",
+      "actor_id": "requirement",
+      "action": "agent_started",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "47a924f77b6052958fa26c0d237c028dc8339aee18870f818f82b6df842f060c",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "652194bfbb3b029285b97fe88c2a6aa1d2e9a8b3fcf44d61778f4d8c42baad99",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.718648+00:00",
+      "actor_type": "agent",
+      "actor_id": "requirement",
+      "action": "agent_completed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"47a924f77b6052958fa26c0d237c028dc8339aee18870f818f82b6df842f060c\", \"duration\": 0.003181600011885166}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "4fec993d2e2ae3ed25ee7e34b745aa219c7783d5cbe646c4bdd95366837ec034",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.723429+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "requirement_version_created",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@2"
+      ],
+      "before_version": 1,
+      "after_version": 2,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "20034522b83097c9fb92b6e40e5237adde0ded2cd12a87f611323de7c4ed5db5",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.724803+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "requirement_ready_for_approval",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@2"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "[]",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "2ec6a0297df99b30b4b50962572c751a97b42ebe1cf3809e30648fbd79391017",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.726228+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.01115520007442683, \"active\": {\"requirement\": \"requirement@1\"}, \"counters\": {}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "44240e7ce5537508d97739f20c8f535f95aeafecdb8ea38d32dfdcab3ff56221",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.870984+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_gate_resumed",
+      "stage": "requirement",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"approve\",\"rationale\":\"SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product\",\"artifact_ref\":\"requirement@2\",\"answers\":{},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "f9838be4ca2c469ea4b00f8348f3b04458138f17dceb2ffcdf8c60f2e0ebb022",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.874195+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_approval",
+      "stage": "requirement",
+      "artifact_refs": [
+        "requirement@2"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [
+        "302bb0397b884aa39d53ce41d54e211b"
+      ],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "7983300a684e2a41eb6548dd0befcace768427987adcf128a9d5645a42168e62",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.877071+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "requirement_approval",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.0030194000573828816, \"active\": {\"requirement\": \"requirement@2\"}, \"counters\": {}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "9a521cfd1dccb40e2de6d402422cbb2861297c0c0bc444824f4d4177e48fd3f8",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.880245+00:00",
+      "actor_type": "agent",
+      "actor_id": "architecture",
+      "action": "agent_started",
+      "stage": "architecture",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "2030f6f40a7fa31b29ca5acf88332f988f0e36e73342a4a885e56033b90b631f",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "f997b998a511a5051b90e1722952da8ab34bc4d39738d2dc700e02a8b264a260",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.884354+00:00",
+      "actor_type": "agent",
+      "actor_id": "architecture",
+      "action": "agent_completed",
+      "stage": "architecture",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"2030f6f40a7fa31b29ca5acf88332f988f0e36e73342a4a885e56033b90b631f\", \"duration\": 0.0039175000274553895}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "7d361b328df223e93373d4148977085d629ace501dd602a816f15ce1e40ce902",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.887969+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "architecture_version_created",
+      "stage": "architecture",
+      "artifact_refs": [
+        "architecture@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "c6d51ae451a7b6c83512a66e53a51cd26fb43ad37b672ac03f8316313259759d",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.890924+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "adr_version_created",
+      "stage": "adr",
+      "artifact_refs": [
+        "ADR-001@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "9db587670d05ffbeac1a399f6fb33834b4921f84b549e909de5a63f1e6578c76",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.892512+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "architecture",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.012623899965547025, \"active\": {\"requirement\": \"requirement@2\"}, \"counters\": {}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "0c1c0a17d4af5b3ec42438101cefb210cb6106b30c36d7a6825e839c5dd85abc",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.896380+00:00",
+      "actor_type": "agent",
+      "actor_id": "architecture_reviewer",
+      "action": "agent_started",
+      "stage": "architecture_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "eeab18e7672ef5c5a1f35f5ab4a1978c2d32b925caec020a672618464238c57d",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "90c109e7bce6e7bda1519cf7d87bd9421cd5381578ff247dcffea7f3bc3718b6",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.900885+00:00",
+      "actor_type": "agent",
+      "actor_id": "architecture_reviewer",
+      "action": "agent_completed",
+      "stage": "architecture_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"eeab18e7672ef5c5a1f35f5ab4a1978c2d32b925caec020a672618464238c57d\", \"duration\": 0.004727000021375716}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d6e7914d47a5b41b8cee8734c6830902fe202cd3eddb3172da51907f909e3a8d",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.903085+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "review_completed",
+      "stage": "architecture_reviewer",
+      "artifact_refs": [
+        "architecture@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "True",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "0c7fd669cba93f11e07c65d7e3267f6a1c9c8c4a43ef15d6b33e94bd242ab1c7",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:15.904458+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "architecture_review",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.009497400023974478, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "83800d03d64f427a0339182986058fee379f871980d4485d4b8344cd0eaa3423",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.038135+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_gate_resumed",
+      "stage": "architecture",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"approve\",\"rationale\":\"SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product\",\"artifact_ref\":\"architecture@1\",\"answers\":{},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "a8bc6ce5fb930b3debafb5fa298860349ed67bfc11a3ba04a2e2b658c7c63f31",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.041842+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_approval",
+      "stage": "architecture",
+      "artifact_refs": [
+        "architecture@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [
+        "848ec5aa5c8140419c5380605f115fa9"
+      ],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "37e7a6803cb625823dd9b06be68bac4b3be088ce61a181d9548755f0cfeeca4f",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.044257+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_approval",
+      "stage": "ADR-001",
+      "artifact_refs": [
+        "ADR-001@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: synthetic human approval; not authorization for any real product",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [
+        "393fef01bc214d9a91c23cc6ec8bbb55"
+      ],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "44cafadd74ff7ce1a145c3d69a671b86d06483629a5a3223a9e6f256302d6291",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.049262+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "architecture_approval",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.0075598000548779964, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "019f0c76ed3c5ad7fb6870bdb283e4e8dc0f58e70deec2930adb1a165ccc4293",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.053170+00:00",
+      "actor_type": "agent",
+      "actor_id": "planning",
+      "action": "agent_started",
+      "stage": "planning",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "0f264d5a63ad733217c54bfbf1f9f2210c22a9d7e78e348d432813704b71a78c",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "0df1b96fd881076359a5fc93368bb7a809b7b33d205c570136d5babd372e6630",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.056901+00:00",
+      "actor_type": "agent",
+      "actor_id": "planning",
+      "action": "agent_completed",
+      "stage": "planning",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"0f264d5a63ad733217c54bfbf1f9f2210c22a9d7e78e348d432813704b71a78c\", \"duration\": 0.0037384999450296164}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "609786695ee1801045fd48de1f719aedc4ef63245a118dc9c121d0f55c9c9f7b",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.060489+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "plan_version_created",
+      "stage": "plan",
+      "artifact_refs": [
+        "plan@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "8fdb146435fb450a07630ae97fe1ca7f46c94bb680082989c9c1835e6716332d",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.061929+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "planning",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.009610699955374002, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "1cc11cfcbf5c6c81876ccfd50cc5b75985c18b2c3258da8ebf0bed041c6815e4",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.065974+00:00",
+      "actor_type": "agent",
+      "actor_id": "lld",
+      "action": "agent_started",
+      "stage": "lld",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "c9075d0ec3d6ea5e80c769055efcdf1f4ec2c64559d8cdf059ac1ce30b356c66",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "154230e71e7f716d3d31a409a139c3e3db9d6d02b59f7d1e62a5020671ce2725",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.071188+00:00",
+      "actor_type": "agent",
+      "actor_id": "lld",
+      "action": "agent_completed",
+      "stage": "lld",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"c9075d0ec3d6ea5e80c769055efcdf1f4ec2c64559d8cdf059ac1ce30b356c66\", \"duration\": 0.005145299946889281}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "6c300e1e828a8497a4e13eac17ea14da074a0cd92d6e9e6da0dcdb16b2c9b2a7",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.074927+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "lld_version_created",
+      "stage": "lld",
+      "artifact_refs": [
+        "lld:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "b9ac83578d57bac16c49480e21467d5def537b74cd5a718b65a9e681213d65f0",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.076715+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "lld",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.01204249996226281, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "37f4e199183598ec9ca1b79b2405da521703caccbeaee7bfbb727f7de88d5c76",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.093674+00:00",
+      "actor_type": "agent",
+      "actor_id": "coding",
+      "action": "agent_started",
+      "stage": "coding",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "be51560a3cfe77f404e820f4c4f6871e18838a45fd107bca4f992375a2698625",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "157d024e1c2d0aeea8c542c6af4c2883ae275bbd3385097dd8ace38f3b1dd359",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.098354+00:00",
+      "actor_type": "agent",
+      "actor_id": "test_design",
+      "action": "agent_started",
+      "stage": "test_design",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "7ce9808298152c31ff69b31306159f4e2b98bf5ec38d3ee89234e575732ca9dd",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "197b65b23c8cc219f20d23b1f3f334cf250bab841097238c9cafc364f76ea7b3",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.102360+00:00",
+      "actor_type": "agent",
+      "actor_id": "coding",
+      "action": "agent_completed",
+      "stage": "coding",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"be51560a3cfe77f404e820f4c4f6871e18838a45fd107bca4f992375a2698625\", \"duration\": 0.008758199983276427}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "a3416f422d17879acc1fe7ad24dcdeb096d7c5d00139b5e677bdb782fbfbe4e4",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.104405+00:00",
+      "actor_type": "agent",
+      "actor_id": "test_design",
+      "action": "agent_completed",
+      "stage": "test_design",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"7ce9808298152c31ff69b31306159f4e2b98bf5ec38d3ee89234e575732ca9dd\", \"duration\": 0.00605690001975745}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "a38ffd5fda7d5880459b4d207f906130626e7c9cf771f4fea608cd5e262ea2ad",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.109978+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "code_version_created",
+      "stage": "code",
+      "artifact_refs": [
+        "code:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "3b18b983f97377bbad1089ab74f650f28c2de90a80fbcd34959e285066c04342",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.111357+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "branch_generate",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.019089999957941473, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "801d2739d3775ea6a41439a80c92ceb155ea6a805c23c09fb62f432adc8b1f09",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.112811+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tests_version_created",
+      "stage": "tests",
+      "artifact_refs": [
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "7b75a158be4db12b28a8cf0a7d481bd9a8456a6c2c13b8d6f3d55ed9374768d7",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.118600+00:00",
+      "actor_type": "agent",
+      "actor_id": "code_reviewer",
+      "action": "agent_started",
+      "stage": "code_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "8919f2493d2d88a511e531346a9465df3ee1d440768489d903f590d5c86074b7",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "ba2ddc81b1ec2dabb3082194fdeed13266dd33bd84f8042a519668d842999d7f",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.118286+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "branch_generate",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.023130099987611175, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\"}, \"counters\": {\"architecture_review\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "cd6ee319525cd680411b8c0fec3b6ecbca920d254e03009d94d141d473133fbd",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.127228+00:00",
+      "actor_type": "agent",
+      "actor_id": "test_reviewer",
+      "action": "agent_started",
+      "stage": "test_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "cd962a426c2af7797fad445fa81e9a4ae003b708f2d80c0b76a015577db98585",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "b37517b4214c1006df1836bf870ff80b4287b81da19240cdd7928972c10689bf",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.126947+00:00",
+      "actor_type": "agent",
+      "actor_id": "code_reviewer",
+      "action": "agent_completed",
+      "stage": "code_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"8919f2493d2d88a511e531346a9465df3ee1d440768489d903f590d5c86074b7\", \"duration\": 0.008325599948875606}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "dbf5fd5700e9255a4c038e5951262f9ae7f47b068d643abff9a94b4809239f72",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.130332+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "review_completed",
+      "stage": "code_reviewer",
+      "artifact_refs": [
+        "code:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "True",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "79e872d0863c55d61a6cc016a753c3f4cc7d581d8fae659250546268fcecde34",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.131779+00:00",
+      "actor_type": "agent",
+      "actor_id": "test_reviewer",
+      "action": "agent_completed",
+      "stage": "test_reviewer",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"cd962a426c2af7797fad445fa81e9a4ae003b708f2d80c0b76a015577db98585\", \"duration\": 0.004529900033958256}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "577c3c5787bf77bf80f4f0f6199453ddb4bec49008193d46f3839777436c7168",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.133676+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "branch_review",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.018522099941037595, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:code:greeting\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "c9174810219c1269062bb1c8de0bf72c64d4cb06ce6dd92adfd1cc2ff538716f",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.135383+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "review_completed",
+      "stage": "test_reviewer",
+      "artifact_refs": [
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "True",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "f8985afc30269c722321cb0c40aec3d499b1674ab29861776177a8209ccea079",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.140908+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "branch_review",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.017150900093838573, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"tests:greeting\": \"tests:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:tests:greeting\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d7150450b2809a1b9752ac385357bb1587cca469abe65125fb8c978aaa73877b",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.149123+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "branches_synchronized",
+      "stage": "synchronize",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "Both independently reviewed branches completed",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "98f30d96800d7abf9607f0ab4106761c8e778fbfea6c01b9851584e0a58b8378",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:16.152756+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "synchronize",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.003689400036819279, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:code:greeting\": 1, \"review:tests:greeting\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "0a6213ea9628d12025e9131b382702a4af1242ac32b7e4b76de79e4de9126764",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.834684+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "validation_version_created",
+      "stage": "validation",
+      "artifact_refs": [
+        "validation:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "63a13b5944b7fe5e4f4375bbf074d878481ceb52e42bc20500cd4bf58fed563e",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.836120+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "lint",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"98a92c03b420488ab247956c0dae40c3\",\"tool\":\"lint\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"ruff\",\"check\",\".\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":1,\"duration\":0.19338269997388124,\"output_summary\":\"I001 [*] Import block is un-sorted or un-formatted\\n --> tests\\\\test_greeting.py:1:1\\n  |\\n1 | / import pytest\\n2 | |\\n3 | | from greeting import greet\\n  | |__________________________^\\nhelp: Organize imports\\n  |\\n1 | import pytest\\n  -\\n2 | from greeting import greet\\n  |\\n\\nFound 1 error.\\n[*] 1 fixable with the `--fix` option.\\n\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:44:16.362550+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "5326a53d077330b28d7c31a5f08a62392d639af766e3d383186d383ce287d12c",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.837536+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "static",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"08b775148e6343279163ce2f0b407dbf\",\"tool\":\"static\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"compileall\",\"-q\",\".\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":0.2430261999834329,\"output_summary\":\"\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:44:16.612126+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "f6046efccd2d8e0e53152af038fbe99375be561d019da9d6a5780e02d3eb59ae",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.838913+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "test",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"38a5ea6b623f45d183988da0436bf752\",\"tool\":\"test\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"pytest\",\"-q\",\"--junitxml=.results.xml\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":1.2129077999852598,\"output_summary\":\"...                                                                      [100%]\\n3 passed in 0.08s\\n\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:44:17.831771+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "1aaf1d3ffdc755388f0802ca790aa984bdf109af8b3089ad541db0358536cd62",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.840275+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "test_passed",
+      "stage": "test",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "38a5ea6b623f45d183988da0436bf752",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "0a3c84abdf77c2935614f94a5bb6a00fcc2b84c3d09d89d95314a19daa8b1cb3",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.841725+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "validate",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 1.6859935000538826, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:code:greeting\": 1, \"review:tests:greeting\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "adc53778c12920213c60007b4125b32fd0e1c342bcf6f78c30e08a670e770793",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.845965+00:00",
+      "actor_type": "agent",
+      "actor_id": "failure_analysis",
+      "action": "agent_started",
+      "stage": "failure_analysis",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "51b9b6cd423a541e8ed23972a9b4bff356f227e786ff5b090511dddfc1fcc242",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "5ace9c54331444d84c05d5b5f48c611d31f94802a45a71f5d549f52758ab04c3",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.849737+00:00",
+      "actor_type": "agent",
+      "actor_id": "failure_analysis",
+      "action": "agent_completed",
+      "stage": "failure_analysis",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"51b9b6cd423a541e8ed23972a9b4bff356f227e786ff5b090511dddfc1fcc242\", \"duration\": 0.0037181000225245953}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "03409a7fb9bb2cb546c6dddfebccf5d9dd1e47349e85fa8a14bf07524fa97653",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.852105+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "replan_triggered",
+      "stage": "failure_analysis",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"category\":\"ENVIRONMENT_OR_TOOLING\",\"evidence\":[\"See persisted tool results\"],\"reasoning\":\"Fixture provider cannot diagnose arbitrary failures; escalate to the operator.\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "cf40025c839cd44746c3d7e0bc4209560e9b381ff66b7bcf401173fd3445dd49",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.853891+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "failure_analysis",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.009685499942861497, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:code:greeting\": 1, \"review:tests:greeting\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "6a73511b987d36fe966d6467c600e8e497b740bc91f0301854b9068faebbd3f0",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:44:17.856864+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "safe_stop",
+      "stage": "safe_stop",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "Fixture provider cannot diagnose arbitrary failures; escalate to the operator.",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "e9b0e8691db48804564f0d0546f128acb6cd987d9b483beed1cc71fdb25a63bf",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:02.549780+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_gate_resumed",
+      "stage": "safe_stop",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"retry\",\"rationale\":\"SCRIPTED FIXTURE ONLY: isolated Ruff configuration from the parent repository; rerun deterministic validation.\",\"artifact_ref\":null,\"answers\":{},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "4ecb386198d478ff38168ed5996ae7121702c56911d8de58fe27ac06efa5c1d8",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:02.556897+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_response_received",
+      "stage": "safe_stop",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"retry\",\"rationale\":\"SCRIPTED FIXTURE ONLY: isolated Ruff configuration from the parent repository; rerun deterministic validation.\",\"artifact_ref\":null,\"answers\":{},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "b00aa9383339fe330a24d69f30e2f9e56b4cba4220c8aed8d02e8a94a0cca27a",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:02.559320+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "budget_renewed",
+      "stage": "safe_stop",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: isolated Ruff configuration from the parent repository; rerun deterministic validation.",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "64b3f15a7f9fb82350e2daa9fb6abb9de3ddd90c14b74ca7adb9d35a5afd05eb",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:02.562115+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "safe_stop",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.005037100054323673, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@1\"}, \"counters\": {\"architecture_review\": 1, \"review:code:greeting\": 1, \"review:tests:greeting\": 1, \"replans\": 1}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "063501689ac20d3ff3cc94ffc675424a0547ed00c5e792520403ac1125eb04e9",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.894693+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "validation_version_created",
+      "stage": "validation",
+      "artifact_refs": [
+        "validation:greeting@2"
+      ],
+      "before_version": 1,
+      "after_version": 2,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "49a4723e87c0d90f07ce0c0bfde73e946ad36525f1a035242a5c19c8869cc670",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.896618+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "lint",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"b552ea0fdb7b4603bb02a7564d23c827\",\"tool\":\"lint\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"ruff\",\"check\",\"--isolated\",\".\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":0.1554240999976173,\"output_summary\":\"All checks passed!\\n\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:45:02.742634+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "8cded5e4a578fd728aa6805490d11715b1f9264826203ceb7fd9a654779959a3",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.898214+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "static",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"3e24461f9ea74b0088c9f6e5fa127554\",\"tool\":\"static\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"compileall\",\"-q\",\".\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":0.17729969997890294,\"output_summary\":\"\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:45:02.927171+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d351a68c4a490f5873f111ab734521e341e7206117b633178c34958cc6e5115c",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.900016+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "test",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"f6b4be932c2849ada2d4c412586cca77\",\"tool\":\"test\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"pytest\",\"-q\",\"--junitxml=.results.xml\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":0.9564958999399096,\"output_summary\":\"...                                                                      [100%]\\n3 passed in 0.07s\\n\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:45:03.891532+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "1104a3c0abfb68f9143d062c3006769cbb04edf0c242993a7ff362b1f7e3e61c",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.901812+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "test_passed",
+      "stage": "test",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "f6b4be932c2849ada2d4c412586cca77",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "ef91cf5f8571b288fb87fb4d185f0647ffe278f3e501488102dc48e931d49ae0",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.903333+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "validate",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 1.3344821000937372, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "b20bb5902b9b2d1daf2c0d577982a15fecf2769bc5ec4620615164448e0799da",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.923057+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "acceptance_version_created",
+      "stage": "acceptance",
+      "artifact_refs": [
+        "acceptance:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "5f5ead2e1fa511fc582505af70fb4e72f4f12fecd24798ae7b21a1927b86060e",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.924636+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "acceptance",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.019064599997363985, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "39d262a7412dfa01f949254e171663e4a0fcfb1cb9f8e8ad0490bae80982f63d",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.929353+00:00",
+      "actor_type": "agent",
+      "actor_id": "documentation",
+      "action": "agent_started",
+      "stage": "documentation",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "446c7e9093fdb55f181fe931f04e85d9f4125f7763c899ee19166db77fd749a5",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "6b1d827a3f21037a65c417764d6c9f2d267673e9c7d866bdcef7c8a70cf3d24b",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.934262+00:00",
+      "actor_type": "agent",
+      "actor_id": "documentation",
+      "action": "agent_completed",
+      "stage": "documentation",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"446c7e9093fdb55f181fe931f04e85d9f4125f7763c899ee19166db77fd749a5\", \"duration\": 0.004821699927560985}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "853adde21a4d9bdbaae276f7ac517ab1fc7b882d894eb0a2e9d1628a4cc01761",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.937351+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "documentation_version_created",
+      "stage": "documentation",
+      "artifact_refs": [
+        "documentation@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "c3c2c90b2806a0168450c8a32a32f98b36cdf9b9dee2a146b7189736c053cab7",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.938706+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "documentation",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.010893199942074716, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\", \"acceptance:greeting\": \"acceptance:greeting@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "ac814128951c106923d8d06d357f4f7160691a3729aeb2a91ff0bf851762cf84",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.941783+00:00",
+      "actor_type": "agent",
+      "actor_id": "release_readiness",
+      "action": "agent_started",
+      "stage": "release_readiness",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "94ec3f342768fa434801e9458567deb1f3ccc588d794f80fdf0727a9f6c2a7af",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "2a44126f02e49443da134a27a2bfba2ef4b0b438ef0d222ea7abe67623f99bab",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.945868+00:00",
+      "actor_type": "agent",
+      "actor_id": "release_readiness",
+      "action": "agent_completed",
+      "stage": "release_readiness",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"operation\": \"94ec3f342768fa434801e9458567deb1f3ccc588d794f80fdf0727a9f6c2a7af\", \"duration\": 0.004011899931356311}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "d5ba00b64993f75797abddbccea2931a30aa20c0266b6f2f4e5d535027779220",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.950056+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "release_report_version_created",
+      "stage": "release_report",
+      "artifact_refs": [
+        "release_report@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "aefefe0c942702393a4e3be2739e8f0412440476515a8138162c03d814a7444e",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:03.951822+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "release_readiness",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.010785099933855236, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\", \"acceptance:greeting\": \"acceptance:greeting@1\", \"documentation\": \"documentation@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "65eb5c5094f1658101724b405cd9db9d13bc8ca2db9e6a5f220921684475160d",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.911365+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "tool_executed",
+      "stage": "build",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"id\":\"18cc5c748132484988044d67c152a822\",\"tool\":\"build\",\"command\":[\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.venv\\\\Scripts\\\\python.exe\",\"-m\",\"build\",\"--wheel\",\"--no-isolation\"],\"cwd\":\"C:\\\\Users\\\\16122\\\\learn\\\\schwab-assignment\\\\.ssdlc\\\\runs\\\\initial-demo\\\\candidates\\\\2c784f475dac974875ee0077\",\"exit_status\":0,\"duration\":1.9431098001077771,\"output_summary\":\"running egg_info\\ncreating synthetic_greeting.egg-info\\nwriting synthetic_greeting.egg-info\\\\PKG-INFO\\nwriting dependency_links to synthetic_greeting.egg-info\\\\dependency_links.txt\\nwriting top-level names to synthetic_greeting.egg-info\\\\top_level.txt\\nwriting manifest file 'synthetic_greeting.egg-info\\\\SOURCES.txt'\\nreading manifest file 'synthetic_greeting.egg-info\\\\SOURCES.txt'\\nwriting manifest file 'synthetic_greeting.egg-info\\\\SOURCES.txt'\\nrunning bdist_wheel\\nrunning build\\nrunning build_py\\ncreating build\\\\lib\\ncopying greeting.py -> build\\\\lib\\nrunning egg_info\\nwriting synthetic_greeting.egg-info\\\\PKG-INFO\\nwriting dependency_links to synthetic_greeting.egg-info\\\\dependency_links.txt\\nwriting top-level names to synthetic_greeting.egg-info\\\\top_level.txt\\nreading manifest file 'synthetic_greeting.egg-info\\\\SOURCES.txt'\\nwriting manifest file 'synthetic_greeting.egg-info\\\\SOURCES.txt'\\ninstalling to build\\\\bdist.win-amd64\\\\wheel\\nrunning install\\nrunning install_lib\\ncreating build\\\\bdist.win-amd64\\\\wheel\\ncopying build\\\\lib\\\\greeting.py -> build\\\\bdist.win-amd64\\\\wheel\\\\.\\nrunning install_egg_info\\nCopying synthetic_greeting.egg-info to build\\\\bdist.win-amd64\\\\wheel\\\\.\\\\synthetic_greeting-0.1.0-py3.14.egg-info\\nrunning install_scripts\\ncreating build\\\\bdist.win-amd64\\\\wheel\\\\synthetic_greeting-0.1.0.dist-info\\\\WHEEL\\ncreating 'C:\\\\\\\\Users\\\\\\\\16122\\\\\\\\learn\\\\\\\\schwab-assignment\\\\\\\\.ssdlc\\\\\\\\runs\\\\\\\\initial-demo\\\\\\\\candidates\\\\\\\\2c784f475dac974875ee0077\\\\\\\\dist\\\\\\\\.tmp-6deq9ctc\\\\\\\\synthetic_greeting-0.1.0-py3-none-any.whl' and adding 'build\\\\\\\\bdist.win-amd64\\\\\\\\wheel' to it\\nadding 'greeting.py'\\nadding 'synthetic_greeting-0.1.0.dist-info/METADATA'\\nadding 'synthetic_greeting-0.1.0.dist-info/WHEEL'\\nadding 'synthetic_greeting-0.1.0.dist-info/top_level.txt'\\nadding 'synthetic_greeting-0.1.0.dist-info/RECORD'\\nremoving build\\\\bdist.win-amd64\\\\wheel\\nSuccessfully built synthetic_greeting-0.1.0-py3-none-any.whl\\n* Getting build dependencies for wheel...\\n* Building wheel...\\n\",\"artifact_refs\":[\"code:greeting@1\",\"tests:greeting@1\"],\"environment\":{\"python\":\"3.14.6\",\"platform\":\"win32\"},\"workspace_digest\":\"33bba08087763af2c35b4110234701b37ca88c312b460d5eb7cb1191ca630dbf\",\"created_at\":\"2026-10-03T22:45:05.911073+00:00\"}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "bf44196354db9c4a65b6f96bb5878a26479312658bde0c652d75cd2dac5188dc",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.913671+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "build_passed",
+      "stage": "build",
+      "artifact_refs": [
+        "code:greeting@1",
+        "tests:greeting@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "18cc5c748132484988044d67c152a822",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "89e83e8a091312ecb8ddafcedf378a4dc744be251e254d88f708d2963186ed0b",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.917172+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "build_version_created",
+      "stage": "build",
+      "artifact_refs": [
+        "build@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "830eb51738a478d8aa6a1a8f561507f46cc19f799590ccfb6ba4e151d62953d8",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.918536+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "build",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 1.9642325000604615, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\", \"acceptance:greeting\": \"acceptance:greeting@1\", \"documentation\": \"documentation@1\", \"release_report\": \"release_report@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "f5fbc8a59006fbd2a735f68a0d81a69f3d4ba927a6fb7ce68f7e9264fa9c6222",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.927903+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "release_version_created",
+      "stage": "release",
+      "artifact_refs": [
+        "release@1"
+      ],
+      "before_version": null,
+      "after_version": 1,
+      "rationale": "Versioned proposal/evidence",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "7e9627c9c9788a2c798f8c693b0ba113ee351f7c9c88347d652f81f32a37ebf2",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.929231+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "release_gate_passed",
+      "stage": "release_gate",
+      "artifact_refs": [
+        "build@1",
+        "documentation@1",
+        "release_report@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "All deterministic gates passed",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "2988373985ae0a4335acef92882ab4622fa5ef3ad3e7a4460bf4bbb22328e107",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:05.930590+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "release_gate",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.00983350002206862, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\", \"acceptance:greeting\": \"acceptance:greeting@1\", \"documentation\": \"documentation@1\", \"release_report\": \"release_report@1\", \"build\": \"build@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "23504a577ef945e6a341af7b7ba4012c1da056f35789b1eba9fe49ee8589e696",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:18.726070+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_gate_resumed",
+      "stage": "release",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"actor\":\"synthetic-demo-human\",\"action\":\"approve\",\"rationale\":\"SCRIPTED FIXTURE ONLY: reviewed actual passing evidence; readiness only\",\"artifact_ref\":\"release@1\",\"answers\":{},\"finding_ids\":[],\"target_ref\":null}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "a960f528fcc00a122f176ad85ce82e67eb36a6b70d2a26ed7d01cff0b77a392f",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:18.742017+00:00",
+      "actor_type": "human",
+      "actor_id": "synthetic-demo-human",
+      "action": "human_approval",
+      "stage": "release",
+      "artifact_refs": [
+        "release@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "SCRIPTED FIXTURE ONLY: reviewed actual passing evidence; readiness only",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [
+        "48dc102f497a4440ac939f402b26a7ac"
+      ],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "4c82a9813d41b078b60ccc7db0ad14d31d904c61ad9d6b4f8b03c5cf8e3d0aa8",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:18.746279+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "workflow_success",
+      "stage": "release",
+      "artifact_refs": [
+        "release@1"
+      ],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "READY_FOR_DEPLOYMENT",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    },
+    {
+      "event_id": "9f5373ae2f451aa93c5a2e63c9a00787daa9be7473c9429e79872ede165b3537",
+      "workflow_id": "initial-demo",
+      "timestamp": "2026-10-03T22:45:18.748663+00:00",
+      "actor_type": "orchestrator",
+      "actor_id": "ssdlc",
+      "action": "stage_completed",
+      "stage": "release_approval",
+      "artifact_refs": [],
+      "before_version": null,
+      "after_version": null,
+      "rationale": "{\"duration\": 0.012868699966929853, \"active\": {\"requirement\": \"requirement@2\", \"architecture\": \"architecture@1\", \"ADR-001\": \"ADR-001@1\", \"plan\": \"plan@1\", \"lld:greeting\": \"lld:greeting@1\", \"code:greeting\": \"code:greeting@1\", \"tests:greeting\": \"tests:greeting@1\", \"validation:greeting\": \"validation:greeting@2\", \"acceptance:greeting\": \"acceptance:greeting@1\", \"documentation\": \"documentation@1\", \"release_report\": \"release_report@1\", \"build\": \"build@1\", \"release\": \"release@1\"}, \"counters\": {\"architecture_review\": 0, \"review:code:greeting\": 0, \"review:tests:greeting\": 0, \"replans\": 0}}",
+      "related_review_ids": [],
+      "related_adr_ids": [],
+      "related_approval_ids": [],
+      "correlation_id": "initial-demo"
+    }
+  ],
+  "audit_chain_valid": true,
+  "metrics": {
+    "workflow_runs_total": 1,
+    "workflow_success_total": 1,
+    "workflow_failure_total": 0,
+    "agent_failure_count": 0,
+    "retry_count": 0,
+    "rollback_count": 0,
+    "replan_count": 1,
+    "safe_stop_count": 1,
+    "review_cycle_count": 3,
+    "test_pass_count": 2,
+    "test_fail_count": 0,
+    "build_pass_count": 1,
+    "build_fail_count": 0,
+    "workflow_end_to_end_latency": 63.192181,
+    "stage_latency": {
+      "requirement": [
+        0.011029500048607588,
+        0.01115520007442683
+      ],
+      "requirement_approval": [
+        0.002621700055897236,
+        0.0030194000573828816
+      ],
+      "architecture": [
+        0.012623899965547025
+      ],
+      "architecture_review": [
+        0.009497400023974478
+      ],
+      "architecture_approval": [
+        0.0075598000548779964
+      ],
+      "planning": [
+        0.009610699955374002
+      ],
+      "lld": [
+        0.01204249996226281
+      ],
+      "branch_generate": [
+        0.019089999957941473,
+        0.023130099987611175
+      ],
+      "branch_review": [
+        0.018522099941037595,
+        0.017150900093838573
+      ],
+      "synchronize": [
+        0.003689400036819279
+      ],
+      "validate": [
+        1.6859935000538826,
+        1.3344821000937372
+      ],
+      "failure_analysis": [
+        0.009685499942861497
+      ],
+      "safe_stop": [
+        0.005037100054323673
+      ],
+      "acceptance": [
+        0.019064599997363985
+      ],
+      "documentation": [
+        0.010893199942074716
+      ],
+      "release_readiness": [
+        0.010785099933855236
+      ],
+      "build": [
+        1.9642325000604615
+      ],
+      "release_gate": [
+        0.00983350002206862
+      ],
+      "release_approval": [
+        0.012868699966929853
+      ]
+    },
+    "agent_task_duration": {
+      "requirement": [
+        0.004050100105814636,
+        0.003181600011885166
+      ],
+      "architecture": [
+        0.0039175000274553895
+      ],
+      "architecture_reviewer": [
+        0.004727000021375716
+      ],
+      "planning": [
+        0.0037384999450296164
+      ],
+      "lld": [
+        0.005145299946889281
+      ],
+      "coding": [
+        0.008758199983276427
+      ],
+      "test_design": [
+        0.00605690001975745
+      ],
+      "code_reviewer": [
+        0.008325599948875606
+      ],
+      "test_reviewer": [
+        0.004529900033958256
+      ],
+      "failure_analysis": [
+        0.0037181000225245953
+      ],
+      "documentation": [
+        0.004821699927560985
+      ],
+      "release_readiness": [
+        0.004011899931356311
+      ]
+    },
+    "human_approval_wait_time": 57.900898,
+    "review_findings_by_severity": {
+      "BLOCKER": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 0
+    }
+  }
+}

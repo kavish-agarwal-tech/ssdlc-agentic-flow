@@ -1,0 +1,1 @@
+Add expiration support for shortened URLs. Identify default TTL, optional versus mandatory expiration, post-expiration HTTP behavior, analytics retention, reactivation semantics, and cleanup decisions before proposing implementation.

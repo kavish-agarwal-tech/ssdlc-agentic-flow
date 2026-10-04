@@ -1,0 +1,6 @@
+{
+  "actor": "local-operator",
+  "action": "approve",
+  "rationale": "Reviewed and approve architecture@1 and its associated decisions.",
+  "artifact_ref": "architecture@1"
+}

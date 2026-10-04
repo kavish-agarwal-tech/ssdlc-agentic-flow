@@ -1,0 +1,317 @@
+SUPPLEMENTARY REQUIREMENT — PLUGGABLE LLM PROVIDER AND FREE/LOCAL MODEL SUPPORT
+
+Context
+-------
+The initial Agentic SSDLC implementation is already in progress.
+
+Extend the current design so the SSDLC system does not depend on a single commercial LLM provider and does not require a paid cloud model to function.
+
+This is a refinement to the existing architecture, not a request to rewrite the orchestration framework.
+
+Primary Goal
+------------
+Introduce a clean LLM provider abstraction with:
+
+1. Local/free model support as the default development path.
+2. Optional hosted provider support.
+3. Deterministic mock model support for automated tests.
+4. No direct model-provider calls from individual agents.
+5. Configuration-driven model selection.
+
+The orchestration should remain based on LangGraph.
+
+Architecture Requirement
+------------------------
+
+Introduce an abstraction such as:
+
+    LLMProvider
+      |
+      +-- OllamaProvider
+      +-- HuggingFaceProvider (optional)
+      +-- OpenAIProvider (optional)
+      +-- AnthropicProvider (optional)
+      +-- MockLLMProvider
+
+The exact class/interface names may vary, but the architecture must preserve this separation.
+
+Agents must depend only on the provider abstraction.
+
+For example:
+
+    RequirementAgent
+          |
+          v
+      LLMProvider
+          |
+          +--> Ollama
+          +--> Hosted provider
+          +--> Mock
+
+Do not embed provider-specific SDK calls inside:
+- Requirement Agent
+- Architecture Agent
+- Reviewer Agents
+- Planning Agent
+- LLD Agent
+- Coding Agent
+- Test Design Agent
+- Failure Analysis Agent
+- Documentation Agent
+
+Local / Free Default
+--------------------
+
+Support Ollama as the preferred local development/demo provider.
+
+Configuration should be externalized, for example:
+
+    LLM_PROVIDER=ollama
+    LLM_MODEL=<configurable-model-name>
+    LLM_BASE_URL=http://localhost:11434
+
+Do not hard-code a specific model name into the architecture.
+
+Document recommended model classes separately.
+
+The implementation should make it possible to run with an open-weight local model that supports instruction following and coding tasks.
+
+Examples may include suitable Qwen, Llama, Mistral, or equivalent models depending on local hardware.
+
+Do not make model quality assumptions part of orchestration logic.
+
+Hugging Face Support
+--------------------
+
+Optionally support Hugging Face as an additional model-provider path.
+
+The design should distinguish between:
+
+1. Hugging Face-hosted inference/provider APIs.
+2. Hugging Face models executed locally.
+
+Do not make Hugging Face hosted inference mandatory.
+
+The system should remain functional without paid cloud inference.
+
+Mock Provider Requirement
+-------------------------
+
+Provide a MockLLMProvider for tests.
+
+This is important.
+
+The orchestration platform itself must be testable without:
+- internet access;
+- API keys;
+- paid services;
+- non-deterministic LLM output.
+
+Mock model responses should be configurable so workflow tests can verify:
+
+- ambiguity detection;
+- requirement approval interruption;
+- architecture review loops;
+- retry behavior;
+- safe-stop behavior;
+- failure classification;
+- artifact invalidation;
+- human approval resume;
+- release gating.
+
+Unit and workflow tests should prefer the mock provider.
+
+Real-model integration tests should be optional.
+
+Provider Configuration
+----------------------
+
+Use configuration rather than code changes to switch models.
+
+Possible configuration:
+
+    LLM_PROVIDER=ollama
+    LLM_MODEL=qwen...
+    LLM_BASE_URL=http://localhost:11434
+
+Optional:
+
+    LLM_PROVIDER=openai
+    LLM_MODEL=...
+    OPENAI_API_KEY=...
+
+or
+
+    LLM_PROVIDER=anthropic
+    LLM_MODEL=...
+    ANTHROPIC_API_KEY=...
+
+No provider-specific secret should appear in:
+- source code;
+- prompts;
+- logs;
+- audit records;
+- generated documentation.
+
+Capability-Aware Model Usage
+----------------------------
+
+Do not assume every model has equal capability.
+
+Allow agent/model configuration to evolve later, for example:
+
+    requirement_agent -> reasoning model
+    architecture_agent -> stronger reasoning model
+    coding_agent -> code-oriented model
+    reviewer_agent -> reasoning/review model
+
+For the first implementation, a single configurable model is acceptable.
+
+However, preserve the architecture so per-agent model selection can be added later without changing orchestration semantics.
+
+Deterministic vs LLM Responsibilities
+-------------------------------------
+
+Reinforce the existing principle:
+
+    REASONING IS PROBABILISTIC; CONTROL IS DETERMINISTIC.
+
+The model may:
+- analyze;
+- propose;
+- generate;
+- critique;
+- classify;
+- explain.
+
+The model must NOT determine:
+
+- whether tests actually passed;
+- whether build actually succeeded;
+- retry counts;
+- gate enforcement;
+- workflow state transition validity;
+- review-loop maximums;
+- human approval;
+- artifact version validity;
+- release success;
+- audit persistence.
+
+Those remain deterministic application responsibilities.
+
+Fallback Behavior
+-----------------
+
+Define graceful behavior when the configured LLM is unavailable.
+
+Examples:
+
+- provider connection error;
+- timeout;
+- invalid response;
+- malformed structured output.
+
+The workflow should:
+
+1. record the failure;
+2. retry according to bounded policy;
+3. use configured fallback provider if available;
+4. otherwise enter SAFE_STOP;
+5. explain what human action is required.
+
+Do not silently switch providers without audit visibility.
+
+Structured Outputs
+------------------
+
+Where practical, require agents to produce structured outputs validated through typed schemas.
+
+For example:
+
+- RequirementAnalysis
+- ArchitectureProposal
+- ReviewFinding[]
+- ImplementationPlan
+- FailureAnalysis
+- ReleaseReadinessReport
+
+If model output cannot be validated:
+
+- attempt bounded repair/retry;
+- record validation failure;
+- safe-stop if limits are exceeded.
+
+Documentation Update
+--------------------
+
+Add professional documentation covering:
+
+1. LLM provider architecture.
+2. Why provider abstraction exists.
+3. Why local Ollama support is useful for development/demo.
+4. Why deterministic mock models are used for automated testing.
+5. Hosted-provider options.
+6. Security/secret handling.
+7. Configuration examples.
+8. Limitations of smaller local models.
+9. How to switch providers.
+10. How provider failures are handled.
+
+Create or update documentation similar to:
+
+    docs/llm-provider-architecture.md
+
+Also update:
+- README.md
+- architecture.md
+- configuration documentation
+- .env.example
+
+Design Rationale to Document
+----------------------------
+
+Document the following reasoning clearly:
+
+- The SSDLC platform should not be vendor-locked.
+- The orchestration semantics do not depend on model vendor.
+- Local models allow low-cost/offline experimentation.
+- Hosted models can improve output quality when required.
+- Mock models make workflow tests deterministic and inexpensive.
+- Deterministic controls remain independent of model reliability.
+- Model capability is replaceable infrastructure, not authoritative workflow state.
+
+Acceptance Criteria
+-------------------
+
+This supplementary requirement is complete when:
+
+1. No agent directly depends on a specific commercial model SDK.
+2. A provider interface exists.
+3. Ollama/local provider path works or is cleanly integrated.
+4. Mock provider is implemented.
+5. Workflow tests can run entirely using the mock provider.
+6. Provider selection is configuration-driven.
+7. Secrets are not logged or stored in workflow artifacts.
+8. Model failures follow bounded retry/fallback/safe-stop behavior.
+9. Documentation explains the design and trade-offs.
+10. Existing LangGraph orchestration behavior remains intact.
+
+Implementation Guidance
+-----------------------
+
+Do not rewrite working parts of the SSDLC platform unnecessarily.
+
+First inspect the existing implementation.
+
+Then:
+
+1. identify direct LLM dependencies;
+2. introduce the provider abstraction;
+3. refactor agents incrementally;
+4. add mock provider;
+5. add local provider;
+6. add tests;
+7. update documentation;
+8. verify existing workflow tests still pass.
+
+Treat this as an architectural refinement and preserve all existing audit, governance, retry, human-approval, and workflow semantics.

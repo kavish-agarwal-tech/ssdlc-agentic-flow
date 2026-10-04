@@ -1,0 +1,13 @@
+{
+  "actor": "local-operator",
+  "action": "clarify",
+  "rationale": "Resolve the open requirement questions.",
+  "artifact_ref": "requirement@1",
+  "answers": {
+    "Q1": "Raise ValueError for blank names, including whitespace-only names.",
+    "Q2": "Raise TypeError with a descriptive message for non-string inputs.",
+    "Q3": "Treat whitespace-only as blank, the same as an empty string.",
+    "Q4": "Strip leading and trailing whitespace using str.strip; do not collapse internal whitespace.",
+    "Q5": "Minimal single-module package with a README and unit tests, Python 3.9+."
+  }
+}

@@ -1,0 +1,1858 @@
+CODING AGENT IMPLEMENTATION PROMPT
+==================================
+
+Project: Governed Agentic SSDLC / SDLC Engineering System
+
+PRIMARY GOAL
+------------
+Build the reusable agentic software-engineering orchestration platform FIRST.
+
+Do NOT begin by manually implementing the URL shortener.
+
+The URL shortener will later be used as the first workload to prove that this SSDLC system can take a requirement through the complete software-development lifecycle using the same governed orchestration engine.
+
+The implementation must be professional, reviewable, auditable, and suitable for a public GitHub repository used in a software-engineering interview.
+
+======================================================================
+1. ASSIGNMENT CONTEXT
+======================================================================
+
+This system is being created for an engineering interview exercise whose central objective is to demonstrate an agentic execution model capable of transforming a requirement into a reviewable engineering outcome.
+
+The broader assignment expects the solution to demonstrate:
+
+- requirement understanding;
+-- ambiguity detection;
+- task decomposition;
+- brownfield codebase reasoning;
+- architecture and design;
+- implementation;
+- testing;
+- documentation;
+- release readiness;
+- explicit dependency graphs;
+- non-linear and stateful execution;
+- parallel and sequential paths;
+- synchronization;
+- human approval checkpoints;
+- bounded retries;
+- fallback;
+- rollback;
+- safe-stop behavior;
+- cross-stage context preservation;
+- decision lineage;
+- governance and policy guardrails;
+- audit-grade traceability;
+- reliability metrics;
+- dynamic re-planning;
+- controlled agent autonomy;
+- final human oversight.
+
+The platform must be reusable for:
+- greenfield work;
+- brownfield enhancements/refactors/bug fixes;
+- ambiguous requirements;
+- testing/documentation improvements.
+
+The URL-shortener requirement will be used after the SSDLC platform is working to demonstrate all of the above.
+
+======================================================================
+2. CORE DESIGN PRINCIPLE
+======================================================================
+
+Design and implement around this principle:
+
+    REASONING IS PROBABILISTIC; CONTROL IS DETERMINISTIC.
+
+Agents may:
+- interpret;
+- reason;
+- propose;
+- critique;
+- diagnose;
+- generate;
+- recommend;
+- explain.
+
+The orchestrator must deterministically control:
+- state transitions;
+- dependency satisfaction;
+- entry gates;
+- exit gates;
+- approval requirements;
+- retry limits;
+- review-loop limits;
+- artifact versioning;
+- invalidation;
+- synchronization;
+- policy enforcement;
+- deterministic tool execution;
+- test pass/fail;
+- build pass/fail;
+- release-readiness evaluation;
+- rollback;
+- safe-stop;
+- audit persistence.
+
+An LLM must never be allowed to simply claim:
+- tests passed;
+- build succeeded;
+- a gate passed;
+- a security issue is resolved;
+- an artifact is approved.
+
+These must be supported by deterministic state, evidence, policy, or explicit human approval.
+
+======================================================================
+3. FRAMEWORK DECISION: LANGGRAPH
+======================================================================
+
+Use LangGraph as the primary orchestration framework unless a concrete blocking reason is discovered during implementation.
+
+Do NOT custom-build a workflow engine when a mature framework already provides the orchestration primitives required by this system.
+
+Document professionally why LangGraph was selected.
+
+The reasoning must include:
+
+1. The workflow is a graph, not a simple linear prompt chain.
+2. It requires conditional routing.
+3. It requires loops.
+4. It requires bounded retries.
+5. It requires parallel branches.
+6. It requires synchronization.
+7. It requires long-running state.
+8. It requires human-in-the-loop interrupts.
+9. It requires safe resume after human input.
+10. It requires checkpointing/persistence.
+11. It requires dynamic routing after failures or upstream changes.
+12. It provides standard orchestration primitives instead of forcing custom infrastructure.
+13. Governance logic remains application-owned.
+
+Explicitly document the boundary:
+
+LangGraph provides:
+- graph execution;
+- state propagation;
+- conditional edges;
+- checkpointing;
+- interrupts;
+- resumability;
+- parallel execution primitives;
+- graph lifecycle.
+
+Our application owns:
+- SSDLC domain state;
+- requirements lifecycle;
+- artifact versioning;
+- approval policy;
+- review finding lifecycle;
+- retry budgets;
+- severity rules;
+- artifact invalidation;
+- audit semantics;
+- human governance policy;
+- release policy;
+- safe-stop rules;
+- rollback policy;
+- metrics semantics;
+- deterministic tool policy.
+
+Do not make "we use LangGraph" the architecture.
+
+LangGraph is an implementation framework serving a framework-independent architecture.
+
+======================================================================
+4. PREFERRED IMPLEMENTATION STACK
+======================================================================
+
+Preferred orchestration implementation:
+
+- Python
+- LangGraph
+- Pydantic or equivalent typed models
+- structured JSON-serializable workflow state
+- pluggable LLM provider abstraction
+- deterministic local tool executor
+- SQLite or similarly lightweight persistence for prototype/audit data
+- LangGraph-compatible checkpoint persistence
+- pytest
+- structured logging
+
+Do not tightly couple the orchestrator to a single product implementation language.
+
+The SSDLC platform should eventually be capable of working on:
+- Python repositories;
+- Java repositories;
+- Go repositories;
+- existing brownfield repositories.
+
+The technology selected for a software product being built is a separate architectural decision produced by the Architecture Agent.
+
+======================================================================
+5. REQUIREMENT ANALYSIS AGENT
+======================================================================
+
+Create a Requirement Analysis Agent.
+
+Its job is not to summarize the requirement.
+
+It must:
+
+- understand intent;
+- normalize the request;
+- identify ambiguity;
+- identify contradictions;
+- identify missing acceptance criteria;
+- identify missing invariants;
+- identify source-of-truth questions;
+- identify authoritative record ownership;
+- identify missing functional requirements;
+- identify missing non-functional requirements;
+- identify missing performance expectations;
+- identify availability expectations;
+- identify reliability expectations;
+- identify scalability expectations;
+- identify observability requirements;
+- identify security requirements;
+- identify retention requirements;
+- identify compliance/change-control concerns;
+- identify hidden assumptions.
+
+It must classify uncertainty as:
+
+- BLOCKING_AMBIGUITY
+- NON_BLOCKING_AMBIGUITY
+- PROPOSED_DEFAULT
+- ASSUMPTION_REQUIRING_APPROVAL
+
+When human input is needed, do not ask weak questions.
+
+For every question provide:
+
+- what is unclear;
+- why it matters;
+- plausible options;
+- recommendation, where appropriate;
+- reasoning behind the recommendation;
+- explicit indication that recommendation is non-binding;
+- request for human confirmation.
+
+Example:
+
+Ambiguity:
+Default URL expiration is not defined.
+
+Why it matters:
+It affects redirect semantics, data lifecycle, cleanup, analytics retention,
+storage growth, and API behavior.
+
+Options:
+A. No default expiration.
+B. 30-day default.
+C. Configurable default.
+
+Recommendation:
+Option A for MVP because it avoids implicit lifecycle behavior.
+
+Decision:
+Human confirmation required.
+
+The agent must not silently resolve blocking ambiguity.
+
+======================================================================
+6. REQUIREMENT VERSIONING AND HUMAN APPROVAL
+======================================================================
+
+Every requirement revision must be versioned.
+
+Track:
+
+- requirement_id;
+- version;
+- original_text;
+- normalized_requirement;
+- functional_requirements;
+- non_functional_requirements;
+- invariants;
+- assumptions;
+- open_questions;
+- changes_from_previous_version;
+- reason_for_change;
+- initiating_actor;
+- human_input;
+- decisions;
+- approval_status;
+- approver;
+- approval_timestamp.
+
+Suggested requirement states:
+
+- DRAFT
+- ANALYZING
+- WAITING_FOR_HUMAN
+- READY_FOR_APPROVAL
+- APPROVED
+- REJECTED
+- SUPERSEDED
+
+Architecture may not start unless:
+
+- requirement status is APPROVED;
+- blocking ambiguity count is zero;
+- required human decisions are complete.
+
+The orchestrator enforces this.
+The Architecture Agent does not bypass it.
+
+======================================================================
+7. ARCHITECTURE AUTHOR AGENT
+======================================================================
+
+Once the requirement is approved, invoke the Architecture Author Agent.
+
+Input:
+- exact approved requirement version;
+- requirement assumptions;
+- constraints;
+- risk context.
+
+Output a professional architecture package including:
+
+- context;
+- scope;
+- requirement mapping;
+- architecture goals;
+- constraints;
+- assumptions;
+- target-state architecture;
+- component model;
+- component responsibilities;
+- data ownership;
+- authoritative system of record;
+- API/interface model;
+- data model;
+- consistency model;
+- scalability;
+- performance;
+- reliability;
+- availability;
+- observability;
+- security;
+- failure behavior;
+- resiliency;
+- deployment topology;
+- operational considerations;
+- risks;
+- alternatives;
+- trade-offs;
+- open decisions.
+
+For important decisions, present multiple alternatives.
+
+For each alternative include:
+- description;
+- advantages;
+- disadvantages;
+- complexity;
+- operational impact;
+- security impact;
+- reliability impact;
+- scalability impact;
+- cost implication where useful;
+- recommendation;
+- reasoning.
+
+======================================================================
+8. TECHNOLOGY STACK RECOMMENDATION
+======================================================================
+
+Technology selection belongs in architecture.
+
+The Architecture Agent should recommend, where relevant:
+
+- implementation language;
+- application framework;
+- API technology;
+- persistence technology;
+- cache;
+- test framework;
+- package/build technology;
+- deployment/runtime model.
+
+Do not silently select a stack.
+
+Present viable options and trade-offs.
+
+Approved choices become authoritative Architecture/Technology Decision Records.
+
+Downstream agents must use the approved technology baseline.
+
+======================================================================
+9. ARCHITECTURE REVIEW AGENT
+======================================================================
+
+Create an independent Architecture Reviewer Agent.
+
+It must review, not merely restate the design.
+
+Review against:
+
+- requirement coverage;
+- correctness;
+- scalability;
+- reliability;
+- availability;
+- data ownership;
+- consistency;
+- failure handling;
+- security;
+- compliance;
+- observability;
+- maintainability;
+- operability;
+- cost/complexity;
+- technology fit;
+- deployment;
+- rollback;
+- requirement traceability.
+
+Review findings must be first-class structured records.
+
+Suggested model:
+
+ReviewFinding:
+- id
+- artifact_id
+- artifact_version
+- category
+- severity
+- description
+- rationale
+- affected_component
+- suggested_resolution
+- status
+- author_response
+- actual_change
+- before_version
+- after_version
+- resolution_reason
+- reviewer_verification
+- created_at
+- updated_at
+
+Severities:
+- BLOCKER
+- HIGH
+- MEDIUM
+- LOW
+
+Statuses:
+- OPEN
+- IN_DISCUSSION
+- RESOLVED
+- DEFERRED
+- ACCEPTED_RISK
+- REJECTED_WITH_RATIONALE
+
+A disagreed review comment must never disappear.
+Persist the disagreement and rationale.
+
+======================================================================
+10. BOUNDED ARCHITECTURE REVIEW LOOP
+======================================================================
+
+Architecture Author and Architecture Reviewer may iterate.
+
+Default maximum:
+- 3 autonomous review/revision cycles.
+
+Each cycle must persist:
+- findings;
+- responses;
+- architecture version changes;
+- disposition.
+
+Exit conditions:
+
+- zero unresolved BLOCKER items;
+- zero unresolved HIGH items unless policy/human accepts risk;
+- review marked complete;
+- required artifacts present.
+
+If maximum cycles are exhausted:
+
+- SAFE STOP;
+- escalate to human;
+- present unresolved findings;
+- present recommendation/options;
+- await decision.
+
+Never allow uncontrolled agent-to-agent chat loops.
+
+The orchestrator mediates each cycle.
+
+======================================================================
+11. HUMAN ARCHITECTURE APPROVAL
+======================================================================
+
+After automated architecture review completes, require human approval.
+
+Present:
+
+- architecture;
+- requirement coverage;
+- technology recommendation;
+- alternatives;
+- trade-offs;
+- risks;
+- accepted risks;
+- deferred items;
+- important review comments;
+- changes made during review;
+- open non-blocking items;
+- ADRs.
+
+Suggested architecture states:
+
+- DRAFT
+- IN_REVIEW
+- REVIEW_COMPLETE
+- WAITING_FOR_HUMAN
+- APPROVED
+- REJECTED
+- SUPERSEDED
+
+Planning cannot start before APPROVED.
+
+======================================================================
+12. ARCHITECTURE DECISION RECORDS
+======================================================================
+
+Implement ADR-style decision tracking.
+
+Fields:
+
+- adr_id;
+- decision;
+- context;
+- alternatives;
+- recommendation;
+- tradeoffs;
+- rationale;
+- requirement_refs;
+- review_refs;
+- decision_owner;
+- approval_status;
+- version;
+- affected_artifacts.
+
+Examples:
+- language choice;
+- framework;
+- persistence;
+- consistency;
+- cache;
+- prototype-vs-target-state deviation.
+
+======================================================================
+13. PLANNING AGENT
+======================================================================
+
+After architecture approval, invoke Planning Agent.
+
+It transforms approved requirements and architecture into executable work.
+
+Requirements:
+
+- use vertical slices;
+- each phase should deliver meaningful end-to-end capability;
+- identify features/work packages;
+- define dependencies;
+- define sequencing;
+- identify parallel work;
+- define acceptance criteria;
+- map work to requirements;
+- identify design artifacts;
+- identify risks;
+- identify required reviews;
+- define deterministic validation;
+- identify human gates.
+
+Do not introduce new scope silently.
+
+If new scope appears necessary:
+- raise it;
+- explain why;
+- route back to requirement/human approval.
+
+======================================================================
+14. LOW-LEVEL DESIGN AGENT
+======================================================================
+
+For each feature/slice, create an LLD Agent.
+
+Inputs:
+
+- approved requirement;
+- approved architecture;
+- approved ADRs;
+- approved technology stack;
+- implementation plan;
+- acceptance criteria;
+- codebase context for brownfield changes.
+
+Outputs:
+
+- package/module layout;
+- classes/functions/components;
+- interfaces;
+- DTOs/contracts;
+- data structures;
+- persistence details;
+- validation logic;
+- error model;
+- concurrency concerns;
+- sequence/interaction flow;
+- logging;
+- metrics;
+- test seams;
+- implementation notes;
+- traceability to requirements and ADRs.
+
+LLD is authoritative input to coding and test design.
+
+======================================================================
+15. PARALLEL CODING AND TEST-DESIGN BRANCH
+======================================================================
+
+After LLD is accepted, branch execution.
+
+Run in parallel where practical:
+
+A. Coding Agent
+B. Test Design Agent
+
+Both consume the SAME authoritative inputs:
+
+- approved requirement version;
+- approved architecture version;
+- approved ADRs;
+- approved LLD;
+- feature acceptance criteria.
+
+Test design must not be generated from code.
+It should independently derive expected behavior from approved design and requirements.
+
+Explicitly model this parallelism in LangGraph.
+
+======================================================================
+16. CODING AGENT
+======================================================================
+
+The Coding Agent must:
+
+- implement only approved scope;
+- follow LLD;
+- follow approved stack;
+- follow language/framework conventions;
+- generate maintainable code;
+- include validation;
+- include error handling;
+- include appropriate observability;
+- avoid secrets;
+- avoid unsafe shortcuts;
+- update implementation documentation as needed;
+- identify deviations;
+- produce a change summary.
+
+Version code artifacts and associate them with:
+
+- requirement_version;
+- architecture_version;
+- adr_versions;
+- plan_item;
+- lld_version.
+
+======================================================================
+17. CODE REVIEW AGENT
+======================================================================
+
+Create independent Code Review Agent.
+
+Review dimensions:
+
+- functional correctness;
+- requirement alignment;
+- LLD alignment;
+- API correctness;
+- input validation;
+- security;
+- authorization;
+- secret handling;
+- logging safety;
+- dependency risk;
+- error handling;
+- language idioms;
+- clean code;
+- separation of concerns;
+- SOLID principles where relevant;
+- maintainability;
+- unnecessary complexity;
+- concurrency safety;
+- reliability;
+- idempotency where relevant;
+- timeout/retry behavior;
+- observability;
+- testability.
+
+Use structured findings.
+
+Bound fix/review loop:
+- maximum 3 autonomous cycles.
+
+Unresolved BLOCKER/HIGH after retry budget:
+- SAFE STOP;
+- escalate.
+
+======================================================================
+18. DETERMINISTIC STATIC VALIDATION
+======================================================================
+
+Do not rely on an LLM for objective validation.
+
+Run actual tools where appropriate:
+
+- formatter;
+- linter;
+- compiler;
+- type checker;
+- dependency scanner;
+- security scanner;
+- unit-test command;
+- package/build command.
+
+Persist:
+
+- command;
+- tool;
+- exit_status;
+- duration;
+- output_summary;
+- artifact_version.
+
+Agents may explain tool output.
+Tools determine pass/fail.
+
+======================================================================
+19. TEST DESIGN AGENT
+======================================================================
+
+Generate tests from approved behavior.
+
+Cover:
+
+- happy path;
+- negative path;
+- edge cases;
+- boundaries;
+- invalid input;
+- failure modes;
+- timeout/retry;
+- persistence behavior;
+- concurrency where relevant;
+- security;
+- authorization;
+- reliability;
+- acceptance criteria;
+- reasonable non-functional validation.
+
+Create explicit traceability:
+
+Requirement
+  -> Acceptance Criterion
+      -> Test Case
+
+======================================================================
+20. TEST REVIEW AGENT
+======================================================================
+
+Create independent Test Review Agent.
+
+Review:
+
+- requirement coverage;
+- acceptance-criteria coverage;
+- meaningful assertions;
+- negative tests;
+- boundary cases;
+- security coverage;
+- reliability coverage;
+- deterministic behavior;
+- excessive mocking;
+- implementation-coupled tests;
+- integration coverage;
+- regression coverage for brownfield work.
+
+Bound review loops.
+Persist all findings and resolution.
+
+======================================================================
+21. SYNCHRONIZATION AND DETERMINISTIC TEST EXECUTION
+======================================================================
+
+After Code Review and Test Review finish, synchronize branches.
+
+Run actual tests.
+
+The Test Execution node is deterministic.
+
+Record:
+
+- exact code artifact version;
+- test artifact version;
+- environment;
+- command;
+- exit status;
+- failures;
+- duration;
+- coverage where available.
+
+======================================================================
+22. FAILURE ANALYSIS AND TARGETED RE-PLANNING
+======================================================================
+
+If tests fail, invoke Failure Analysis Agent.
+
+Classify likely root cause:
+
+- IMPLEMENTATION_DEFECT
+- TEST_DEFECT
+- LLD_DEFECT
+- ARCHITECTURE_DEFECT
+- REQUIREMENT_DEFECT
+- ENVIRONMENT_OR_TOOLING
+
+Produce:
+- evidence;
+- reasoning;
+- recommended route.
+
+Orchestrator routes back to the appropriate node.
+
+Examples:
+
+implementation -> Coding
+test defect -> Test Design
+LLD defect -> LLD
+architecture defect -> Architecture flow
+requirement defect -> Requirement flow
+tool/environment -> tool recovery/human
+
+Do NOT simply ask Coding Agent to try again.
+
+Bound re-plan/retry attempts.
+
+When retry budget is exhausted:
+- SAFE STOP;
+- persist evidence;
+- request human decision.
+
+======================================================================
+23. ARTIFACT DEPENDENCY AND INVALIDATION
+======================================================================
+
+Implement explicit artifact lineage.
+
+Example:
+
+Requirement v3
+  -> Architecture v2
+      -> Plan v1
+          -> LLD v4
+              -> Code v7
+              -> Tests v5
+                  -> Release Candidate v2
+
+When an upstream approved artifact changes, downstream artifacts must be marked:
+
+- VALID;
+- REVALIDATE;
+- INVALIDATED;
+- SUPERSEDED;
+
+depending on impact.
+
+Example:
+Technology ADR changes Python -> Java.
+
+Expected effect:
+
+Requirements: VALID
+Logical architecture: VALID or REVALIDATE
+Technology ADR: CHANGED
+Plan: REVALIDATE
+LLD: INVALIDATED
+Code: INVALIDATED
+Tests: INVALIDATED
+Release package: INVALIDATED
+
+Do not reset unrelated work unnecessarily.
+
+This is a key demonstration of dynamic replanning.
+
+======================================================================
+24. FEATURE ACCEPTANCE GATE
+======================================================================
+
+After deterministic tests pass, verify:
+
+- acceptance criteria satisfied;
+- required reviews complete;
+- no prohibited open findings;
+- traceability complete;
+- required artifacts exist;
+- approved scope implemented.
+
+Do not mark a feature complete merely because unit tests pass.
+
+======================================================================
+25. DOCUMENTATION AGENT
+======================================================================
+
+Create a Documentation Agent/stage.
+
+Generate and maintain:
+
+- README;
+- architecture overview;
+- orchestration design;
+- setup guide;
+- API documentation;
+- configuration reference;
+- ADRs;
+- testing approach;
+- known limitations;
+- trade-offs;
+- operational notes;
+- release notes;
+- demo instructions.
+
+Documentation must reflect actual implementation state.
+
+Do not claim unsupported capabilities.
+
+======================================================================
+26. RELEASE READINESS AGENT
+======================================================================
+
+Create Release Readiness Agent.
+
+Responsibilities:
+
+- verify required artifacts;
+- generate/check packaging;
+- generate/check Dockerfile where appropriate;
+- generate env/config template;
+- verify health/readiness behavior;
+- prepare release notes;
+- verify database migrations;
+- inspect open findings;
+- verify rollback instructions;
+- verify build reproducibility;
+- prepare deployment instructions/manifests;
+- generate release-readiness report.
+
+The Release Readiness Agent prepares a release.
+It does not autonomously deploy production.
+
+======================================================================
+27. DETERMINISTIC BUILD/PACKAGE NODE
+======================================================================
+
+Use actual deterministic tooling.
+
+Examples:
+
+Python:
+- pytest
+- package/build
+- docker build
+
+Java:
+- mvn/gradle build
+
+Go:
+- go test
+- go build
+
+Persist results and exit codes.
+
+======================================================================
+28. FINAL RELEASE APPROVAL
+======================================================================
+
+Normal terminal state:
+
+    READY_FOR_DEPLOYMENT
+
+Do not deploy production by default.
+
+Require human approval for deployment.
+
+Present:
+
+- build result;
+- test result;
+- coverage;
+- review state;
+- security findings;
+- accepted risks;
+- release notes;
+- rollback plan;
+- limitations.
+
+======================================================================
+29. ROLLBACK AND SAFE STOP
+======================================================================
+
+Support prototype-level rollback.
+
+Examples:
+
+- revert active artifact pointer;
+- reject release candidate;
+- return workflow to prior stable approved artifact;
+- invalidate descendants;
+- preserve full audit history.
+
+Safe-stop conditions include:
+
+- retry budget exhausted;
+- unresolved blocker after max review cycles;
+- policy violation;
+- deterministic tooling repeatedly failing;
+- required human approval unavailable;
+- broken artifact lineage;
+- invalid state transition.
+
+======================================================================
+30. CONTROLLED AUTONOMY POLICY
+======================================================================
+
+Define policy explicitly.
+
+AUTONOMOUS:
+
+- requirement analysis;
+- ambiguity detection;
+- design-option generation;
+- architecture critique;
+- implementation planning;
+- LLD generation;
+- code generation within scope;
+- test generation;
+- bounded remediation;
+- documentation generation.
+
+HUMAN APPROVAL REQUIRED:
+
+- final requirement approval;
+- functional scope change;
+- acceptance of high risk;
+- architecture approval;
+- technology-stack approval;
+- major API/data-model changes where configured;
+- deployment;
+- risk acceptance.
+
+NEVER AUTONOMOUS:
+
+- disabling security controls;
+- bypassing failed gates;
+- marking failing tests passed;
+- hiding blocker findings;
+- silently mutating approved requirements;
+- untracked production deployment.
+
+======================================================================
+31. AUTHORITATIVE CENTRAL WORKFLOW STATE
+======================================================================
+
+Create typed state.
+
+Suggested top-level structure:
+
+- workflow_run_id
+- project_id
+- scenario_type
+- workflow_status
+- active_nodes
+- requirement_artifacts
+- architecture_artifacts
+- adrs
+- implementation_plan
+- lld_artifacts
+- code_artifacts
+- test_artifacts
+- review_findings
+- tool_results
+- approvals
+- retry_counters
+- risk_register
+- accepted_risks
+- audit_events
+- timestamps
+- metrics
+- safe_stop_reason
+
+Do not use unstructured chat history as the source of truth.
+
+Structured artifacts are authoritative.
+Conversation context is supporting evidence only.
+
+======================================================================
+32. AUDIT MODEL
+======================================================================
+
+Auditability is first-class.
+
+Record material events including:
+
+- workflow created;
+- agent started;
+- agent completed;
+- ambiguity detected;
+- human question raised;
+- human response received;
+- requirement version created;
+- requirement approved;
+- architecture created;
+- review finding created;
+- finding resolved;
+- finding deferred;
+- risk accepted;
+- ADR proposed;
+- ADR approved;
+- plan created;
+- LLD created;
+- artifact invalidated;
+- code generated;
+- tests generated;
+- tool executed;
+- test failed;
+- re-plan triggered;
+- retry attempted;
+- safe stop;
+- release gate passed;
+- release gate failed;
+- human approval;
+- rollback.
+
+AuditEvent should include:
+
+- event_id
+- workflow_id
+- timestamp
+- actor_type
+- actor_id
+- action
+- stage
+- artifact_refs
+- before_version
+- after_version
+- rationale
+- related_review_ids
+- related_adr_ids
+- related_approval_ids
+- correlation_id
+
+======================================================================
+33. OBSERVABILITY AND RELIABILITY METRICS
+======================================================================
+
+Implement credible lightweight observability.
+
+Metrics:
+
+- workflow_runs_total
+- workflow_success_total
+- workflow_failure_total
+- workflow_end_to_end_latency
+- stage_latency
+- agent_task_duration
+- agent_failure_count
+- retry_count
+- rollback_count
+- replan_count
+- human_approval_wait_time
+- safe_stop_count
+- review_findings_by_severity
+- review_cycle_count
+- test_pass_count
+- test_fail_count
+- build_pass_count
+- build_fail_count
+
+Expose metrics in a simple manner suitable for a prototype.
+
+======================================================================
+34. BROWNFIELD MODE
+======================================================================
+
+The system must support brownfield work.
+
+Before planning brownfield changes, introduce a Codebase Analysis / Impact Analysis stage.
+
+It should identify:
+
+- affected modules;
+- services;
+- APIs;
+- data flows;
+- persistence impact;
+- test impact;
+- configuration impact;
+- backward-compatibility concerns;
+- migration requirements;
+- likely regression risk.
+
+The agent must produce a structured impact artifact.
+
+Planning must use this artifact.
+
+======================================================================
+35. GUARDRAILS
+======================================================================
+
+Implement policy guardrails at the orchestration layer.
+
+Examples:
+
+- block architecture before requirement approval;
+- block planning before architecture approval;
+- block implementation before LLD;
+- block release readiness if tests fail;
+- block release if HIGH/BLOCKER findings remain;
+- cap review cycles;
+- cap retries;
+- require human approval for accepted high-risk findings;
+- do not allow stale/superseded artifacts to drive downstream work;
+- prohibit code execution outside configured workspace;
+- sanitize command execution;
+- never expose model/API secrets in prompts, logs, or generated artifacts.
+
+======================================================================
+36. REPOSITORY / PACKAGE STRUCTURE
+======================================================================
+
+Create a clean modular structure similar to:
+
+agentic-ssdlc/
+  README.md
+  pyproject.toml
+  .env.example
+  docs/
+    architecture.md
+    orchestration.md
+    requirements.md
+    adr/
+    workflows/
+    audit-model.md
+    governance.md
+    langgraph-decision.md
+  src/
+    ssdlc/
+      graph/
+        builder.py
+        routing.py
+        gates.py
+      state/
+        workflow.py
+        artifacts.py
+        reviews.py
+        approvals.py
+        audit.py
+      agents/
+        requirement.py
+        architecture.py
+        architecture_reviewer.py
+        planning.py
+        lld.py
+        coding.py
+        code_reviewer.py
+        test_design.py
+        test_reviewer.py
+        failure_analysis.py
+        documentation.py
+        release_readiness.py
+        brownfield_analysis.py
+      policies/
+        autonomy.py
+        retries.py
+        review.py
+        approvals.py
+        invalidation.py
+      tools/
+        executor.py
+        tests.py
+        build.py
+        static_analysis.py
+      persistence/
+        checkpoints.py
+        audit_repository.py
+        artifact_repository.py
+      llm/
+        provider.py
+        prompts.py
+        mock_provider.py
+      observability/
+        logging.py
+        metrics.py
+      cli/
+        main.py
+  tests/
+    unit/
+    integration/
+    workflow/
+  examples/
+    minimal/
+  scripts/
+
+This is guidance, not an inflexible requirement.
+Adjust if a cleaner structure emerges.
+
+======================================================================
+37. PROFESSIONAL DOCUMENTATION REQUIREMENTS
+======================================================================
+
+Documentation quality is part of the deliverable.
+
+At minimum create:
+
+1. README.md
+2. docs/requirements.md
+3. docs/architecture.md
+4. docs/orchestration.md
+5. docs/governance.md
+6. docs/langgraph-decision.md
+7. docs/audit-model.md
+8. ADRs
+9. testing documentation
+10. limitations/trade-offs section
+11. demo instructions
+
+README should explain:
+
+- problem;
+- goals;
+- non-goals;
+- architecture;
+- why LangGraph;
+- workflow;
+- agents;
+- deterministic controls;
+- human gates;
+- retry/safe-stop model;
+- auditability;
+- how to run;
+- how to demo;
+- known limitations;
+- next steps.
+
+Create architecture and workflow diagrams using Mermaid where useful.
+
+======================================================================
+38. TESTING THE SSDLC PLATFORM ITSELF
+======================================================================
+
+The orchestration system itself needs tests.
+
+Test at least:
+
+- requirement ambiguity pauses workflow;
+- approved requirement advances;
+- architecture cannot start early;
+- architecture review loops are bounded;
+- unresolved blocker triggers safe-stop;
+- human approval resumes graph;
+- planning requires approved architecture;
+- coding/test-design branches can run in parallel;
+- synchronization waits for required branches;
+- deterministic failed tests route to failure analysis;
+- retry budget is enforced;
+- upstream artifact change invalidates correct descendants;
+- unrelated artifacts are not unnecessarily invalidated;
+- release gate blocks on failed tests;
+- rollback preserves audit history;
+- audit records are emitted;
+- metrics update;
+- workflow can resume from checkpoint.
+
+Provide a mock LLM provider so orchestration behavior can be tested deterministically without live API usage.
+
+======================================================================
+39. IMPLEMENTATION SEQUENCE
+======================================================================
+
+Do not attempt every capability at once.
+
+Suggested order:
+
+MILESTONE 1
+- domain/state models;
+- artifact versions;
+- audit events;
+- approval models.
+
+MILESTONE 2
+- LangGraph skeleton;
+- checkpointing;
+- requirement analysis;
+- human interrupt/resume;
+- requirement approval gate.
+
+MILESTONE 3
+- architecture author;
+- architecture reviewer;
+- bounded review loop;
+- human architecture approval.
+
+MILESTONE 4
+- planning;
+- LLD;
+- artifact dependency graph.
+
+MILESTONE 5
+- coding/test-design parallel branch;
+- reviews;
+- deterministic test runner;
+- synchronization.
+
+MILESTONE 6
+- failure analysis;
+- retries;
+- re-planning;
+- invalidation.
+
+MILESTONE 7
+- documentation;
+- release readiness;
+- deterministic build;
+- final human release gate.
+
+MILESTONE 8
+- brownfield analysis;
+- observability;
+- rollback;
+- demo hardening.
+
+At every milestone:
+- keep system runnable;
+- add tests;
+- update documentation;
+- avoid large unreviewable code drops.
+
+======================================================================
+40. NON-GOALS FOR THE FIRST IMPLEMENTATION
+======================================================================
+
+Do NOT spend disproportionate time on:
+
+- a sophisticated UI;
+- Kubernetes;
+- production cloud deployment;
+- complex vector databases;
+- generalized RAG infrastructure;
+- many specialized microservices;
+- custom workflow engine;
+- full enterprise IAM;
+- fully autonomous production release;
+- excessive framework abstraction.
+
+Prefer a strong, small, defensible prototype.
+
+======================================================================
+41. EXPECTED FIRST DEMONSTRATION OF THE PLATFORM
+======================================================================
+
+Before using it on the URL shortener, demonstrate the SSDLC system using a minimal synthetic requirement.
+
+The demo should visibly prove:
+
+- requirement analysis;
+- ambiguity detection;
+- human interrupt;
+- approval;
+- architecture generation;
+- architecture review;
+- bounded iteration;
+- planning;
+- LLD;
+- parallel coding/test-design path;
+- deterministic test result;
+- audit events;
+- metrics;
+- safe-stop or success.
+
+Do not fake state transitions merely for the demo.
+Use the real graph.
+
+======================================================================
+42. DELIVERABLE EXPECTATION FOR THIS PROMPT
+======================================================================
+
+Implement the agentic SSDLC platform first.
+
+When complete, provide:
+
+- runnable repository;
+- professional documentation;
+- architecture diagrams;
+- tests;
+- sample workflow execution;
+- decision log;
+- explanation of LangGraph selection;
+- governance model;
+- audit model;
+- limitations and trade-offs.
+
+Do NOT manually build the URL shortener yet.
+
+After the platform reaches a usable state, use the SECOND PROMPT below as a workload submitted to the SSDLC platform.
+
+======================================================================
+SECOND PROMPT - USE THE COMPLETED SSDLC SYSTEM TO BUILD THE URL SHORTENER
+======================================================================
+
+IMPORTANT:
+This second prompt is NOT for manually implementing the URL shortener.
+
+Submit this requirement to the completed Agentic SSDLC system itself and allow the SSDLC workflow to analyze, clarify, design, plan, implement, review, test, document, and prepare the solution for release.
+
+PROJECT REQUIREMENT
+-------------------
+
+Build a production-oriented URL Shortener service from scratch with core APIs, analytics, and reliability considerations.
+
+Treat this as a GREENFIELD workload first.
+
+The implementation produced by the SSDLC platform must be runnable end-to-end and suitable for demonstrating the complete governed engineering lifecycle.
+
+INITIAL FUNCTIONAL INTENT
+-------------------------
+
+The service should support at minimum:
+
+1. Create a shortened URL from a valid long URL.
+2. Return a short code / short URL.
+3. Redirect a short URL to the original long URL.
+4. Track basic click/redirect analytics.
+5. Expose a way to retrieve analytics for a short URL.
+6. Persist URL mappings.
+7. Handle invalid or unknown short codes safely.
+8. Provide health/readiness behavior suitable for local deployment/demo.
+
+IMPORTANT:
+Do not treat this text as complete requirements.
+
+The Requirement Analysis Agent must analyze it and identify missing or ambiguous decisions.
+
+EXPECTED REQUIREMENT QUESTIONS
+------------------------------
+
+The Requirement Agent should independently discover questions such as, but not limited to:
+
+- Is custom alias support required?
+- Are shortened URLs permanent?
+- Is expiration required?
+- What should happen after expiration?
+- Is authentication required to create links?
+- Is authentication required to view analytics?
+- What URL schemes are allowed?
+- Should duplicate long URLs generate same or different short codes?
+- What uniqueness guarantees are needed?
+- Are analytics exact or eventually consistent?
+- What analytics fields are required?
+- What availability target is expected?
+- What scale should architecture target?
+- Is the implementation target different from the prototype target?
+- What is the authoritative record for redirects?
+- What happens when persistence is unavailable?
+- Are redirects cacheable?
+- Are links mutable?
+- Can links be deleted/disabled?
+- What logging should avoid sensitive information?
+- What security abuse cases should be considered?
+- Are rate limits required?
+- What are data-retention expectations?
+
+For every blocking question:
+- explain why it matters;
+- present options;
+- make a reasoned recommendation;
+- wait for human confirmation.
+
+Do not assume answers silently.
+
+NON-FUNCTIONAL AREAS TO EVALUATE
+--------------------------------
+
+The SSDLC workflow should explicitly evaluate and recommend appropriate requirements for:
+
+- availability;
+- performance;
+- latency;
+- scalability;
+- security;
+- abuse prevention;
+- observability;
+- reliability;
+- persistence durability;
+- caching;
+- data retention;
+- auditability;
+- maintainability;
+- deployment simplicity.
+
+ARCHITECTURE EXPECTATION
+------------------------
+
+The Architecture Agent must:
+
+- consume the approved requirement version;
+- propose multiple viable architecture approaches where meaningful;
+- recommend one;
+- explain trade-offs;
+- recommend an implementation stack;
+- distinguish prototype choices from target-state architecture if they differ;
+- create ADRs;
+- submit architecture to independent architecture review;
+- resolve review findings with bounded loops;
+- request human architecture approval.
+
+Do not hard-code the product stack in this prompt.
+
+The Architecture Agent must recommend the stack based on approved requirements and the interview timebox.
+
+PLANNING EXPECTATION
+--------------------
+
+After architecture approval, the Planning Agent should create vertical implementation slices.
+
+A reasonable plan might eventually resemble:
+
+Phase 1:
+- create short URL;
+- persist mapping;
+- redirect;
+- health endpoint.
+
+Phase 2:
+- analytics.
+
+Phase 3:
+- reliability/security enhancements.
+
+However, do not force this exact breakdown.
+Let the Planning Agent determine and justify the slices.
+
+LOW-LEVEL DESIGN
+----------------
+
+Each feature should receive an LLD before implementation.
+
+LLD must include:
+- API contract;
+- module structure;
+- data model;
+- validation;
+- short-code generation strategy;
+- collision behavior;
+- repository abstraction;
+- redirect flow;
+- analytics flow;
+- error behavior;
+- test seams;
+- logging/metrics.
+
+PARALLEL IMPLEMENTATION AND TEST DESIGN
+---------------------------------------
+
+After LLD:
+
+Run:
+- Coding Agent
+- Test Design Agent
+
+in parallel from the same approved artifacts.
+
+Then run:
+- Code Review Agent
+- Test Review Agent
+
+and synchronize before deterministic test execution.
+
+SECURITY REVIEW EXPECTATIONS
+----------------------------
+
+Review at minimum:
+
+- URL validation;
+- allowed schemes;
+- open-redirect semantics and expected behavior;
+- malicious input;
+- injection;
+- unsafe logging;
+- secrets;
+- rate/abuse risks;
+- dependency risks;
+- API input validation;
+- ID enumeration concerns where relevant.
+
+DETERMINISTIC VALIDATION
+------------------------
+
+Actually execute:
+
+- formatter/linter;
+- static analysis as available;
+- unit tests;
+- integration tests;
+- build/package;
+- Docker build if Docker is selected.
+
+The LLM must not declare success without deterministic evidence.
+
+FAILURE AND RE-PLANNING DEMONSTRATION
+-------------------------------------
+
+If a test fails:
+- invoke Failure Analysis Agent;
+- classify the defect;
+- route to the correct stage;
+- update only affected artifacts;
+- preserve audit lineage;
+- respect retry limits.
+
+Use at least one natural failure/recovery case if one occurs.
+
+Do not intentionally sabotage production-quality code merely to manufacture a failure.
+
+RELEASE READINESS
+-----------------
+
+The final workflow should prepare:
+
+- runnable application;
+- setup instructions;
+- API documentation;
+- test report;
+- architecture overview;
+- ADRs;
+- Dockerfile or equivalent packaging if appropriate;
+- configuration template;
+- health/readiness instructions;
+- release notes;
+- rollback instructions;
+- limitations;
+- trade-offs;
+- final engineering summary.
+
+The final state should be:
+
+    READY_FOR_DEPLOYMENT
+
+Actual production deployment remains behind explicit human approval.
+
+FOLLOW-UP SCENARIOS
+-------------------
+
+After the GREENFIELD URL-shortener workflow succeeds, reuse the SAME SSDLC platform for at least two additional scenarios.
+
+A. BROWNFIELD SCENARIO
+
+Submit a requirement such as:
+
+    "Add click analytics grouped by short URL and expose an analytics API."
+
+The SSDLC system must first perform brownfield impact analysis:
+- modules affected;
+- API impact;
+- persistence impact;
+- analytics model;
+- test impact;
+- regression risk;
+- compatibility impact.
+
+Then follow the normal governed lifecycle.
+
+B. AMBIGUOUS SCENARIO
+
+Submit a requirement such as:
+
+    "Add expiration support for shortened URLs."
+
+The Requirement Agent should detect ambiguity and ask human questions such as:
+- default TTL;
+- optional vs mandatory expiration;
+- post-expiration HTTP behavior;
+- analytics retention after expiration;
+- reactivation semantics;
+- cleanup strategy.
+
+The workflow should visibly pause for human input and resume after the decision.
+
+SUCCESS CRITERIA
+----------------
+
+The completed demonstration must prove that:
+
+1. The same SSDLC graph handles all three scenarios.
+2. It is not three hard-coded scripts.
+3. Greenfield work follows the full lifecycle.
+4. Brownfield work performs repository impact analysis.
+5. Ambiguous work causes a real human interrupt.
+6. Architecture review is independent and bounded.
+7. Code and test design can proceed in parallel.
+8. Deterministic tools decide test/build success.
+9. Failures can route backward to the correct stage.
+10. Upstream changes trigger targeted invalidation/re-planning.
+11. Human approval remains authoritative at major gates.
+12. Full audit and decision lineage is available.
+13. The final repository is runnable and professionally documented.
+
+INTERVIEW WALKTHROUGH STORY
+---------------------------
+
+The implementation and documentation should support this explanation:
+
+    "I did not manually build a URL shortener and then add an agent demo
+    around it. I built a governed agentic SSDLC platform first, then used
+    that platform itself to analyze, design, implement, review, validate,
+    document, and prepare the URL-shortener solution for release."
+
+This distinction is important.
+
+======================================================================
+FINAL INSTRUCTIONS TO THE CODING AGENT
+======================================================================
+
+Before writing large amounts of code:
+
+1. Inspect the existing repository if one exists.
+2. Produce a concise implementation plan.
+3. Identify assumptions.
+4. Confirm the intended package structure.
+5. Implement milestone by milestone.
+6. Run tests after each meaningful milestone.
+7. Keep documentation synchronized with implementation.
+8. Prefer standard framework capabilities over custom infrastructure.
+9. Avoid unnecessary complexity.
+10. Preserve all architectural reasoning and significant trade-offs in docs/ADRs.
+11. Build a system that is easy to explain during a live interview walkthrough.
+12. Make every important decision defensible.
+
+The goal is not maximum code volume.
+
+The goal is a small, credible, governed, stateful agentic software-engineering system demonstrating strong engineering judgment.
