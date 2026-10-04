@@ -69,6 +69,8 @@ Actual validation/build failure triggers model-assisted classification. The orch
 
 Safe-stop choices depend on evidence: retry, supported revision, rollback, eligible risk acceptance or abort. Rollback restores an approved historical pointer, retains audit history and invalidates descendants. It does not change the supplied brownfield source. Legacy safe stops naming former planning/design stages return to combined planning/design; checkpoints directly inside removed graph nodes require a new run.
 
+At a quality-review safe stop with open HIGH/BLOCKER findings, `retry` renews the budget and invalidates the current code/test pair so the branches revise it before review. No finding ID is needed for retry. Review resolutions are validated before caching, including on replay: missing verification, unchanged versions, unknown targets and assessments beginning with “not resolved” must be corrected within the response-attempt budget. New finding IDs are qualified once; exact historical IDs remain usable.
+
 ## Brownfield scope
 
 The source snapshot allows at most 100 selected files and 150,000 bytes. It includes `.py`, `.go`, `.java`, `.md`, `.toml`, `.json` and `.yaml`, excluding hidden directories and common build/dependency outputs. These extensions do not imply non-Python execution support. Over-budget snapshots are rejected, not silently truncated; provide a focused workspace.

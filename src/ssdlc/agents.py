@@ -85,3 +85,11 @@ for role, required_sections in {
         schema,
         instructions + " Required sections keys: " + ", ".join(sorted(required_sections)) + ".",
     )
+
+for role in ("architecture_reviewer", "quality_reviewer"):
+    schema, instructions = CONTRACTS[role]
+    CONTRACTS[role] = (
+        schema,
+        instructions
+        + " Reuse exact IDs from previous_findings, including any existing namespace; do not prefix them again. Put still-open or partially fixed issues in findings with the same ID. resolutions contains ONLY fully verified fixes against a newer artifact, with nonempty author_response, actual_change, reviewer_verification and resolution_reason. Never put 'not resolved' assessments in resolutions. Do not resolve findings from another artifact or repeat already settled resolutions.",
+    )

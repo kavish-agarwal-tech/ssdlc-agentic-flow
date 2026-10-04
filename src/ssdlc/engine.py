@@ -2,6 +2,7 @@
 
 import json
 import logging
+import re
 import time
 
 from langgraph.errors import GraphBubbleUp
@@ -159,7 +160,8 @@ class Engine:
                 raise ValueError(f"Broken dependency: {ref}")
         old_ref = state["active"].get(key)
         version = 1 + max(
-            [a["version"] for a in state["artifacts"].values() if a["id"] == key] or [0]
+            self.repo.latest_artifact_version(state["workflow_run_id"], key),
+            max([a["version"] for a in state["artifacts"].values() if a["id"] == key] or [0]),
         )
         artifact = Artifact(
             id=key,
@@ -270,46 +272,98 @@ class Engine:
         }
         if role != "architecture_reviewer":
             context.update(self.context(state, design=True))
-        result = self.call(state, role, context)
+
+        def identifier(value):
+            # Preserve exact legacy IDs; qualify new/local IDs only once.
+            if value in state["findings"] and state["findings"][value]["artifact_id"] == key:
+                return value
+            local = value
+            while local.startswith(key + "/"):
+                local = local[len(key) + 1 :]
+            canonical = f"{key}/{local}"
+            matches = []
+            for finding in prior:
+                prior_local = finding["id"]
+                while prior_local.startswith(key + "/"):
+                    prior_local = prior_local[len(key) + 1 :]
+                if prior_local == local:
+                    matches.append(finding["id"])
+            if canonical in matches:
+                return canonical
+            if len(matches) == 1:
+                return matches[0]
+            if len(matches) > 1:
+                raise ValueError("Ambiguous finding ID; use an exact previous_findings ID")
+            return canonical
+
+        def validate_review(result):
+            proposed = set()
+            for proposal in result.findings:
+                proposal.id = identifier(proposal.id)
+                if proposal.id in proposed:
+                    raise ValueError(f"Duplicate finding ID: {proposal.id}")
+                proposed.add(proposal.id)
+            resolved = set()
+            for resolution in result.resolutions:
+                resolution.finding_id = identifier(resolution.finding_id)
+                fid = resolution.finding_id
+                old = state["findings"].get(fid)
+                if not old or old["artifact_id"] != key:
+                    raise ValueError(
+                        f"Resolution {fid} must target this artifact's previous_findings"
+                    )
+                if fid in proposed or fid in resolved:
+                    raise ValueError(f"Finding {fid} must appear once, either open or resolved")
+                resolved.add(fid)
+                if artifact["version"] <= old["artifact_version"]:
+                    raise ValueError(f"Resolution {fid} requires a newer artifact version")
+                missing = [
+                    field
+                    for field in (
+                        "actual_change",
+                        "reviewer_verification",
+                        "author_response",
+                        "resolution_reason",
+                    )
+                    if not getattr(resolution, field).strip()
+                ]
+                if missing:
+                    raise ValueError(
+                        f"Resolution {fid} has empty fields: {missing}. Keep unresolved issues in findings, not resolutions"
+                    )
+                if re.search(
+                    r"^\s*(?:not (?:fully )?resolved|unresolved|partially resolved)\b",
+                    resolution.resolution_reason,
+                    re.I,
+                ):
+                    raise ValueError(
+                        f"Resolution {fid} says the issue is unresolved. Return it in findings with its exact ID; resolutions is only for verified fixes"
+                    )
+
+        result = self.call(state, role, context, validator=validate_review)
         findings = {}
         for proposal in result.findings:
-            identifier = f"{key}/{proposal.id}"
-            old = state["findings"].get(identifier)
+            finding_id = proposal.id
+            old = state["findings"].get(finding_id)
             data = proposal.model_dump()
-            data["id"] = identifier
+            data["id"] = finding_id
             finding = Finding(**data, artifact_id=key, artifact_version=artifact["version"])
             if old:
                 finding.created_at = old["created_at"]
                 finding.before_version = old["artifact_version"]
-            findings[identifier] = finding.model_dump(mode="json")
+            findings[finding_id] = finding.model_dump(mode="json")
             self.event(
                 state,
                 "review_finding_created",
                 role,
                 proposal.description,
                 [state["active"][key]],
-                related_review_ids=[identifier],
+                related_review_ids=[finding_id],
             )
         for resolution in result.resolutions:
-            identifier = resolution.finding_id
-            if identifier not in state["findings"]:
-                raise ValueError("Reviewer attempted to resolve unknown finding")
-            old = state["findings"][identifier]
-            if (
-                old["artifact_id"] != key
-                or artifact["version"] <= old["artifact_version"]
-                or not all(
-                    [
-                        resolution.actual_change,
-                        resolution.reviewer_verification,
-                        resolution.author_response,
-                    ]
-                )
-            ):
-                raise ValueError(
-                    "Finding resolution requires changed artifact and reviewer verification"
-                )
-            findings[identifier] = {
+            finding_id = resolution.finding_id
+            old = state["findings"][finding_id]
+            findings[finding_id] = {
                 **old,
                 **resolution.model_dump(exclude={"finding_id"}),
                 "status": "RESOLVED",
@@ -323,7 +377,7 @@ class Engine:
                 role,
                 resolution.resolution_reason,
                 [state["active"][key]],
-                related_review_ids=[identifier],
+                related_review_ids=[finding_id],
             )
         self.event(state, "review_completed", role, str(result.complete), [state["active"][key]])
         return {

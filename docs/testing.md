@@ -18,6 +18,8 @@ The CI workflow performs locked installation, lint, formatting, pytest and wheel
 
 Regression coverage includes persistent clarification/approval, exact version checks, semantic architecture repair before caching, rejection of invalid legacy cache formats, combined plan/design completeness and reference repair, independent test ownership, bounded architecture and shared quality review, failed-tool routing, unaffected sibling reuse, source snapshots, dependency invalidation, rollback history, audit integrity, path guards, release evidence and candidate tampering during human review. Obsolete separate design and plan-gate tests were replaced with combined-workflow checks.
 
+Quality-recovery regressions cover validation of resolutions before caching and on cache replay, blank verification/author fields, unresolved assessments incorrectly placed in resolutions, unknown/cross-artifact targets, conflicting finding/resolution IDs, legacy duplicated namespaces, and retry routing to actual branch revision while preserving open blockers.
+
 The mock greeting reaches READY_FOR_DEPLOYMENT with labeled synthetic approvals and real passing tools. This verifies the system plumbing; it is not real DeepSeek product evidence.
 
 ## How the generated solution is tested

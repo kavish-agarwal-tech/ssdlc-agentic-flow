@@ -939,3 +939,256 @@ def test_design_failure_routes_to_combined_plan_and_invalidates_children(tmp_pat
         assert update["artifacts"]["code:greeting@1"]["validity"] != "VALID"
         assert update["artifacts"]["tests:greeting@1"]["validity"] != "VALID"
         assert "architecture@1" not in update["artifacts"]
+
+
+@pytest.mark.parametrize(
+    "defect",
+    ["blank_author", "blank_verification", "unresolved", "unknown", "wrong_artifact", "both"],
+)
+def test_invalid_review_resolution_is_repaired_before_caching(tmp_path, defect):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            if role != "quality_reviewer":
+                return super().generate(role, instructions, context, schema)
+            self.contexts.append(context)
+            finding = {
+                "id": "quality:greeting/contract",
+                "category": "correctness",
+                "severity": "HIGH",
+                "description": "Contract needs review",
+                "rationale": "Regression",
+                "affected_component": "greeting",
+                "suggested_resolution": "Review contract",
+            }
+            if len(self.contexts) == 1:
+                return {"complete": True, "findings": [finding]}
+            resolution = {
+                "finding_id": context["previous_findings"][0]["id"],
+                "author_response": "Revised against contract",
+                "actual_change": "Revised code/test pair",
+                "reviewer_verification": "Checked revised validation and tests",
+                "resolution_reason": "Verified fixed",
+            }
+            findings = []
+            if len(self.contexts) == 2:
+                if defect == "blank_author":
+                    resolution["author_response"] = ""
+                elif defect == "blank_verification":
+                    resolution["reviewer_verification"] = "   "
+                elif defect == "unresolved":
+                    resolution["resolution_reason"] = "Not fully resolved: still broken"
+                elif defect == "unknown":
+                    resolution["finding_id"] = "unknown"
+                elif defect == "wrong_artifact":
+                    resolution["finding_id"] = "architecture/old"
+                else:
+                    findings = [finding]
+            return {"complete": True, "findings": findings, "resolutions": [resolution]}
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert "Local execution disabled" in result["interrupts"][0]["reason"]
+        assert len(provider.contexts) == 3
+        assert "validation_feedback" in provider.contexts[2]
+        assert set(result["state"]["findings"]) == {"quality:greeting/contract"}
+        assert result["state"]["findings"]["quality:greeting/contract"]["status"] == "RESOLVED"
+        schema, instructions = CONTRACTS["quality_reviewer"]
+        key = digest(
+            [
+                provider.name,
+                "quality_reviewer",
+                instructions,
+                schema.model_json_schema(),
+                provider.contexts[1],
+            ]
+        )
+        cached = runtime.repo.cached("demo", key)
+        assert cached["resolutions"][0]["author_response"]
+        assert cached["resolutions"][0]["resolution_reason"] == "Verified fixed"
+
+
+def test_retry_quality_blockers_regenerates_branches_without_accepting_risk(tmp_path, monkeypatch):
+    class Provider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            if role == "quality_reviewer":
+                return {
+                    "complete": True,
+                    "findings": [
+                        {
+                            "id": "QF-07",
+                            "category": "correctness",
+                            "severity": "BLOCKER",
+                            "description": "Test seam mismatch",
+                            "rationale": "Regression",
+                            "affected_component": "tests",
+                            "suggested_resolution": "Fix seam",
+                        }
+                    ],
+                }
+            return super().generate(role, instructions, context, schema)
+
+    with Runtime(tmp_path, provider=Provider()) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        state = result["state"]
+        assert state["recovery_node"] == "quality_review"
+        monkeypatch.setattr(
+            "ssdlc.nodes.interrupt",
+            lambda _: {
+                "actor": "human",
+                "action": "retry",
+                "rationale": "Fix outstanding defects",
+            },
+        )
+        _, nodes = runtime.graph("demo")
+        update = nodes.safe_stop(state)
+        assert update["route"] == "fork"
+        assert update["counters"]["quality_review:greeting"] == 0
+        assert not update["findings"]
+        assert state["findings"]["quality:greeting/QF-07"]["status"] == "OPEN"
+        for kind in ("code", "tests", "quality"):
+            assert (
+                update["artifacts"][state["active"][f"{kind}:greeting"]]["validity"]
+                == "INVALIDATED"
+            )
+
+
+def test_review_preserves_existing_duplicated_finding_ids(tmp_path):
+    class Provider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            if role == "quality_reviewer" and context["previous_findings"]:
+                finding = context["previous_findings"][0]
+                return {
+                    "complete": True,
+                    "findings": [
+                        {
+                            k: finding[k]
+                            for k in (
+                                "id",
+                                "category",
+                                "severity",
+                                "description",
+                                "rationale",
+                                "affected_component",
+                                "suggested_resolution",
+                            )
+                        }
+                    ],
+                }
+            return super().generate(role, instructions, context, schema)
+
+    with Runtime(tmp_path, provider=Provider()) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        state = result["state"]
+        legacy_id = "quality:greeting/quality:greeting/QF-07"
+        state["findings"][legacy_id] = {
+            "id": legacy_id,
+            "artifact_id": "quality:greeting",
+            "artifact_version": 1,
+            "category": "correctness",
+            "severity": "HIGH",
+            "status": "OPEN",
+            "description": "Unfixed",
+            "rationale": "Legacy",
+            "affected_component": "tests",
+            "suggested_resolution": "Fix",
+            "created_at": "2026-10-04T15:55:08+00:00",
+        }
+        _, nodes = runtime.graph("demo")
+        update = nodes.review(state, "quality:greeting", "quality_reviewer")
+        assert set(update["findings"]) == {legacy_id}
+        assert update["findings"][legacy_id]["status"] == "OPEN"
+
+
+def test_invalid_cached_review_resolution_is_replaced_only_after_repair(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            if role == "quality_reviewer" and context["previous_findings"]:
+                self.contexts.append(context)
+                return {
+                    "complete": True,
+                    "findings": [],
+                    "resolutions": [
+                        {
+                            "finding_id": context["previous_findings"][0]["id"],
+                            "author_response": "Revised",
+                            "actual_change": "Changed pair",
+                            "reviewer_verification": "Confirmed fix",
+                            "resolution_reason": "Verified fixed",
+                        }
+                    ],
+                }
+            return super().generate(role, instructions, context, schema)
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        state = decide(runtime, "demo", to_architecture(runtime))["state"]
+        state["findings"]["quality:greeting/contract"] = {
+            "id": "quality:greeting/contract",
+            "artifact_id": "quality:greeting",
+            "artifact_version": 1,
+            "severity": "HIGH",
+            "status": "OPEN",
+        }
+        _, nodes = runtime.graph("demo")
+        old = state["artifacts"][state["active"]["quality:greeting"]]
+        state = nodes.apply(
+            state,
+            nodes.artifact(
+                state, "quality:greeting", "quality", old["content"], old["dependencies"]
+            ),
+        )
+        nodes.review(state, "quality:greeting", "quality_reviewer")
+        schema, instructions = CONTRACTS["quality_reviewer"]
+        key = digest(
+            [
+                provider.name,
+                "quality_reviewer",
+                instructions,
+                schema.model_json_schema(),
+                provider.contexts[0],
+            ]
+        )
+        bad = runtime.repo.cached("demo", key)
+        bad["resolutions"][0]["author_response"] = ""
+        runtime.repo.cache("demo", key, bad, replace=True)
+        update = nodes.review(state, "quality:greeting", "quality_reviewer")
+        assert update["findings"]["quality:greeting/contract"]["status"] == "RESOLVED"
+        assert len(provider.contexts) == 2
+        assert "empty fields" in provider.contexts[1]["validation_feedback"]
+        assert runtime.repo.cached("demo", key)["resolutions"][0]["author_response"] == "Revised"
+        assert any(e["action"] == "cached_response_rejected" for e in runtime.repo.events("demo"))
+
+
+def test_retry_does_not_overwrite_artifact_published_before_failed_checkpoint(tmp_path):
+    with Runtime(tmp_path) as runtime:
+        state = decide(runtime, "demo", to_architecture(runtime))["state"]
+        _, nodes = runtime.graph("demo")
+        original = state["artifacts"][state["active"]["quality:greeting"]]
+        # Publish a review candidate as a failed node did, without applying its update.
+        orphan = nodes.artifact(
+            state,
+            "quality:greeting",
+            "quality",
+            {"attempt": "failed review"},
+            original["dependencies"],
+        )
+        assert orphan["active"]["quality:greeting"] == "quality:greeting@2"
+        # Resume from the old checkpoint with a changed pair.
+        repaired = nodes.artifact(
+            state,
+            "quality:greeting",
+            "quality",
+            {"attempt": "new review"},
+            original["dependencies"],
+        )
+        assert repaired["active"]["quality:greeting"] == "quality:greeting@3"
+        assert runtime.repo.artifact("demo", "quality:greeting@2")["content"] == {
+            "attempt": "failed review"
+        }

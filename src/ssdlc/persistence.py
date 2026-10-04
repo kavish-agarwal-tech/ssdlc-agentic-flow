@@ -130,6 +130,22 @@ class Repository:
     def close(self):
         self.connection.close()
 
+    def latest_artifact_version(self, workflow: str, identifier: str) -> int:
+        # A failed graph node can publish a version before its checkpoint commits.
+        # Reserve later numbers instead of overwriting those immutable files.
+        with self.lock:
+            rows = self.connection.execute(
+                "SELECT payload FROM artifacts WHERE workflow=?", (workflow,)
+            ).fetchall()
+        return max(
+            (
+                value["version"]
+                for (payload,) in rows
+                if (value := json.loads(payload))["id"] == identifier
+            ),
+            default=0,
+        )
+
     def acquire(self, workflow: str, owner: str):
         with self.lock, self.connection:
             try:

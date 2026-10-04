@@ -846,6 +846,28 @@ class Nodes(Engine):
             "plan_approval": "planning_design",
             "documentation": "release_readiness",
         }.get(route, route)
+        changes = {}
+        if decision.action == "retry" and route == "quality_review":
+            key = f"quality:{state['current_slice']}"
+            if prohibited_findings(state, key):
+                roots = {
+                    state["active"][f"{kind}:{state['current_slice']}"]
+                    for kind in ("code", "tests")
+                }
+                changes = invalidate(state["artifacts"], roots)
+                changes.update(
+                    {ref: {**state["artifacts"][ref], "validity": "INVALIDATED"} for ref in roots}
+                )
+                self.persist_changes(state, changes)
+                for ref in changes:
+                    self.event(
+                        state,
+                        "artifact_invalidated",
+                        "safe_stop",
+                        "Human retry renews quality revision budget",
+                        [ref],
+                    )
+                route = "fork"
         if decision.action == "revise":
             if route != "planning_design" and planning_scope_stop:
                 route = "planning_design"
@@ -874,6 +896,7 @@ class Nodes(Engine):
             actor_id=decision.actor,
         )
         return {
+            "artifacts": changes,
             "findings": findings,
             "counters": counters,
             "branch_errors": {"code": "", "tests": ""},
