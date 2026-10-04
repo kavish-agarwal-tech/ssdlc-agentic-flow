@@ -15,3 +15,5 @@
 The refactor keeps requirements provenance, exact approval versions, artifact invalidation, audit history, existing metrics, real execution and brownfield source evidence. It removes extra orchestration and configuration layers rather than introducing a generic agent platform. Historical [ADR-001](adr/001-governed-langgraph.md) and [ADR-002](adr/002-local-evidence-and-execution.md) record the retained foundational decisions.
 
 Remaining prototype limits: approvals identify a local actor without IAM; audit integrity is a local hash chain, not external immutable storage; no coverage percentage, production security assessment, model-quality benchmark or URL-shortener delivery is inferred from the mock greeting. A successful live workload requires real human decisions and its own generated-source/tool evidence.
+
+[Pending work and enhancements](enhancements.md) prioritizes closing evidence gaps and improving the current CLI before extending the platform.

@@ -1,49 +1,140 @@
 # Governed agentic SSDLC
 
-An in-place implementation of the assignment and the updated [SupplementaryPrompt.txt](SupplementaryPrompt.txt). DeepSeek reasons about engineering artifacts; LangGraph runs explicit transitions; real Python tools supply objective evidence. The offline mock is a greeting fixture, not a URL-shortener generator.
+A CLI that turns requirements into reviewed engineering artifacts, generated code, independent tests and a release candidate. DeepSeek proposes engineering decisions; LangGraph runs the workflow; deterministic policy and actual tools decide whether it can proceed. Final approval marks `READY_FOR_DEPLOYMENT`; it does not deploy or start a service.
 
-## Setup and run
+The implementation follows the original assignment and [SupplementaryPrompt.txt](SupplementaryPrompt.txt). The supported execution toolchain is **Python**. The offline mock generates a greeting fixture; real workloads use DeepSeek.
 
-Use Python 3.11 or later and the project virtual environment:
+## 1. Install
+
+Prerequisites: Python 3.11 or later, a checkout of this repository, and internet access for initial dependency installation. Use PowerShell from the repository root. Calling the virtual-environment interpreter directly avoids activation and execution-policy problems.
 
 ```powershell
+cd C:\Users\16122\learn\schwab-assignment
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements-dev.lock
 .venv\Scripts\python -m pip install -e . --no-build-isolation --no-deps
+.venv\Scripts\python -m ssdlc --help
 ```
 
-Put `DEEPSEEK_API_KEY` in the ignored `.env`. Supported configuration: `LLM_PROVIDER=deepseek`, `LLM_MODEL=deepseek-flash`, `LLM_BASE_URL=https://api.deepseek.com`, `LLM_TIMEOUT=180`. `.env.example` documents these settings. Existing nonempty environment variables take precedence. No local model installation is needed. Do not put credentials in requirements, generated artifacts, or commits.
+On Linux/macOS, use your checkout directory and replace `.venv\Scripts\python` with `.venv/bin/python`; create the environment with `python3 -m venv .venv` if needed. The `ssdlc` console entry point is also installed; examples use `python -m ssdlc` to keep the interpreter explicit.
 
-Start the real URL-shortener workflow:
+## 2. Verify locally without an API key
 
 ```powershell
-.venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution start --requirement examples/url-shortener/requirement.txt --run url-shortener --interactive
+.venv\Scripts\python -m ssdlc --allow-local-execution demo --scripted --run greeting-demo-1
 ```
 
-Answer blocking product questions, approve the resulting requirement, review and approve architecture/ADRs, then review the final release. Local execution is opt-in and runs generated code on this host; it is not a security sandbox. Deployment is outside this application's tool surface.
+Expected outcome: `READY_FOR_DEPLOYMENT`, with code, independent tests, a shared review, passing lint/compilation/pytest and a wheel. `--scripted` supplies labeled synthetic human decisions **only for the mock fixture**. It does not establish real-model quality or approve a real product. Use a new run ID when repeating.
 
-Resume or inspect a saved run:
+To practice interactive prompts with the same fixture:
 
 ```powershell
-.venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution resume url-shortener --interactive
-.venv\Scripts\python -m ssdlc inspect url-shortener
-.venv\Scripts\python -m ssdlc audit url-shortener
-.venv\Scripts\python -m ssdlc metrics url-shortener
-.venv\Scripts\python -m ssdlc export url-shortener --output .ssdlc/url-shortener-export.json
+.venv\Scripts\python -m ssdlc --provider mock --allow-local-execution start --requirement examples/minimal/requirement.txt --run greeting-interactive-1 --interactive
 ```
 
-Use `--home` before the command to isolate runs. Interactive EOF leaves a durable pause. Approval requires an actor, rationale, and the exact artifact version. Retry at a safe stop explicitly renews a bounded budget; repeated retry without correcting the cause is unlikely to help. Legacy safe stops whose recovery stage was separate design/planning now return to combined planning/design. Direct checkpoints inside removed nodes require starting a fresh run; history is retained.
+For the fixture's blank-name question, select `Reject with ValueError`. Then review and approve the revised requirement, architecture/ADRs and final release.
 
-Run the labeled offline fixture with real tools:
+## 3. Configure DeepSeek
+
+Create `.env` only if it does not already exist:
 
 ```powershell
-.venv\Scripts\python -m ssdlc --allow-local-execution demo --scripted --run greeting-demo
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-`--scripted` uses synthetic human decisions only for this fixture. Live DeepSeek runs never automatically approve product decisions. Three normal gates remain: requirement, architecture/ADRs, final release. Plan/design, quality review, and slice acceptance are autonomous within the approved baseline and bounded budgets.
+Edit `.env` locally and set `DEEPSEEK_API_KEY` to your real key. Keep it out of requirements, source files and commits. `.env` and `.ssdlc/` are ignored by Git. Live runs need endpoint access; no local model installation is needed.
 
-## Artifacts and state
+| Setting | Default / behavior |
+|---|---|
+| `LLM_PROVIDER` | `deepseek`; `mock` selects the fixture. `--provider` overrides selection. |
+| `LLM_MODEL` | If unset, use `DEEPSEEK_MODEL`; if neither is set, use `deepseek-flash`. |
+| `DEEPSEEK_API_KEY` | Required for live runs; nonempty `LLM_API_KEY` takes precedence. |
+| `LLM_BASE_URL` | `https://api.deepseek.com`; the adapter appends `/chat/completions`. |
+| `LLM_TIMEOUT` | `180` seconds per HTTP request. |
 
-Human-readable versioned artifact JSON, provider response cache, source snapshots, and generated candidate files live under `.ssdlc/runs/<run>/`. SQLite holds indexes, audit records, and LangGraph checkpoints. Artifact bodies belong on the filesystem; database state makes resume and lineage reliable. Published artifact versions are immutable; upstream changes supersede versions and invalidate dependent evidence. Candidate directories include source, tests, and successful wheel output under `dist/`.
+The CLI loads `.env` by default; `--env-file <path>` selects another file. Nonempty process environment values override file values; empty entries can be filled from the file. This is a simple `KEY=value` loader, without shell evaluation or variable expansion.
 
-See [architecture](docs/architecture.md), [orchestration](docs/orchestration.md), [decisions and tradeoffs](docs/decisions.md), and [testing and workload evidence](docs/testing.md). Original assignment inputs remain as provenance; operational documentation follows the supplementary refactor.
+## 4. Run a real workload
+
+```powershell
+.venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution start --requirement examples/url-shortener/requirement.txt --run url-shortener-1 --interactive
+```
+
+The input is initial intent. Answer blocking questions before approving the resulting version. Review any proposed stack or performance target. The fixed toolchain currently supports Python; third-party packages required by generated code must already be installed in the CLI environment. Candidate checks do not install dependencies.
+
+| Human gate | Your decision | What follows |
+|---|---|---|
+| Requirement | Clarify ambiguity, then separately approve the new version. | Architecture authoring and independent review. |
+| Architecture and ADRs | Review alternatives, mappings and risks; approve or request revision. | Combined planning/design, parallel coding and independent tests, shared review, actual checks and slice acceptance. |
+| Final release | Review the report, risks and measured build/test evidence. | Readiness is recorded; no deployment occurs. |
+
+`--allow-local-execution` runs generated code and build hooks on this host; path/environment guards are not process isolation. Without it, artifact generation/review can proceed but the workflow stops before running tools. Use an appropriate disposable environment for untrusted generated code.
+
+Global options go **before** `start`, `resume` or other commands. Run IDs contain letters, digits, underscores or hyphens, up to 100 characters. Existing runs are resumed, not overwritten.
+
+## 5. Resume, inspect and recover
+
+```powershell
+.venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution resume url-shortener-1 --interactive
+.venv\Scripts\python -m ssdlc inspect url-shortener-1
+.venv\Scripts\python -m ssdlc audit url-shortener-1
+.venv\Scripts\python -m ssdlc metrics url-shortener-1
+.venv\Scripts\python -m ssdlc export url-shortener-1 --output .ssdlc/url-shortener-1-export.json
+```
+
+Inspection, audit, metrics and export do not call DeepSeek. Resume requires the original provider identity, including model and base URL. If you start with `--home <directory>`, supply the same home for every subsequent command. For example, resume the previously created local expiration run with:
+
+```powershell
+.venv\Scripts\python -m ssdlc --home .ssdlc/refactor-live --provider deepseek --allow-local-execution resume expiration-refactor --interactive
+```
+
+That run's recorded requirement v2 contains the confirmed expiration policy and awaits separate approval. It exists only in the workspace where it was created; runtime state is not checked into Git.
+
+Interactive EOF or Ctrl+C leaves the run resumable. Approvals require actor, rationale and exact current artifact reference; interactive mode supplies the reference. At a safe stop, inspect the reason/evidence before choosing an available action. Retry renews a bounded budget; supported revision supplies feedback; rollback preserves history and invalidates descendants; abort ends the run. BLOCKER risks cannot be accepted. See [recovery rules](docs/orchestration.md).
+
+For file-based decisions, start without `--interactive`, inspect the gate, then use `resume <run> --decision <file.json>`. A decision has `actor`, `action`, `rationale`, and the gate's `artifact_ref` when present; clarification adds `answers` keyed by question IDs. Clarification and approval are separate submissions.
+
+| Symptom | Next step |
+|---|---|
+| Missing key, HTTP error or timeout | Check local environment, endpoint/model access and connectivity; inspect the safe-stop reason. |
+| `Local execution disabled` | Resume with the same home/provider and `--allow-local-execution`, then explicitly retry. |
+| Missing dependency/build tool | Install it in the CLI environment; retry after correcting the environment. |
+| `Run already exists` / `Unknown run` | Resume the existing ID or use a new ID; verify `--home`. |
+| Provider identity mismatch | Restore the original model/base URL/provider. |
+| Schema/review/replan budget exhausted | Review feedback and correct the cause; retry alone can repeat the failure. |
+| Legacy checkpoint in a removed node | Start a new run and retain history. Legacy safe stops naming planning/design recover through combined planning/design. |
+
+## Artifacts and generated solution
+
+Default storage:
+
+```text
+.ssdlc/
+  audit.sqlite                 # indexes, metadata, cache pointers, audit, leases
+  checkpoints.sqlite           # LangGraph resume state
+  runs/<run>/
+    artifacts/<kind>/<id-hash>/v0001.json
+    artifacts/<kind>/<id-hash>/v0001.md          # section-based documents
+    artifacts/<kind>/<id-hash>/v0001/files/...   # code/test bundles
+    provider-cache/...
+    source/...                 # brownfield input snapshot
+    candidates/<digest>/...    # source, tests, .results.xml and dist/*.whl
+```
+
+Artifact content is versioned on the filesystem. SQLite indexes it and holds audit/checkpoint state; checkpoints also serialize workflow data. Section-based artifacts, including architecture and release reports, have Markdown companions. Requirements and plans are JSON; a dedicated readable renderer is a proposed enhancement.
+
+Find the validated candidate through `inspect`: `state.artifacts[state.active.release].content.candidate` at the release gate, or the build artifact's `content.cwd`. Follow the generated release report's setup/API instructions to run the application manually. The SSDLC CLI validates and packages it; it does not host it.
+
+Brownfield accepts `--scenario brownfield --source <existing-source-directory>`. It snapshots selected text files, performs impact analysis after architecture approval and validates a changed candidate in the run workspace. The original source directory remains unchanged. [Testing](docs/testing.md) provides workload commands and measured evidence.
+
+## Documentation
+
+| Document | Purpose |
+|---|---|
+| [Architecture](docs/architecture.md) | Component diagram, ownership and persistence boundaries. |
+| [Orchestration](docs/orchestration.md) | Lifecycle, human gates, budgets and recovery. |
+| [Decisions](docs/decisions.md) | Design choices and tradeoffs. |
+| [Testing](docs/testing.md) | Platform tests, generated-solution checks and live evidence. |
+| [Pending work and enhancements](docs/enhancements.md) | Unfinished validation and proposed improvements. |
+
+Original assignment inputs remain provenance; operational instructions follow the supplementary refactor.

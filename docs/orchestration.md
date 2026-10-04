@@ -1,42 +1,76 @@
 # Orchestration
 
+The diagram groups related nodes to show the normal lifecycle. Blue marks human gates, green marks engineering proposals and yellow marks tool execution/evidence gates. Recovery is listed separately to keep the main flow readable.
+
 ```mermaid
 flowchart TD
-  R[Requirement analysis] --> H1[Human clarification and approval]
-  H1 --> A[Architecture author]
-  A --> AR[Independent architecture review: max 2 cycles]
-  AR -->|revision within budget| A
-  AR --> H2[Human architecture and ADR approval]
-  H2 --> B[Brownfield impact when applicable]
-  B --> P[Combined planning and design]
-  P --> C[Coding]
-  P --> T[Independent test design]
-  C --> J[Join]
-  T --> J
-  J --> Q[Shared Quality Review]
-  Q -->|bounded revision| C
-  Q -->|bounded revision| T
-  Q --> V[Real lint, static checks, pytest]
-  V -->|failure| F[Classify and invalidate affected artifacts]
-  F -->|implementation or test| J2[Regenerate affected branch; reuse valid sibling]
-  J2 --> J
-  F -->|design| P
-  F -->|architecture| A
-  F -->|requirement| R
-  V -->|pass| S[Slice acceptance]
-  S -->|next slice| C
-  S -->|next slice| T
-  S -->|all accepted| RR[Release Readiness and documentation]
-  RR --> Build[Real package build]
-  Build --> Gate[Deterministic release gate]
-  Gate --> H3[Final human approval]
-  H3 --> Ready[READY_FOR_DEPLOYMENT]
+  R["Requirement analysis"] --> H1["Human: clarify, then approve requirement"]
+  H1 --> A["Architecture author + independent review"]
+  A --> H2["Human: approve architecture and ADRs"]
+  H2 --> B["Brownfield impact<br/>brownfield runs only"]
+  B --> P["Combined planning and per-slice design"]
+  P --> Fork["Current slice: parallel generation"]
+  Fork --> C["Coding"]
+  Fork --> T["Independent test design"]
+  C --> Q["Join, then shared Quality Review"]
+  T --> Q
+  Q --> V["Actual lint, compilation and pytest"]
+  V --> S["Deterministic slice acceptance"]
+  S -->|next slice| Fork
+  S -->|all slices accepted| Report["Release Readiness and documentation"]
+  Report --> Build["Actual wheel build"]
+  Build --> Gate["Deterministic release gate"]
+  Gate --> H3["Human: final release approval"]
+  H3 --> Ready["READY_FOR_DEPLOYMENT"]
+  classDef human fill:#dbeafe,stroke:#2563eb,color:#111827
+  classDef proposal fill:#dcfce7,stroke:#16a34a,color:#111827
+  classDef evidence fill:#fef3c7,stroke:#d97706,color:#111827
+  class H1,H2,H3 human
+  class R,A,B,P,C,T,Q,Report proposal
+  class V,S,Build,Gate,Ready evidence
 ```
 
-Every policy failure can route to a persistent safe stop. Missing product decisions and unapproved scope changes pause rather than invent decisions. Architecture has two autonomous author/reviewer cycles; shared quality review is likewise bounded. BLOCKER findings prevent progress. HIGH findings require resolution or explicit human risk acceptance. Findings retain exact IDs across versions; omission is not resolution. Resolution needs a changed artifact, author response, actual change and reviewer verification.
+Greenfield and ambiguous runs skip brownfield impact. Architecture revisions occur inside the grouped author/reviewer step. A rejected shared review sends both branches back for bounded revision. Tools run only after both branches finish and shared review passes. There is no separate design call, plan-approval gate, per-branch reviewer graph or documentation agent.
 
-There is no normal plan-approval gate, separate design call, per-branch reviewer graph, or standalone documentation call. Default failure-analysis replans are bounded at three. IMPLEMENTATION_DEFECT and TEST_DEFECT invalidate their corresponding branch and dependent review/tool evidence. DESIGN_DEFECT returns to combined planning/design. ARCHITECTURE_DEFECT and REQUIREMENT_DEFECT invalidate approvals downstream and re-enter the corresponding human governance. ENVIRONMENT_OR_TOOLING stops for configuration correction. Reviewer diagnosis does not itself count as a passing tool result.
+## Decisions and findings
 
-Test generation receives authoritative requirement, architecture/ADRs and slice design. It does not receive generated implementation files or code-author output. Test files are owned by the test branch; production files by the coding branch. Both must finish before quality review and validation. Targeted tool-failure recovery preserves a valid reviewed sibling, then reviews the new pair again.
+Blocking questions must be clarified; clarification creates a new requirement version requiring separate approval. Architecture approval covers its ADRs. Approvals record actor, rationale and exact current reference; stale references are rejected. Final approval records readiness only.
 
-Brownfield starts with a bounded snapshot of the supplied source. Impact analysis references actual files and feeds the combined plan. The workflow writes into its run workspace and leaves the supplied repository unchanged. Rollback restores an approved historical pointer, retains audit history and invalidates descendants. Human retry, revise, risk disposition and abort are explicit checkpointed actions.
+BLOCKER and HIGH findings prevent normal progress. A human can explicitly accept eligible unresolved non-BLOCKER findings; BLOCKER risk cannot be accepted. Omission of an earlier finding does not resolve it. Resolution needs the same finding ID, a newer artifact, actual change, author response and reviewer verification. Interactive views hide settled findings from risk-acceptance choices while preserving history.
+
+## Default bounds
+
+| Limit | Default | Configuration |
+|---|---|---|
+| Schema/semantic response attempts | 2 per call | `Policy.max_provider_attempts` |
+| Architecture review cycles | 2 | `Policy.max_review_cycles` |
+| Shared quality review cycles | 2 per slice | `Policy.max_review_cycles` |
+| Failure-analysis replans | 3 per run before explicit renewal | `Policy.max_replans` |
+| Local command timeout | 60 seconds per command | `Policy.command_timeout` |
+| DeepSeek HTTP timeout | 180 seconds per request | `LLM_TIMEOUT` |
+
+Policy limits are constructor settings in the Python API; the CLI does not expose all of them. Human retry explicitly renews counters at a safe stop; it does not fix an underlying provider, artifact or environment problem.
+
+## Failure and recovery
+
+Actual validation/build failure triggers model-assisted classification. The orchestrator chooses a route and invalidates affected artifacts and descendants. Model diagnosis never counts as a passing tool result.
+
+| Classification / event | Recovery |
+|---|---|
+| `IMPLEMENTATION_DEFECT` | Regenerate current code; reuse a valid reviewed test sibling, then review the changed pair. |
+| `TEST_DEFECT` | Regenerate current tests; reuse valid reviewed code, then review the changed pair. |
+| `DESIGN_DEFECT` | Invalidate Plan and descendants; return to combined planning/design. |
+| `ARCHITECTURE_DEFECT` | Invalidate architecture and descendants; repeat author/review and human architecture/ADR approval. |
+| `REQUIREMENT_DEFECT` | Invalidate requirement and descendants; reanalyze and obtain new approval. |
+| `ENVIRONMENT_OR_TOOLING` | Safe stop; correct configuration/dependencies before retrying validation. |
+| Schema/policy failure or exhausted budget | Persistent safe stop with reason and recovery stage. |
+| Unapproved scope proposal or branch deviation | Stop rather than implement it; revise supported feedback or return to governance. |
+| Candidate changed during final human review | Safe stop; stale evidence cannot authorize readiness. |
+
+Safe-stop choices depend on evidence: retry, supported revision, rollback, eligible risk acceptance or abort. Rollback restores an approved historical pointer, retains audit history and invalidates descendants. It does not change the supplied brownfield source. Legacy safe stops naming former planning/design stages return to combined planning/design; checkpoints directly inside removed graph nodes require a new run.
+
+## Brownfield scope
+
+The source snapshot allows at most 100 selected files and 150,000 bytes. It includes `.py`, `.go`, `.java`, `.md`, `.toml`, `.json` and `.yaml`, excluding hidden directories and common build/dependency outputs. These extensions do not imply non-Python execution support. Over-budget snapshots are rejected, not silently truncated; provide a focused workspace.
+
+Impact analysis runs after architecture approval and feeds combined planning/design. Candidates include the snapshot plus generated changes; the original source remains unchanged. A real analytics extension needs real previously generated URL-shortener source, not the mock greeting.
