@@ -19,7 +19,7 @@ from ssdlc.tools import Executor, codebase_snapshot, reject_secrets
 
 
 class Runtime:
-    def __init__(self, home: Path, provider=None, policy=None, allow_execution=False, profile=None):
+    def __init__(self, home: Path, provider=None, policy=None, allow_execution=False):
         self.home = home.resolve()
         self.home.mkdir(parents=True, exist_ok=True)
         self.repo = Repository(self.home / "audit.sqlite", artifact_root=self.home / "runs")
@@ -31,7 +31,6 @@ class Runtime:
         reject_secrets(self.provider.name)
         self.policy = policy or Policy()
         self.allow_execution = allow_execution
-        self.profile = profile
 
     def __enter__(self):
         return self
@@ -51,7 +50,6 @@ class Runtime:
             self.home / "runs" / run,
             self.policy.command_timeout,
             self.allow_execution,
-            self.profile,
         )
         nodes = Nodes(self.repo, self.provider, self.policy, executor)
         return build_graph(nodes, self.checkpointer), nodes
@@ -134,7 +132,9 @@ class Runtime:
             )
             branch_failure = any(snapshot.values.get("branch_errors", {}).values())
             if gate.get("gate") == "safe_stop" and (
-                gate.get("recovery_node") == "planning" or planning_scope_stop or branch_failure
+                gate.get("recovery_node") in {"planning_design", "planning", "lld"}
+                or planning_scope_stop
+                or branch_failure
             ):
                 allowed_actions.append("revise")
             if parsed.action not in allowed_actions:

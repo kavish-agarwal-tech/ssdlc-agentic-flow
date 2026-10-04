@@ -1,4 +1,4 @@
-"""Trusted command profiles and confined materialization. Not an OS sandbox."""
+"""Fixed Python tools and confined materialization. Not an OS sandbox."""
 
 import hashlib
 import os
@@ -90,22 +90,16 @@ class Executor:
         workspace: Path,
         timeout: int = 60,
         enabled: bool = False,
-        profile: dict[str, list[str]] | None = None,
     ):
         self.workspace = workspace.resolve()
         self.timeout = timeout
         self.enabled = enabled
-        self.profile = profile or {
+        self.commands = {
             "lint": [sys.executable, "-m", "ruff", "check", "--isolated", "."],
             "static": [sys.executable, "-m", "compileall", "-q", "."],
             "test": [sys.executable, "-m", "pytest", "-q", "--junitxml=.results.xml"],
             "build": [sys.executable, "-m", "build", "--wheel", "--no-isolation"],
         }
-        if set(self.profile) != {"lint", "static", "test", "build"}:
-            raise ToolError("Profile must define lint, static, test and build commands")
-        for command in self.profile.values():
-            if not command or any(not isinstance(arg, str) or "\x00" in arg for arg in command):
-                raise ToolError("Invalid trusted command profile")
 
     def materialize(self, files: dict[str, str], key: str) -> Path:
         root = safe_path(self.workspace, f"candidates/{key}")
@@ -124,7 +118,7 @@ class Executor:
             )
         if not cwd.resolve().is_relative_to(self.workspace) or cwd.is_symlink():
             raise ToolError("Execution directory outside configured workspace")
-        command = self.profile[tool]
+        command = self.commands[tool]
         reject_secrets(" ".join(command))
         allowed = {"PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP", "COMSPEC", "PATHEXT"}
         env = {key: value for key, value in os.environ.items() if key.upper() in allowed}

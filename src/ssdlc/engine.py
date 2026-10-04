@@ -95,74 +95,60 @@ class Engine:
                 replace_cached = True
         start = time.monotonic()
         self.event(state, "agent_started", role, key, actor_type="agent", actor_id=role)
-        providers = (
-            self.provider.candidates(role)
-            if hasattr(self.provider, "candidates")
-            else [self.provider]
-        )
+        provider = self.provider
         last_detail = ""
-        for index, provider in enumerate(providers):
-            if index:
+        feedback = initial_feedback
+        for attempt in range(self.policy.max_provider_attempts):
+            try:
+                raw = provider.generate(role, instructions, {**context, **feedback}, schema)
+                result = validate(raw)
+                self.repo.cache(
+                    state["workflow_run_id"],
+                    key,
+                    result.model_dump(mode="json"),
+                    replace=replace_cached,
+                )
                 self.event(
                     state,
-                    "provider_fallback",
+                    "agent_completed",
                     role,
                     json.dumps(
-                        {"operation": key, "from": providers[index - 1].name, "to": provider.name}
+                        {
+                            "operation": key,
+                            "provider": provider.name,
+                            "duration": time.monotonic() - start,
+                        }
                     ),
+                    actor_type="agent",
+                    actor_id=role,
                 )
-            feedback = initial_feedback
-            for attempt in range(self.policy.max_provider_attempts):
-                try:
-                    raw = provider.generate(role, instructions, {**context, **feedback}, schema)
-                    result = validate(raw)
-                    self.repo.cache(
-                        state["workflow_run_id"],
-                        key,
-                        result.model_dump(mode="json"),
-                        replace=replace_cached,
-                    )
+                return result
+            except GraphBubbleUp:
+                raise
+            except Exception as exc:
+                # Validation exception strings include raw input; record only
+                # field locations/error types, never a remote response body.
+                detail = self.validation_detail(exc)
+                last_detail = detail
+                self.event(
+                    state,
+                    "agent_failure",
+                    role,
+                    f"{key}; provider={provider.name}; attempt={attempt + 1}; {detail}",
+                )
+                feedback = {
+                    "validation_feedback": detail
+                    + ". Return a corrected complete object matching the schema."
+                }
+                if attempt + 1 < self.policy.max_provider_attempts:
                     self.event(
                         state,
-                        "agent_completed",
+                        "retry_attempted",
                         role,
-                        json.dumps(
-                            {
-                                "operation": key,
-                                "provider": provider.name,
-                                "duration": time.monotonic() - start,
-                            }
-                        ),
-                        actor_type="agent",
-                        actor_id=role,
+                        f"{key}; provider={provider.name}; attempt={attempt + 1}",
                     )
-                    return result
-                except GraphBubbleUp:
-                    raise
-                except Exception as exc:
-                    # Validation exception strings include raw input; record only
-                    # field locations/error types, never a remote response body.
-                    detail = self.validation_detail(exc)
-                    last_detail = detail
-                    self.event(
-                        state,
-                        "agent_failure",
-                        role,
-                        f"{key}; provider={provider.name}; attempt={attempt + 1}; {detail}",
-                    )
-                    feedback = {
-                        "validation_feedback": detail
-                        + ". Return a corrected complete object matching the schema."
-                    }
-                    if attempt + 1 < self.policy.max_provider_attempts:
-                        self.event(
-                            state,
-                            "retry_attempted",
-                            role,
-                            f"{key}; provider={provider.name}; attempt={attempt + 1}",
-                        )
         raise ValueError(
-            f"Provider failed for {role} after {self.policy.max_provider_attempts} attempts per configured provider. Last error: {last_detail}. See audit, then retry or abort."
+            f"Provider failed for {role} after {self.policy.max_provider_attempts} attempts. Last error: {last_detail}. See audit, then retry or abort."
         )
 
     def artifact(
@@ -251,7 +237,7 @@ class Engine:
                 s for s in result["plan"]["content"]["slices"] if s["id"] == state["current_slice"]
             )
         if design:
-            result["lld"] = active_artifact(state, f"lld:{state['current_slice']}")
+            result["design"] = result["slice"]["design"]
         if include_code:
             result["implementation"] = self.files(state)[0]
         return result

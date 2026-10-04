@@ -1,317 +1,1202 @@
-SUPPLEMENTARY REQUIREMENT — PLUGGABLE LLM PROVIDER AND FREE/LOCAL MODEL SUPPORT
+SUPPLEMENTARY REFACTORING PROMPT
+================================
 
-Context
+Project: Governed Agentic SSDLC
+Repository: kavish-agarwal-tech/ssdlc-test
+
+CONTEXT
 -------
-The initial Agentic SSDLC implementation is already in progress.
 
-Extend the current design so the SSDLC system does not depend on a single commercial LLM provider and does not require a paid cloud model to function.
+The current repository already contains a working Python/LangGraph-based
+Agentic SSDLC implementation.
 
-This is a refinement to the existing architecture, not a request to rewrite the orchestration framework.
+Do NOT rewrite the project from scratch.
 
-Primary Goal
-------------
-Introduce a clean LLM provider abstraction with:
+The current implementation has strong foundations:
 
-1. Local/free model support as the default development path.
-2. Optional hosted provider support.
-3. Deterministic mock model support for automated tests.
-4. No direct model-provider calls from individual agents.
-5. Configuration-driven model selection.
+- LangGraph stateful orchestration
+- SQLite checkpoint/resume
+- human interrupts
+- versioned artifacts
+- artifact dependency/invalidation
+- typed Pydantic contracts
+- real LLM integration
+- MockProvider for deterministic tests
+- architecture review loops
+- parallel code and test-design branches
+- deterministic test/build execution
+- failure analysis
+- brownfield reasoning
+- audit events
+- workflow metrics
+- safe-stop behavior
 
-The orchestration should remain based on LangGraph.
+However, the current implementation is somewhat over-engineered for the
+interview assignment.
 
-Architecture Requirement
-------------------------
+The goal of this refactor is:
 
-Introduce an abstraction such as:
+    SIMPLIFY THE IMPLEMENTATION WITHOUT LOSING THE ASSIGNMENT'S
+    CRITICAL AGENTIC AND GOVERNANCE CAPABILITIES.
 
-    LLMProvider
-      |
-      +-- OllamaProvider
-      +-- HuggingFaceProvider (optional)
-      +-- OpenAIProvider (optional)
-      +-- AnthropicProvider (optional)
-      +-- MockLLMProvider
+The resulting system should be easy for an interviewer to understand in
+approximately five minutes.
 
-The exact class/interface names may vary, but the architecture must preserve this separation.
+Do not optimize for building a generic enterprise SSDLC platform.
 
-Agents must depend only on the provider abstraction.
+Optimize for a convincing, runnable interview prototype.
 
-For example:
+======================================================================
+1. PRIMARY ARCHITECTURAL PRINCIPLE
+======================================================================
 
-    RequirementAgent
-          |
-          v
-      LLMProvider
-          |
-          +--> Ollama
-          +--> Hosted provider
-          +--> Mock
+Preserve:
 
-Do not embed provider-specific SDK calls inside:
-- Requirement Agent
-- Architecture Agent
-- Reviewer Agents
-- Planning Agent
-- LLD Agent
-- Coding Agent
-- Test Design Agent
-- Failure Analysis Agent
-- Documentation Agent
+    REASONING IS PROBABILISTIC.
+    CONTROL IS DETERMINISTIC.
 
-Local / Free Default
---------------------
+The real LLM may:
 
-Support Ollama as the preferred local development/demo provider.
+- interpret requirements
+- detect ambiguity
+- propose architecture
+- critique architecture
+- plan implementation
+- generate code
+- generate tests
+- review engineering artifacts
+- diagnose failures
+- prepare release-readiness summaries
 
-Configuration should be externalized, for example:
+The LLM must NOT control:
 
-    LLM_PROVIDER=ollama
-    LLM_MODEL=<configurable-model-name>
-    LLM_BASE_URL=http://localhost:11434
-
-Do not hard-code a specific model name into the architecture.
-
-Document recommended model classes separately.
-
-The implementation should make it possible to run with an open-weight local model that supports instruction following and coding tasks.
-
-Examples may include suitable Qwen, Llama, Mistral, or equivalent models depending on local hardware.
-
-Do not make model quality assumptions part of orchestration logic.
-
-Hugging Face Support
---------------------
-
-Optionally support Hugging Face as an additional model-provider path.
-
-The design should distinguish between:
-
-1. Hugging Face-hosted inference/provider APIs.
-2. Hugging Face models executed locally.
-
-Do not make Hugging Face hosted inference mandatory.
-
-The system should remain functional without paid cloud inference.
-
-Mock Provider Requirement
--------------------------
-
-Provide a MockLLMProvider for tests.
-
-This is important.
-
-The orchestration platform itself must be testable without:
-- internet access;
-- API keys;
-- paid services;
-- non-deterministic LLM output.
-
-Mock model responses should be configurable so workflow tests can verify:
-
-- ambiguity detection;
-- requirement approval interruption;
-- architecture review loops;
-- retry behavior;
-- safe-stop behavior;
-- failure classification;
-- artifact invalidation;
-- human approval resume;
-- release gating.
-
-Unit and workflow tests should prefer the mock provider.
-
-Real-model integration tests should be optional.
-
-Provider Configuration
-----------------------
-
-Use configuration rather than code changes to switch models.
-
-Possible configuration:
-
-    LLM_PROVIDER=ollama
-    LLM_MODEL=qwen...
-    LLM_BASE_URL=http://localhost:11434
-
-Optional:
-
-    LLM_PROVIDER=openai
-    LLM_MODEL=...
-    OPENAI_API_KEY=...
-
-or
-
-    LLM_PROVIDER=anthropic
-    LLM_MODEL=...
-    ANTHROPIC_API_KEY=...
-
-No provider-specific secret should appear in:
-- source code;
-- prompts;
-- logs;
-- audit records;
-- generated documentation.
-
-Capability-Aware Model Usage
-----------------------------
-
-Do not assume every model has equal capability.
-
-Allow agent/model configuration to evolve later, for example:
-
-    requirement_agent -> reasoning model
-    architecture_agent -> stronger reasoning model
-    coding_agent -> code-oriented model
-    reviewer_agent -> reasoning/review model
-
-For the first implementation, a single configurable model is acceptable.
-
-However, preserve the architecture so per-agent model selection can be added later without changing orchestration semantics.
-
-Deterministic vs LLM Responsibilities
--------------------------------------
-
-Reinforce the existing principle:
-
-    REASONING IS PROBABILISTIC; CONTROL IS DETERMINISTIC.
-
-The model may:
-- analyze;
-- propose;
-- generate;
-- critique;
-- classify;
-- explain.
-
-The model must NOT determine:
-
-- whether tests actually passed;
-- whether build actually succeeded;
-- retry counts;
-- gate enforcement;
-- workflow state transition validity;
-- review-loop maximums;
-- human approval;
-- artifact version validity;
-- release success;
-- audit persistence.
+- workflow state transitions
+- approvals
+- retry budgets
+- graph routing policy
+- artifact validity
+- test pass/fail
+- build pass/fail
+- release-gate decisions
+- safe-stop decisions
+- audit persistence
 
 Those remain deterministic application responsibilities.
 
-Fallback Behavior
------------------
+======================================================================
+2. LLM PROVIDER STRATEGY
+======================================================================
 
-Define graceful behavior when the configured LLM is unavailable.
+REMOVE Ollama-specific support.
 
-Examples:
+The current real LLM path should use:
 
-- provider connection error;
-- timeout;
-- invalid response;
-- malformed structured output.
+    DeepSeekProvider
 
-The workflow should:
+Retain:
 
-1. record the failure;
-2. retry according to bounded policy;
-3. use configured fallback provider if available;
-4. otherwise enter SAFE_STOP;
-5. explain what human action is required.
+    MockProvider
 
-Do not silently switch providers without audit visibility.
+The intended provider model is:
 
-Structured Outputs
-------------------
+                    Provider
+                       |
+            +----------+----------+
+            |                     |
+            v                     v
+      DeepSeekProvider        MockProvider
+      real reasoning          deterministic tests
 
-Where practical, require agents to produce structured outputs validated through typed schemas.
+DeepSeek is the primary real-agent provider.
+
+MockProvider exists for:
+
+- unit tests
+- workflow tests
+- deterministic CI
+- failure-path simulation
+- bounded-review tests
+- safe-stop tests
+- human-interrupt tests
+
+Do NOT use mocked LLM output as the primary URL-shortener demonstration.
+
+The URL-shortener workflow should normally run using DeepSeek so requirement
+analysis, architecture reasoning, ambiguity detection, planning, review and
+failure analysis are genuinely model-driven.
+
+The mock path must remain capable of proving orchestration without network/API
+dependency.
+
+Do not add additional model providers unless they are already trivial and
+require essentially zero maintenance.
+
+Remove unnecessary documentation and implementation for:
+
+- Ollama
+- local model discovery
+- Ollama health checks
+- unused provider options
+
+If a generic Provider interface already exists, KEEP IT.
+
+Do not redesign the provider layer unnecessarily.
+
+======================================================================
+3. SIMPLIFY THE GRAPH
+======================================================================
+
+The current graph has too many lifecycle nodes.
+
+Refactor toward this conceptual workflow:
+
+                     Requirement
+                         |
+                         v
+                 Requirement Agent
+                         |
+                  ambiguity?
+                  /       \
+                yes        no
+                 |          |
+           Human Clarify    |
+                 \          /
+                  Human Approval
+                         |
+                         v
+                 Architecture Agent
+                         |
+                         v
+              Architecture Reviewer
+                    |          |
+                 issues       clean
+                    |          |
+                 revise        |
+                    \__________/
+                         |
+                         v
+             Human Architecture Approval
+                         |
+                         v
+              Brownfield Analysis?
+                  conditional
+                         |
+                         v
+                  Planning + LLD
+                         |
+                 +-------+-------+
+                 |               |
+                 v               v
+              Coding         Test Design
+                 |               |
+                 +-------+-------+
+                         |
+                         v
+                   Quality Review
+                         |
+                         v
+              Deterministic Validation
+                    /            \
+                  PASS           FAIL
+                   |              |
+                   |        Failure Analysis
+                   |              |
+                   |        targeted retry
+                   |              |
+                   +--------------+
+                         |
+                         v
+                 Release Readiness
+                         |
+                         v
+                   Actual Build
+                         |
+                         v
+               Deterministic Gate
+                         |
+                         v
+                Human Final Approval
+                         |
+                         v
+                READY_FOR_DEPLOYMENT
+
+Keep LangGraph as the orchestration framework.
+
+======================================================================
+4. REMOVE PLAN APPROVAL
+======================================================================
+
+Remove the normal mandatory:
+
+    plan_approval
+
+human gate.
+
+Current conceptual behavior:
+
+Architecture Approval
+       |
+    Planning
+       |
+ Plan Approval
+       |
+      LLD
+
+Change to:
+
+Architecture Approval
+       |
+       v
+ Planning + LLD
+
+Reason:
+
+The human has already approved:
+
+- requirements
+- architecture
+- technology decisions
+
+Planning within those boundaries should be autonomously executable.
+
+Human intervention is required only if planning discovers:
+
+- new functional scope
+- unresolved requirement ambiguity
+- architecture-impacting conflict
+- significant risk requiring acceptance
+
+In those cases, route back appropriately.
+
+Do not require routine approval of every generated plan.
+
+Remove tests, CLI behavior and documentation whose sole purpose is enforcing
+normal plan approval.
+
+======================================================================
+5. COMBINE PLANNING AND LLD
+======================================================================
+
+Combine the current separate Planning Agent and LLD Agent into one logical:
+
+    PlanningDesign Agent
+
+or equivalent.
+
+It should produce:
+
+- vertical slices
+- dependencies
+- sequencing
+- acceptance criteria
+- requirement mapping
+- risks
+- module/component structure
+- interfaces
+- API contracts
+- persistence decisions
+- validation behavior
+- error behavior
+- observability expectations
+- test seams
+- implementation notes
+
+Do not eliminate vertical slices.
+
+The purpose is simply to avoid making planning and LLD two expensive,
+independent reasoning stages when one structured model response can produce
+both for this prototype.
+
+A suitable artifact might conceptually contain:
+
+EngineeringPlan:
+    slices[]
+    rationale
+
+Slice:
+    id
+    title
+    dependencies
+    requirement_refs
+    acceptance_criteria
+    design
+    validation
+    risks
+
+Design:
+    modules
+    interfaces
+    contracts
+    persistence
+    validation
+    errors
+    observability
+    test_seams
+
+Adapt current models rather than introducing unnecessary new frameworks.
+
+======================================================================
+6. KEEP CODE AND TEST DESIGN PARALLEL
+======================================================================
+
+Do NOT remove this capability.
+
+It is one of the strongest demonstrations of real non-linear orchestration.
+
+After Planning/Design:
+
+                 Approved Design
+                     /      \
+                    /        \
+                   v          v
+               Coding     Test Design
+                   \          /
+                    \        /
+                     v      v
+                       Join
+
+Both branches must consume the same authoritative:
+
+- requirement
+- architecture
+- ADRs
+- slice
+- design
+- acceptance criteria
+
+The Test Design Agent must continue to be independent.
+
+Do NOT provide generated production code to the Test Design Agent.
+
+Preserve the existing test proving this isolation.
+
+This is a key interview talking point:
+
+    "Tests derive independently from the approved specification rather than
+    reproducing the generated implementation's assumptions."
+
+======================================================================
+7. SIMPLIFY CODE/TEST REVIEW
+======================================================================
+
+The existing code-review and test-review subgraphs are more elaborate than
+required.
+
+Replace:
+
+    Code -> Code Review loop
+
+and
+
+    Tests -> Test Review loop
+
+with one:
+
+    Quality Review Agent
+
+AFTER code/test synchronization.
+
+Quality Review should assess both artifacts against the authoritative
+requirements and design.
+
+Review:
+
+- requirement alignment
+- acceptance-criteria coverage
+- implementation correctness
+- API/design alignment
+- maintainability
+- input validation
+- security basics
+- secrets/logging safety
+- error handling
+- meaningful test assertions
+- negative cases
+- edge/boundary cases
+- excessive mocking
+- reliability considerations
+- obvious deviations
+
+Continue using structured findings:
+
+- BLOCKER
+- HIGH
+- MEDIUM
+- LOW
+
+Do not implement another generalized review framework.
+
+Reuse the existing Finding model where practical.
+
+======================================================================
+8. ARCHITECTURE REVIEW REMAINS INDEPENDENT
+======================================================================
+
+Do NOT merge the Architecture Reviewer into the Architecture Agent.
+
+Keep:
+
+Architecture Author
+      |
+Architecture Reviewer
+      |
+possible revision
+      |
+Human Approval
+
+This demonstrates:
+
+- independent critique
+- agent-to-agent workflow
+- bounded autonomy
+- explicit quality gates
+- escalation
+
+Change the default maximum architecture autonomous review cycles from:
+
+    3
+
+to:
+
+    2
+
+Two cycles are sufficient to demonstrate bounded autonomous revision.
+
+If unresolved BLOCKER/HIGH findings remain:
+
+    SAFE STOP / human escalation.
+
+Do not create uncontrolled agent-to-agent conversation.
+
+The orchestrator continues mediating each iteration.
+
+======================================================================
+9. MERGE DOCUMENTATION WITH RELEASE READINESS
+======================================================================
+
+Remove the standalone Documentation Agent/stage if practical.
+
+Current:
+
+Acceptance
+   |
+Documentation
+   |
+Release Readiness
+
+Change to:
+
+Acceptance
+   |
+Release Readiness Agent
+
+The Release Readiness Agent should generate one professional final package
+covering:
+
+- engineering summary
+- setup instructions
+- API summary
+- configuration
+- architecture summary
+- ADR summary
+- test evidence
+- known risks
+- accepted risks
+- release notes
+- operational notes
+- rollback instructions
+- known limitations
+- tradeoffs
+- deployment readiness
+
+Then deterministic tooling performs actual package/build verification.
+
+======================================================================
+10. KEEP DETERMINISTIC TOOL EXECUTION
+======================================================================
+
+This capability is critical.
+
+Keep actual execution of:
+
+- lint
+- static checks
+- pytest
+- package/build
+
+The LLM cannot declare these passed.
+
+Persist real:
+
+- command
+- exit code
+- duration
+- summarized output
+- relevant artifact references
+
+Keep local execution constrained.
+
+Do NOT attempt to build an OS-level secure sandbox.
+
+Document that generated code execution is trusted-development-machine
+execution for this prototype.
+
+======================================================================
+11. KEEP FAILURE ANALYSIS, BUT SMALL
+======================================================================
+
+Retain Failure Analysis.
+
+It is useful because failed deterministic validation should not blindly route
+back to Coding.
+
+Continue classifying failures such as:
+
+- IMPLEMENTATION_DEFECT
+- TEST_DEFECT
+- DESIGN_DEFECT
+- ARCHITECTURE_DEFECT
+- REQUIREMENT_DEFECT
+- ENVIRONMENT_OR_TOOLING
+
+Simplify LLD-related routing if Planning + LLD have been combined.
 
 For example:
 
-- RequirementAnalysis
-- ArchitectureProposal
-- ReviewFinding[]
-- ImplementationPlan
-- FailureAnalysis
-- ReleaseReadinessReport
+Implementation defect
+    -> Coding
 
-If model output cannot be validated:
+Test defect
+    -> Test Design
 
-- attempt bounded repair/retry;
-- record validation failure;
-- safe-stop if limits are exceeded.
+Design defect
+    -> Planning/Design
 
-Documentation Update
+Architecture defect
+    -> Architecture
+
+Requirement defect
+    -> Requirement
+
+Environment/tooling
+    -> retry/safe-stop/human
+
+Maintain bounded retries.
+
+Do not create complex generalized remediation infrastructure.
+
+======================================================================
+12. KEEP ARTIFACT VERSIONING AND INVALIDATION
+======================================================================
+
+The current artifact lineage implementation is valuable and directly supports
+dynamic replanning.
+
+Keep it.
+
+Do NOT expand it into a generalized dependency-management platform.
+
+A simple dependency chain is enough:
+
+Requirement
+   |
+Architecture
+   |
+Plan/Design
+   |
+Code + Tests
+   |
+Release
+
+Examples:
+
+Requirement changes:
+    invalidate architecture, plan/design, code, tests, release.
+
+Architecture changes:
+    retain requirement;
+    invalidate plan/design, code, tests, release.
+
+Plan/design changes:
+    invalidate code, tests, release.
+
+Implementation changes:
+    invalidate relevant validation/release artifacts.
+
+Preserve unaffected artifacts where practical.
+
+======================================================================
+13. KEEP BROWNFIELD ANALYSIS
+======================================================================
+
+Keep Brownfield Analysis as a conditional node.
+
+It is explicitly useful for one of the required scenarios.
+
+Brownfield analysis should identify only what is needed:
+
+- impacted modules/files
+- APIs
+- data flow
+- persistence impact
+- test impact
+- compatibility risk
+- likely regressions
+
+Do not turn this into a generalized repository-indexing/RAG platform.
+
+======================================================================
+14. SIMPLIFY PERSISTENCE — DO NOT REWRITE IT
+======================================================================
+
+The existing SQLite checkpointing works.
+
+KEEP:
+
+- LangGraph SQLite checkpointing
+- current durable pause/resume
+- artifact persistence that is already required
+- existing run isolation
+
+Do not spend additional time expanding:
+
+- distributed locks
+- multi-writer support
+- transaction coordination
+- enterprise recovery
+- signed audit storage
+
+If existing hash-chain/audit verification is stable and small, it may remain.
+
+Do not enhance it further.
+
+If simplification can safely remove obviously unused persistence features,
+do so only after tests demonstrate no regression.
+
+Avoid risky persistence rewrites.
+
+======================================================================
+15. SIMPLIFY AUDIT
+======================================================================
+
+Retain structured audit events.
+
+The audit trail must make workflow decisions understandable.
+
+Important events include:
+
+- workflow started
+- LLM stage started/completed/failed
+- ambiguity detected
+- human clarification
+- requirement approved
+- architecture generated
+- architecture finding
+- architecture approved
+- plan/design generated
+- code generated
+- tests generated
+- quality finding
+- deterministic tool executed
+- validation failed
+- retry/replan
+- safe stop
+- build result
+- release gate
+- final human approval
+
+Do not add enterprise compliance infrastructure.
+
+======================================================================
+16. SIMPLIFY METRICS
+======================================================================
+
+Metrics should demonstrate observability without becoming a subsystem.
+
+Keep a compact useful set:
+
+- workflow duration
+- agent calls
+- agent failures
+- retry count
+- replan count
+- review cycles
+- test pass/fail
+- build pass/fail
+- safe-stop count
+- human wait time if already available
+
+Existing metrics code may remain if stable.
+
+Do not add monitoring dashboards or external telemetry systems.
+
+======================================================================
+17. HUMAN APPROVAL MODEL
+======================================================================
+
+Normal human gates should now be limited to:
+
+1. Requirement clarification / approval
+
+2. Architecture + technology approval
+
+3. Final release-readiness approval
+
+Additional human intervention may occur only for exceptional situations:
+
+- new scope
+- accepted HIGH risk
+- exhausted retry/review budgets
+- safe stop
+- major upstream redesign
+
+This implements controlled autonomy without unnecessary human friction.
+
+======================================================================
+18. REAL LLM VS MOCK BEHAVIOR
+======================================================================
+
+This distinction must be explicit in code and documentation.
+
+REAL MODE — DeepSeek
 --------------------
 
-Add professional documentation covering:
+Used for the actual URL-shortener demonstration.
 
-1. LLM provider architecture.
-2. Why provider abstraction exists.
-3. Why local Ollama support is useful for development/demo.
-4. Why deterministic mock models are used for automated testing.
-5. Hosted-provider options.
-6. Security/secret handling.
-7. Configuration examples.
-8. Limitations of smaller local models.
-9. How to switch providers.
-10. How provider failures are handled.
+DeepSeek should perform genuine reasoning for:
 
-Create or update documentation similar to:
+- requirement analysis
+- ambiguity identification
+- architecture generation
+- architecture review
+- planning/design
+- coding
+- test design
+- quality review
+- failure analysis
+- brownfield analysis
+- release readiness
 
-    docs/llm-provider-architecture.md
+Do not pre-script URL-shortener model outputs merely to make the demo work.
 
-Also update:
-- README.md
-- architecture.md
-- configuration documentation
+MOCK MODE
+---------
+
+Used for:
+
+- pytest
+- CI
+- deterministic workflow verification
+- retry scenarios
+- safe-stop scenarios
+- edge cases
+
+The MockProvider should remain deterministic.
+
+The complete orchestration should be testable without:
+
+- DeepSeek availability
+- API key
+- internet
+
+======================================================================
+19. DEEPSEEK CONFIGURATION
+======================================================================
+
+Make DeepSeek configuration straightforward.
+
+Example concept:
+
+    LLM_PROVIDER=deepseek
+    DEEPSEEK_API_KEY=...
+    DEEPSEEK_MODEL=<configured model>
+
+Use whatever environment names already exist if reasonable.
+
+Do NOT put API keys in:
+
+- repository files
+- prompts
+- audit logs
+- artifacts
+- exported execution history
+
+Update:
+
 - .env.example
+- README
+- configuration documentation
 
-Design Rationale to Document
-----------------------------
+Remove Ollama-specific configuration/documentation/scripts.
 
-Document the following reasoning clearly:
+Delete scripts/check_ollama.py if no longer required.
 
-- The SSDLC platform should not be vendor-locked.
-- The orchestration semantics do not depend on model vendor.
-- Local models allow low-cost/offline experimentation.
-- Hosted models can improve output quality when required.
-- Mock models make workflow tests deterministic and inexpensive.
-- Deterministic controls remain independent of model reliability.
-- Model capability is replaceable infrastructure, not authoritative workflow state.
+======================================================================
+20. DOCUMENTATION SIMPLIFICATION
+======================================================================
 
-Acceptance Criteria
--------------------
+The repository currently contains a large number of documentation files.
 
-This supplementary requirement is complete when:
+Consolidate where helpful.
 
-1. No agent directly depends on a specific commercial model SDK.
-2. A provider interface exists.
-3. Ollama/local provider path works or is cleanly integrated.
-4. Mock provider is implemented.
-5. Workflow tests can run entirely using the mock provider.
-6. Provider selection is configuration-driven.
-7. Secrets are not logged or stored in workflow artifacts.
-8. Model failures follow bounded retry/fallback/safe-stop behavior.
-9. Documentation explains the design and trade-offs.
-10. Existing LangGraph orchestration behavior remains intact.
+Target:
 
-Implementation Guidance
------------------------
+README.md
+docs/architecture.md
+docs/orchestration.md
+docs/decisions.md
+docs/testing.md
 
-Do not rewrite working parts of the SSDLC platform unnecessarily.
+ADRs may remain separately if useful.
 
-First inspect the existing implementation.
+Potentially merge redundant content currently spread across:
 
-Then:
+- configuration.md
+- providers.md
+- llm-provider-architecture.md
+- governance.md
+- audit-model.md
+- verification.md
+- workload-status.md
+- decision-log.md
 
-1. identify direct LLM dependencies;
-2. introduce the provider abstraction;
-3. refactor agents incrementally;
-4. add mock provider;
-5. add local provider;
-6. add tests;
-7. update documentation;
-8. verify existing workflow tests still pass.
+Do not delete useful reasoning.
 
-Treat this as an architectural refinement and preserve all existing audit, governance, retry, human-approval, and workflow semantics.
+Consolidate duplicated explanations.
+
+README should become the primary reviewer entry point.
+
+It should answer quickly:
+
+1. What is this?
+2. What problem does it solve?
+3. Why LangGraph?
+4. Where is the real LLM used?
+5. What remains deterministic?
+6. What are the human gates?
+7. How do I run it?
+8. How do I run the URL-shortener scenario?
+9. How do I run tests without DeepSeek?
+10. What are the tradeoffs/limitations?
+
+======================================================================
+21. URL SHORTENER IS NOW THE PRIORITY
+======================================================================
+
+After this simplification is complete, stop adding generic SSDLC framework
+features.
+
+The next priority is to exercise the system using the actual assignment
+workload.
+
+The URL-shortener must be produced THROUGH the agentic SSDLC workflow.
+
+Do not manually bypass the workflow and create a separate implementation.
+
+Run the GREENFIELD scenario using DeepSeek.
+
+Initial requirement should describe the intended URL-shortener capability but
+leave enough room for Requirement Agent analysis.
+
+Expected broad capabilities include:
+
+- create short URL
+- redirect short code
+- persistence
+- basic analytics
+- health/readiness
+- validation
+- reliability considerations
+
+Do NOT hard-code all architectural decisions into the starting requirement.
+
+The Requirement Agent should detect legitimate ambiguity and missing NFRs.
+
+======================================================================
+22. GREENFIELD SCENARIO
+======================================================================
+
+Use DeepSeek.
+
+Demonstrate:
+
+Requirement
+ -> LLM analysis
+ -> human clarification if necessary
+ -> requirement approval
+ -> architecture
+ -> independent architecture critique
+ -> human architecture approval
+ -> planning/design
+ -> parallel coding + test generation
+ -> quality review
+ -> deterministic execution
+ -> failure recovery if naturally required
+ -> release readiness
+ -> deterministic build
+ -> human final approval
+ -> READY_FOR_DEPLOYMENT
+
+Persist the resulting real artifacts in an appropriate example/demo location
+if useful for interview review.
+
+Do not falsely label generated artifacts as deterministic fixtures.
+
+======================================================================
+23. AMBIGUOUS SCENARIO
+======================================================================
+
+Run with DeepSeek:
+
+    "Add expiration support to shortened URLs."
+
+This scenario should visibly demonstrate real requirement reasoning.
+
+The Requirement Agent should identify missing decisions such as:
+
+- default TTL
+- optional vs mandatory expiration
+- expired-link response
+- analytics retention
+- cleanup behavior
+- reactivation semantics
+
+Do not script those exact questions in workflow code.
+
+They are examples of the reasoning expected from the model.
+
+The important behavior is:
+
+DeepSeek identifies ambiguity
+        |
+LangGraph interrupts
+        |
+Human supplies decision
+        |
+workflow resumes
+
+This should be one of the strongest live interview demonstrations.
+
+======================================================================
+24. BROWNFIELD SCENARIO
+======================================================================
+
+After the URL shortener exists, submit a change such as:
+
+    "Add click analytics grouped by short URL and expose an analytics API."
+
+Use the SAME graph.
+
+Brownfield Analysis should inspect the actual generated repository and identify:
+
+- affected implementation
+- API impact
+- persistence impact
+- test impact
+- regression risk
+
+Then continue through the same governed lifecycle.
+
+Do not create a separate hard-coded brownfield workflow.
+
+======================================================================
+25. DEMO STRATEGY
+======================================================================
+
+Optimize for a reliable interview demonstration.
+
+Do NOT depend on executing an entire long DeepSeek workflow live from scratch.
+
+Instead:
+
+1. Have a previously completed real DeepSeek URL-shortener workflow stored as
+   evidence/artifacts.
+
+2. Be able to show its audit trail and outputs.
+
+3. During a live demo, execute a smaller real portion such as:
+   - ambiguous requirement analysis
+   - human interrupt/resume
+   - architecture review
+   OR
+   - brownfield impact analysis
+
+4. Keep MockProvider available if network/API service is unavailable.
+
+Clearly identify whether a run uses:
+
+    REAL DEEPSEEK
+
+or:
+
+    DETERMINISTIC MOCK
+
+Never imply mock output was generated by the real model.
+
+======================================================================
+26. TESTS TO PRESERVE
+======================================================================
+
+Keep automated coverage proving:
+
+- blocking ambiguity prevents approval
+- human clarification resumes workflow
+- stale approval is rejected
+- architecture cannot run before approved requirements
+- architecture review is bounded
+- BLOCKER/HIGH behavior is governed
+- coding and test design execute independently
+- test-design branch does not receive implementation
+- deterministic validation controls pass/fail
+- failures route to appropriate recovery
+- retry budgets are enforced
+- safe stop works
+- upstream changes invalidate downstream artifacts
+- unaffected artifacts survive where appropriate
+- brownfield impact happens before implementation planning
+- release cannot proceed after failed tests/build
+- checkpoint/resume works
+- mock execution requires no real LLM
+
+Remove tests that exist only for deleted workflow complexity such as mandatory
+normal plan approval.
+
+Do not increase test-framework sophistication unnecessarily.
+
+======================================================================
+27. THINGS TO REMOVE / DEFER
+======================================================================
+
+Remove or defer unless necessary for currently working functionality:
+
+- Ollama provider/support
+- Ollama setup documentation
+- Ollama check script
+- mandatory plan approval
+- separate LLD agent/stage
+- independent code-review subgraph
+- independent test-review subgraph
+- standalone Documentation Agent
+- arbitrary provider/plugin factories if not needed
+- Java/Go execution profiles not actually demonstrated
+- enterprise IAM
+- signed audit ledgers
+- distributed execution
+- multi-user concurrency
+- Kubernetes
+- production deployment automation
+- generalized workflow DSL
+- dashboard/UI
+- generalized RAG/code-indexing
+- sophisticated rollback infrastructure
+
+Document relevant production extensions instead of implementing them.
+
+======================================================================
+28. REFACTORING METHOD
+======================================================================
+
+Do not make one giant rewrite.
+
+Before changing code, produce a short inventory:
+
+KEEP
+SIMPLIFY
+MERGE
+REMOVE/DEFER
+
+Then refactor incrementally.
+
+Recommended sequence:
+
+STEP 1
+Remove Ollama code/docs and make DeepSeek the only real provider.
+
+STEP 2
+Remove normal plan approval.
+
+STEP 3
+Combine planning and LLD.
+
+STEP 4
+Preserve parallel Coding/Test Design but combine their review paths into one
+Quality Review stage.
+
+STEP 5
+Merge Documentation into Release Readiness.
+
+STEP 6
+Reduce architecture review default to two iterations.
+
+STEP 7
+Simplify graph diagram and routing.
+
+STEP 8
+Run full workflow test suite.
+
+STEP 9
+Remove obsolete tests/code/docs.
+
+STEP 10
+Run formatting/lint/tests/build.
+
+STEP 11
+Update README and architecture documentation.
+
+STEP 12
+Run the URL-shortener greenfield workflow using DeepSeek.
+
+Do not delete working code until replacement behavior passes tests.
+
+======================================================================
+29. SUCCESS CRITERIA
+======================================================================
+
+The refactor is successful when:
+
+- LangGraph remains the orchestrator.
+- DeepSeek is the real LLM provider.
+- MockProvider supports deterministic tests.
+- Ollama has been removed.
+- the graph fits cleanly on one diagram.
+- approximately three normal human gates remain.
+- architecture review remains independent and bounded.
+- code and test generation remain genuinely parallel.
+- test design does not consume implementation code.
+- actual tools determine test/build success.
+- failure analysis can route backward.
+- dynamic artifact invalidation still works.
+- safe-stop behavior remains.
+- brownfield reasoning remains.
+- auditability remains sufficient to explain the run.
+- repository setup is simpler.
+- documentation is shorter and clearer.
+- URL-shortener can be produced using a real DeepSeek workflow.
+- mock mode works without external LLM access.
+
+Most importantly:
+
+The repository should look like a deliberate interview solution,
+not an attempt to build an entire commercial SSDLC platform.
+
+======================================================================
+30. INTERVIEW DESIGN STORY
+======================================================================
+
+Ensure the implementation and README support this explanation:
+
+    "I used LangGraph rather than building a custom orchestration engine because
+    the problem requires stateful graph execution, conditional routing, parallel
+    branches, synchronization, human interrupts and resumability.
+
+    I use DeepSeek for probabilistic engineering reasoning, while workflow
+    control, approvals, retry limits, artifact state, test execution and release
+    gates remain deterministic.
+
+    I deliberately kept a deterministic MockProvider so the orchestration itself
+    can be reliably tested without depending on model availability.
+
+    I also deliberately scoped the implementation to the assignment rather than
+    building a generalized enterprise SSDLC platform."
+
+That engineering judgment is a key part of the solution.

@@ -7,29 +7,13 @@ from ssdlc.state import Workflow
 
 
 def branch(nodes: Nodes, kind: str):
-    graph = StateGraph(Workflow)
-    graph.add_node(
-        "generate", nodes.guarded("branch_generate", lambda s: nodes.branch_generate(s, kind))
-    )
-    graph.add_node("review", nodes.guarded("branch_review", lambda s: nodes.branch_review(s, kind)))
-    graph.add_edge(START, "generate")
-    graph.add_conditional_edges(
-        "generate", lambda s: s["route"], {"review": "review", "done": END, "safe_stop": END}
-    )
-    graph.add_conditional_edges(
-        "review", lambda s: s["route"], {"generate": "generate", "done": END, "safe_stop": END}
-    )
-    compiled = graph.compile()
-
     def execute(state):
-        result = compiled.invoke(state, {"recursion_limit": 30})
-        keys = {"artifacts", "active", "findings", "reviews", "counters", "branch_errors"}
+        result = nodes.guarded("branch_generate", lambda s: nodes.branch_generate(s, kind))(state)
         update = {
-            key: {k: v for k, v in result.get(key, {}).items() if state.get(key, {}).get(k) != v}
-            for key in keys
+            key: result[key] for key in ("artifacts", "active", "branch_errors") if key in result
         }
         if result.get("route") == "safe_stop":
-            update["branch_errors"][kind] = result["safe_stop_reason"]
+            update.setdefault("branch_errors", {})[kind] = result["safe_stop_reason"]
         return update
 
     return execute
@@ -44,14 +28,12 @@ def build_graph(nodes: Nodes, checkpointer):
         "architecture_review",
         "architecture_approval",
         "brownfield",
-        "planning",
-        "plan_approval",
-        "lld",
+        "planning_design",
         "synchronize",
+        "quality_review",
         "validate",
         "acceptance",
         "failure_analysis",
-        "documentation",
         "release_readiness",
         "build",
         "release_gate",

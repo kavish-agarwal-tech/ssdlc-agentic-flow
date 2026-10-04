@@ -1,49 +1,22 @@
 # Architecture
 
-The domain is a versioned dependency graph of engineering artifacts. LangGraph
-executes the lifecycle; Python policies decide whether transitions are legal.
-
-The default development model integration is local Ollama. Environment configuration
-selects the model, role overrides and optional audited fallback. Agents depend only
-on the provider protocol. See [LLM provider architecture](llm-provider-architecture.md).
+The CLI collects explicit decisions. Runtime opens SQLite checkpoints, the artifact repository, and a local tool executor. LangGraph owns durable execution, fan-out, the join barrier, and interrupt/resume. Nodes enforce domain rules; the generic Provider protocol separates these rules from DeepSeek's JSON-mode HTTP adapter and the deterministic mock fixture.
 
 ```mermaid
-flowchart LR
-    CLI[CLI / trusted operator] --> Runtime
-    Runtime --> LG[LangGraph parent + review subgraphs]
-    LG --> Nodes[SSDLC lifecycle nodes]
-    Nodes --> Policy[Deterministic gates]
-    Nodes --> Agents[Role contracts / provider adapter]
-    Nodes --> Tools[Trusted tool profile / workspace executor]
-    LG --> Checkpoint[(SQLite checkpoints)]
-    Nodes --> Repository[(Artifacts + audit + operation cache)]
-    Repository --> Export[JSON audit export / metrics]
+flowchart TD
+  CLI --> Runtime
+  Runtime --> Graph[LangGraph checkpoints]
+  Graph --> Nodes[Typed agents and deterministic policy]
+  Nodes --> DeepSeek[DeepSeek / offline mock]
+  Nodes --> Files[Versioned filesystem artifacts]
+  Nodes --> DB[SQLite indexes and audit]
+  Nodes --> Tools[Local Ruff / compile / pytest / build]
 ```
 
-`models.py` defines Pydantic contracts. `state.py` defines JSON checkpoint state
-with map reducers for disjoint parallel outputs. `engine.py` owns version creation,
-lineage, provider validation and review reconciliation. `nodes.py` owns lifecycle
-actions. `graph.py` owns framework wiring. `policy.py` contains gates and immutable
-budget settings. `runtime.py` holds connections, run leases and operator APIs.
+Requirements retain original input and human decisions as system-owned provenance. Architecture contains alternatives, requirement mapping, and ADRs. An independent reviewer assesses architecture before joint human approval. One Plan response carries dependency-ordered vertical slices, exact requirement/acceptance IDs, risks, and implementation design per slice. Code and independently designed tests consume the same approved baseline and slice design concurrently. A shared Quality Review evaluates the joined pair. Release Readiness produces one report containing documentation and measured evidence.
 
-Artifacts have stable IDs and monotonically increasing versions, immutable content
-digests, exact dependency references, validity and approval metadata. Active pointers
-are distinct from version history. Findings have durable identities and dispositions;
-absence from a later review never closes an earlier finding. Resolution requires a
-new artifact version and explicit reviewer verification.
+Schemas validate shape; stage validators enforce exact IDs, coverage, nonempty design/report sections, dependency order, safe paths, branch ownership, and traceability before successful responses enter the cache. Replayed cached output is validated again. Failed responses get at most two attempts with validation feedback; an invalid response cannot become a published artifact.
 
-Architecture and embedded technology ADRs are approved together. Plans consume
-those ADR versions. LLD depends on the plan and prerequisite slice acceptances.
-Code and tests depend on the same LLD; test artifacts never depend on code.
-Validation depends on exact materialized code/test/snapshot references; acceptance
-depends on validation; release depends on build, documentation and release report.
+Artifact bodies and cached responses are versioned JSON files. SQLite stores file pointers, hashes, indexes, audit events and checkpoints. Replacing a version preserves history and marks dependent outputs invalid or requiring revalidation. Branch state merges maps only, avoiding parallel writes to scalar routing fields. Single-writer leases and the existing audit hash chain support local accountability without introducing a persistence framework. Export collects saved evidence; it does not infer success from model prose.
 
-Brownfield runs copy a bounded, secret-screened source snapshot into the run
-workspace. The impact agent consumes it before planning. The original repository
-is never modified by a workload. Later slice file bundles overlay earlier bundles
-in topological plan order. Deletion/rename patches are intentionally not supported.
-
-The prototype uses local SQLite and a per-run lease, not distributed orchestration
-infrastructure. Multiple authors of the same run are rejected. Provider/network
-timeouts are the responsibility of the injected client; tool timeouts are enforced
-by the executor. External production deployment is outside this boundary.
+The fixed Python tool set executes actual commands and captures exit status, output, timing, candidate fingerprint, JUnit results and artifact references. Static checks mean Ruff plus bytecode compilation; no type checker or vulnerability scanner is claimed. A release requires reviewed current artifacts, passed acceptance tests including earlier slices, a successful actual build, unchanged candidate files, and final human approval. No deployment tool is exposed.

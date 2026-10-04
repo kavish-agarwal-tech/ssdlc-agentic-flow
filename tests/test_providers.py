@@ -4,17 +4,9 @@ import pytest
 
 from ssdlc.config import load_env_file, provider_from_environment
 from ssdlc.models import Document
-from ssdlc.providers import DeepSeekProvider, OllamaProvider, ProviderChain, ProviderError
+from ssdlc.providers import DeepSeekProvider, ProviderError
 from ssdlc.runtime import Runtime
 from ssdlc.scripted_mock import ScriptedMockProvider
-
-
-def test_local_default_requires_explicit_model():
-    with pytest.raises(ValueError, match="LLM_MODEL"):
-        provider_from_environment({})
-    provider = provider_from_environment({"LLM_MODEL": "local-model:small"})
-    assert isinstance(provider, OllamaProvider)
-    assert provider.base_url == "http://localhost:11434"
 
 
 def test_deepseek_configuration_and_request(monkeypatch):
@@ -58,17 +50,6 @@ def test_deepseek_requires_api_key():
         provider_from_environment({"LLM_PROVIDER": "deepseek"})
 
 
-def test_configuration_switch_and_no_synthetic_fallback():
-    assert provider_from_environment({"LLM_PROVIDER": "mock"}).name == "mock-fixture-v1"
-    with pytest.raises(ValueError, match="synthetic"):
-        provider_from_environment({"LLM_MODEL": "local", "LLM_FALLBACK_PROVIDER": "mock"})
-    provider = provider_from_environment(
-        {"LLM_MODEL": "a", "LLM_FALLBACK_PROVIDER": "ollama", "LLM_FALLBACK_MODEL": "b"}
-    )
-    assert isinstance(provider, ProviderChain)
-    assert [p.model for p in provider.providers] == ["a", "b"]
-
-
 def test_env_loader_does_not_evaluate_or_override(tmp_path, monkeypatch):
     monkeypatch.setenv("LLM_MODEL", "already-set")
     path = tmp_path / "config.env"
@@ -103,60 +84,6 @@ class Response:
 
     def read(self, _):
         return json.dumps(self.value).encode()
-
-
-def test_ollama_native_request_and_schema(monkeypatch):
-    calls = []
-
-    class Opener:
-        def open(self, request, timeout):
-            calls.append((request, timeout))
-            return Response({"done": True, "message": {"content": '{"sections":{"result":"ok"}}'}})
-
-    monkeypatch.setattr("urllib.request.build_opener", lambda *args: Opener())
-    provider = OllamaProvider("small", role_models={"coding": "coder"}, timeout=7)
-    assert (
-        provider.generate("coding", "instructions", {"test": 1}, Document)["sections"]["result"]
-        == "ok"
-    )
-    request, timeout = calls[0]
-    payload = json.loads(request.data)
-    assert request.full_url == "http://localhost:11434/api/chat"
-    assert payload["model"] == "coder"
-    assert payload["format"] == Document.model_json_schema()
-    assert payload["stream"] is False and timeout == 7
-
-
-@pytest.mark.parametrize(
-    "response",
-    [
-        {"done": False},
-        {"done": True, "done_reason": "length"},
-        {"done": True, "message": {"content": "not-json"}},
-        {"done": True, "message": {"content": "[]"}},
-    ],
-)
-def test_malformed_ollama_output_fails(monkeypatch, response):
-    class Opener:
-        def open(self, *args, **kwargs):
-            return Response(response)
-
-    monkeypatch.setattr("urllib.request.build_opener", lambda *args: Opener())
-    with pytest.raises(ProviderError):
-        OllamaProvider("small").generate("requirement", "instruction", {}, Document)
-
-
-def test_bounded_provider_failure_and_audited_fallback(tmp_path):
-    primary = ScriptedMockProvider({"requirement": [TimeoutError("not logged")]})
-    fallback = ScriptedMockProvider({})
-    fallback.name = "fallback-mock"
-    with Runtime(tmp_path, provider=ProviderChain(primary, fallback)) as runtime:
-        result = runtime.start("Create a greeting library", "fallback")
-        assert result["interrupts"][0]["gate"] == "requirement"
-        assert primary.calls["requirement"] == 2
-        events = runtime.repo.events("fallback")
-        assert sum(e["action"] == "provider_fallback" for e in events) == 1
-        assert runtime.metrics("fallback")["agent_failure_count"] == 2
 
 
 def test_invalid_schema_exhausts_budget_without_raw_secrets(tmp_path, monkeypatch):
@@ -202,3 +129,33 @@ def test_semantic_requirement_failure_is_retried_before_caching(tmp_path):
         assert scripted.calls["requirement"] == 2
         assert runtime.metrics("semantic-repair")["retry_count"] == 1
         assert result["state"]["active"]["requirement"] == "requirement@1"
+
+
+def test_explicit_mock_and_unsupported_provider():
+    assert provider_from_environment({"LLM_PROVIDER": "mock"}).name == "mock-fixture-v1"
+    with pytest.raises(ValueError, match="Supported providers"):
+        provider_from_environment({"LLM_PROVIDER": "ollama"})
+
+
+def test_bounded_provider_failure(tmp_path):
+    provider = ScriptedMockProvider({"requirement": [TimeoutError("private detail")]})
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = runtime.start("greeting", "timeout")
+        assert result["interrupts"][0]["gate"] == "safe_stop"
+        assert provider.calls["requirement"] == 2
+        assert runtime.metrics("timeout")["agent_failure_count"] == 2
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        {"choices": []},
+        {"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]},
+        {"choices": [{"finish_reason": "stop", "message": {"content": "not-json"}}]},
+        {"choices": [{"finish_reason": "stop", "message": {"content": "[]"}}]},
+    ],
+)
+def test_malformed_deepseek_output_fails(monkeypatch, response):
+    monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: Response(response))
+    with pytest.raises(ProviderError):
+        DeepSeekProvider("deepseek-flash", "test-key").generate("requirement", "", {}, Document)

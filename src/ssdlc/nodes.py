@@ -182,7 +182,7 @@ class Nodes(Engine):
             "artifacts": {state["active"][key]: artifact},
             "route": "safe_stop",
             "safe_stop_reason": f"Human rejected {key}: {decision.rationale}",
-            "recovery_node": {"release": "release_readiness", "plan": "planning"}.get(key, key),
+            "recovery_node": {"release": "release_readiness"}.get(key, key),
             "workflow_status": "SAFE_STOP",
         }
 
@@ -310,7 +310,7 @@ class Nodes(Engine):
             return self.rejection(state, decision, "architecture")
         return {
             **self.approve(state, decision, keys),
-            "route": "brownfield" if state["scenario_type"] == "brownfield" else "planning",
+            "route": "brownfield" if state["scenario_type"] == "brownfield" else "planning_design",
             "workflow_status": "RUNNING",
         }
 
@@ -338,108 +338,60 @@ class Nodes(Engine):
         return {
             "artifacts": {**update["artifacts"], **result["artifacts"]},
             "active": {**update["active"], **result["active"]},
-            "route": "planning",
+            "route": "planning_design",
         }
 
-    def planning(self, state):
+    def planning_design(self, state):
         context = self.context(state)
         context["feedback"] = state.get("feedback", {})
-        if state["scenario_type"] == "brownfield":
-            context["impact"] = active_artifact(state, "impact")
-        result = self.call(state, "planning", context)
+        if "plan" in state["active"]:
+            context["previous_plan"] = state["artifacts"][state["active"]["plan"]]
         req = context["requirement"]["content"]
         requirements = set(req["functional_requirements"]) | set(req["non_functional_requirements"])
-        criteria = {criterion["id"] for criterion in req["acceptance_criteria"]}
+        criteria = {c["id"] for c in req["acceptance_criteria"]}
 
-        def invalid_references(plan):
-            errors = []
+        def validate_plan(plan):
+            # Declared scope changes are proposals for a human, never authority to implement.
+            if plan.proposed_scope_changes:
+                return
+            errors, seen, covered = [], set(), set()
             for item in plan.slices:
-                invalid_requirements = set(item.requirement_refs) - requirements
-                invalid_criteria = set(item.acceptance_criteria) - criteria
-                if invalid_requirements or invalid_criteria:
+                if item.id in seen or set(item.depends_on) - seen:
+                    errors.append("Slices must be a topologically ordered DAG with unique IDs.")
+                safe_path(Path(state["workspace"]), item.id)
+                if not item.requirement_refs or set(item.requirement_refs) - requirements:
                     errors.append(
-                        f"{item.id}: invalid requirement_refs={sorted(invalid_requirements)}, "
-                        f"invalid acceptance_criteria={sorted(invalid_criteria)}"
+                        f"{item.id}: requirement_refs must use approved IDs: {sorted(requirements)}."
                     )
-            return errors
-
-        def missing_controls(plan):
-            errors = []
-            for item in plan.slices:
-                missing_reviews = {"code", "tests"} - set(item.required_reviews)
-                missing_validation = {"lint", "static", "test", "build"} - set(
-                    item.deterministic_validation
-                )
-                if missing_reviews or missing_validation:
+                if set(item.acceptance_criteria) - criteria or len(item.acceptance_criteria) != len(
+                    set(item.acceptance_criteria)
+                ):
                     errors.append(
-                        f"{item.id}: missing required_reviews={sorted(missing_reviews)}, "
-                        f"missing deterministic_validation={sorted(missing_validation)}"
+                        f"{item.id}: acceptance_criteria must use exact AC IDs only: {sorted(criteria)}."
                     )
-            return errors
+                missing = DESIGN_SECTIONS - item.design.keys()
+                empty = [k for k, v in item.design.items() if not v.strip()]
+                if missing or empty:
+                    errors.append(
+                        f"{item.id}: missing design sections {sorted(missing)}, empty sections {sorted(empty)}."
+                    )
+                seen.add(item.id)
+                covered.update(item.acceptance_criteria)
+            if criteria - covered:
+                errors.append(f"Plan omits acceptance IDs: {sorted(criteria - covered)}.")
+            if errors:
+                raise ValueError("Plan/design invalid. " + " ".join(errors))
 
-        feedback = []
-        if result.proposed_scope_changes:
-            feedback.append(
-                "Correct proposed_scope_changes: include only actual scope additions or removals. "
-                "Do not include status statements such as 'No scope changes proposed'; return an "
-                f"empty list when preserving approved scope. Current entries: {result.proposed_scope_changes}"
-            )
-        reference_errors = invalid_references(result)
-        if reference_errors:
-            feedback.append(
-                "Correct slice references. requirement_refs must be exact approved functional or "
-                "non-functional requirement IDs only; acceptance_criteria must be exact approved "
-                f"AC IDs only. Requirement IDs: {sorted(requirements)}. AC IDs: {sorted(criteria)}. "
-                f"Invalid references: {reference_errors}"
-            )
-        control_errors = missing_controls(result)
-        if control_errors:
-            feedback.append(
-                "Correct required policy markers for every slice. required_reviews must include "
-                "the exact labels ['code', 'tests']; deterministic_validation must include the "
-                "exact labels ['build', 'lint', 'static', 'test']. Descriptive review names and "
-                f"commands do not replace these labels. Missing markers: {control_errors}"
-            )
-        if feedback:
-            context["validation_feedback"] = " ".join(feedback)
-            result = self.call(state, "planning", context)
+        result = self.call(state, "planning_design", context, validator=validate_plan)
         if result.proposed_scope_changes:
             return {
                 "route": "safe_stop",
                 "workflow_status": "SAFE_STOP",
                 "safe_stop_reason": "Planning proposed a scope change: "
                 + "; ".join(result.proposed_scope_changes),
-                "recovery_node": "planning",
+                "recovery_node": "planning_design",
                 "feedback": result.model_dump(),
             }
-        reference_errors = invalid_references(result)
-        if reference_errors:
-            raise ValueError("Plan uses unapproved identifiers: " + "; ".join(reference_errors))
-        control_errors = missing_controls(result)
-        if control_errors:
-            raise ValueError(
-                "Plan omits required review/validation markers: " + "; ".join(control_errors)
-            )
-        covered, seen = set(), set()
-        for item in result.slices:
-            if item.id in seen or set(item.depends_on) - seen:
-                raise ValueError("Plan must be a topologically ordered DAG with unique slice IDs")
-            safe_path(Path(state["workspace"]), item.id)
-            if set(item.acceptance_criteria) - criteria or set(item.requirement_refs) - (
-                req["functional_requirements"].keys() | req["non_functional_requirements"].keys()
-            ):
-                raise ValueError("Plan introduced unapproved scope")
-            if not {"code", "tests"}.issubset(item.required_reviews) or not {
-                "lint",
-                "static",
-                "test",
-                "build",
-            }.issubset(item.deterministic_validation):
-                raise ValueError("Plan omits required review/validation")
-            covered.update(item.acceptance_criteria)
-            seen.add(item.id)
-        if criteria - covered:
-            raise ValueError("Plan omits acceptance criteria")
         deps = [state["active"]["requirement"], state["active"]["architecture"]] + [
             state["active"][a["adr_id"]] for a in context["architecture"]["content"]["adrs"]
         ]
@@ -449,159 +401,114 @@ class Nodes(Engine):
             **self.artifact(state, "plan", "plan", result.model_dump(mode="json"), deps),
             "current_slice": result.slices[0].id,
             "completed_slices": [],
-            "route": "plan_approval",
-            "workflow_status": "WAITING_FOR_HUMAN",
-        }
-
-    def plan_approval(self, state):
-        approved(state, "requirement")
-        reviewed(state, "architecture")
-        artifact = active_artifact(state, "plan")
-        decision = HumanDecision.model_validate(
-            interrupt(
-                {
-                    "gate": "plan",
-                    "artifact_ref": state["active"]["plan"],
-                    "plan": artifact,
-                    "actions": ["approve", "revise", "reject"],
-                }
-            )
-        )
-        if decision.action == "revise":
-            self.event(
-                state,
-                "human_response_received",
-                "plan",
-                decision.rationale,
-                [state["active"]["plan"]],
-                actor_type="human",
-                actor_id=decision.actor,
-            )
-            return {
-                "feedback": decision.model_dump(),
-                "route": "planning",
-                "workflow_status": "RUNNING",
-            }
-        if decision.action != "approve":
-            return self.rejection(state, decision, "plan")
-        return {
-            **self.approve(state, decision, ["plan"]),
-            "route": "lld",
-            "workflow_status": "RUNNING",
-        }
-
-    def lld(self, state):
-        approved(state, "plan")
-        context = self.context(state)
-        item = context["slice"]
-        deps = [state["active"]["plan"]]
-        for dependency in item["depends_on"]:
-            if dependency not in state["completed_slices"]:
-                raise ValueError("Slice dependency has not passed acceptance")
-            deps.append(state["active"][f"acceptance:{dependency}"])
-
-        def validate_lld(result):
-            problems = []
-            if result.slice_id != item["id"]:
-                problems.append(f"slice_id must be exactly {item['id']!r}.")
-            for field, expected in (
-                ("acceptance_criteria", item["acceptance_criteria"]),
-                ("requirement_refs", item["requirement_refs"]),
-                ("adr_refs", [adr["id"] for adr in context["adrs"]]),
-            ):
-                actual = getattr(result, field)
-                if set(actual) != set(expected) or len(actual) != len(set(actual)):
-                    problems.append(
-                        f"{field} must contain exactly these IDs, once each: {sorted(expected)}. "
-                        "Use IDs only; descriptions, extensions and deferral notes belong in sections."
-                    )
-            missing = DESIGN_SECTIONS - result.sections.keys()
-            empty = [key for key, value in result.sections.items() if not value.strip()]
-            if missing or empty:
-                problems.append(
-                    f"Missing sections: {sorted(missing)}. Empty sections: {sorted(empty)}. "
-                    "Include every required section with meaningful text."
-                )
-            if problems:
-                raise ValueError("LLD contract invalid. " + " ".join(problems))
-
-        result = self.call(
-            state,
-            "lld",
-            {**context, "feedback": state.get("feedback", {})},
-            validator=validate_lld,
-        )
-        return {
-            **self.artifact(
-                state, f"lld:{item['id']}", "lld", result.model_dump(mode="json"), deps
-            ),
             "route": "fork",
+            "workflow_status": "RUNNING",
         }
 
     def branch_generate(self, state, kind):
         key = f"{kind}:{state['current_slice']}"
-        # Targeted re-planning can reuse the unaffected, reviewed sibling.
         try:
-            reviewed(state, key)
-            return {"route": "done"}
+            active_artifact(state, key)
+            prior_review = state["reviews"].get(state["active"][key], {})
+            if prior_review.get("complete") and not prohibited_findings(
+                state, f"quality:{state['current_slice']}"
+            ):
+                return {}
         except ValueError:
             pass
-        count = state["counters"].get(f"review:{key}", 0)
-        if count >= self.policy.max_review_cycles:
-            raise ValueError(f"{key} review cycle budget exhausted")
         context = self.context(state, design=True, include_code=kind == "code")
         context["previous_findings"] = [
-            f for f in state["findings"].values() if f["artifact_id"] == key
+            f
+            for f in state["findings"].values()
+            if f["artifact_id"] == f"quality:{state['current_slice']}"
         ]
         context["feedback"] = state.get("feedback", {})
         if key in state["active"]:
             context["previous_artifact"] = state["artifacts"][state["active"][key]]
-        result = self.call(state, "coding" if kind == "code" else "test_design", context)
+
+        def validate_bundle(result):
+            for name in result.files:
+                safe_path(Path(state["workspace"]), name)
+                is_test = name.startswith("tests/") or Path(name).name.startswith("test_")
+                if kind == "tests" and not is_test:
+                    raise ValueError("Test design attempted to change a non-test file")
+                if kind == "code" and is_test:
+                    raise ValueError("Coding agent attempted to author acceptance tests")
+            if kind == "tests":
+                if set(context["slice"]["acceptance_criteria"]) != set(result.criterion_tests):
+                    raise ValueError(
+                        "Test traceability must map exact current slice acceptance IDs"
+                    )
+                for tests in result.criterion_tests.values():
+                    if not tests or any(t.split("::")[0] not in result.files for t in tests):
+                        raise ValueError("Traceability references absent test files")
+
+        result = self.call(
+            state, "coding" if kind == "code" else "test_design", context, validator=validate_bundle
+        )
         if result.deviations:
             raise ValueError(
                 "Implementation/design deviation requires upstream approval: "
                 + "; ".join(result.deviations)
             )
-        for name in result.files:
-            safe_path(Path(state["workspace"]), name)
-            is_test = (
-                name.startswith("tests/")
-                or Path(name).name.startswith("test_")
-                or name.endswith("_test.go")
-            )
-            if kind == "tests" and not is_test:
-                raise ValueError("Test design attempted to change a non-test file")
-            if kind == "code" and is_test:
-                raise ValueError("Coding agent attempted to author acceptance tests")
-        if kind == "tests":
-            criteria = context["slice"]["acceptance_criteria"]
-            if set(criteria) != set(result.criterion_tests):
-                raise ValueError("Test traceability is incomplete")
-            for tests in result.criterion_tests.values():
-                if not tests or any(t.split("::")[0] not in result.files for t in tests):
-                    raise ValueError("Traceability references absent test files")
-        deps = [state["active"][f"lld:{state['current_slice']}"]]
+        deps = [state["active"]["plan"]]
         if kind == "code":
             deps += [state["active"][f"code:{s}"] for s in state["completed_slices"]]
-        update = self.artifact(state, key, kind, result.model_dump(mode="json"), deps)
-        return {**update, "counters": {f"review:{key}": count + 1}, "route": "review"}
+        return self.artifact(state, key, kind, result.model_dump(mode="json"), deps)
 
-    def branch_review(self, state, kind):
-        key = f"{kind}:{state['current_slice']}"
-        update = self.review(state, key, "code_reviewer" if kind == "code" else "test_reviewer")
-        working = self.apply(state, update)
-        try:
-            reviewed(working, key)
-            return {**update, "route": "done"}
-        except ValueError:
-            if state["counters"][f"review:{key}"] >= self.policy.max_review_cycles:
-                return {
-                    **update,
-                    "route": "done",
-                    "branch_errors": {kind: f"{key} review budget exhausted"},
-                }
-            # Prevent reusing this version in branch_generate.
-            return {**update, "route": "generate"}
+    def quality_review(self, state):
+        sid = state["current_slice"]
+        key, counter = f"quality:{sid}", f"quality_review:{sid}"
+        count = state["counters"].get(counter, 0)
+        if count >= self.policy.max_review_cycles:
+            raise ValueError("Quality review cycle budget exhausted")
+        code, tests = active_artifact(state, f"code:{sid}"), active_artifact(state, f"tests:{sid}")
+        candidate = self.artifact(
+            state,
+            key,
+            "quality",
+            {"code": code["content"], "tests": tests["content"]},
+            [
+                state["active"][f"code:{sid}"],
+                state["active"][f"tests:{sid}"],
+                state["active"]["plan"],
+            ],
+        )
+        working = self.apply(state, candidate)
+        critique = self.review(working, key, "quality_reviewer")
+        working = self.apply(working, critique)
+        review = working["reviews"][working["active"][key]]
+        update = {**candidate, **critique, "counters": {counter: count + 1}}
+        if review["complete"] and not prohibited_findings(working, key):
+            update["reviews"] = {
+                **critique["reviews"],
+                state["active"][f"code:{sid}"]: review,
+                state["active"][f"tests:{sid}"]: review,
+            }
+            return {**update, "route": "validate"}
+        if count + 1 >= self.policy.max_review_cycles:
+            return {
+                **update,
+                "route": "safe_stop",
+                "workflow_status": "SAFE_STOP",
+                "safe_stop_reason": "Quality review cycle budget exhausted",
+                "recovery_node": "quality_review",
+            }
+        roots = {state["active"][f"{kind}:{sid}"] for kind in ("code", "tests")}
+        changes = invalidate(working["artifacts"], roots)
+        changes.update(
+            {ref: {**working["artifacts"][ref], "validity": "INVALIDATED"} for ref in roots}
+        )
+        self.persist_changes(working, changes)
+        for ref in changes:
+            self.event(
+                state,
+                "artifact_invalidated",
+                "quality_review",
+                "Quality feedback requires revision",
+                [ref],
+            )
+        return {**update, "artifacts": {**candidate["artifacts"], **changes}, "route": "fork"}
 
     def synchronize(self, state):
         errors = [v for v in state.get("branch_errors", {}).values() if v]
@@ -609,15 +516,15 @@ class Nodes(Engine):
             raise ValueError("; ".join(errors))
         baseline(state)
         for kind in ("code", "tests"):
-            reviewed(state, f"{kind}:{state['current_slice']}")
+            active_artifact(state, f"{kind}:{state['current_slice']}")
         self.event(
             state,
             "branches_synchronized",
             "synchronize",
-            "Both independently reviewed branches completed",
+            "Parallel code and independent tests joined",
             [state["active"][f"{kind}:{state['current_slice']}"] for kind in ("code", "tests")],
         )
-        return {"route": "validate"}
+        return {"route": "quality_review"}
 
     def validate(self, state):
         files, refs = self.files(state)
@@ -656,14 +563,15 @@ class Nodes(Engine):
     def acceptance(self, state):
         sid = state["current_slice"]
         self.synchronize(state)
+        for kind in ("code", "tests"):
+            reviewed(state, f"{kind}:{sid}")
         evidence = active_artifact(state, f"validation:{sid}")
         if any(r["exit_status"] != 0 for r in evidence["content"]["results"]):
             raise ValueError("Feature has failed deterministic validation")
         root = Path(evidence["content"]["candidate"])
         if tree_digest(root) != evidence["content"]["results"][0]["workspace_digest"]:
             raise ValueError("Candidate changed after validation")
-        # Python profile verifies that claimed acceptance tests actually ran and passed.
-        # Custom language profiles must supply the same JUnit evidence contract.
+        # Verify that claimed acceptance tests actually ran and passed.
         report = ET.parse(root / ".results.xml")
         passed = {
             junit_test_id(case, root)
@@ -691,7 +599,7 @@ class Nodes(Engine):
             **update,
             "completed_slices": done,
             "current_slice": remaining[0]["id"] if remaining else sid,
-            "route": "lld" if remaining else "documentation",
+            "route": "fork" if remaining else "release_readiness",
         }
 
     def failure_analysis(self, state):
@@ -710,7 +618,7 @@ class Nodes(Engine):
         routes = {
             "IMPLEMENTATION_DEFECT": (f"code:{state['current_slice']}", "fork"),
             "TEST_DEFECT": (f"tests:{state['current_slice']}", "fork"),
-            "LLD_DEFECT": (f"lld:{state['current_slice']}", "lld"),
+            "DESIGN_DEFECT": ("plan", "planning_design"),
             "ARCHITECTURE_DEFECT": ("architecture", "architecture"),
             "REQUIREMENT_DEFECT": ("requirement", "requirement"),
         }
@@ -736,7 +644,7 @@ class Nodes(Engine):
         counters = {"replans": count + 1}
         for kind in ("code", "tests"):
             if state["active"].get(f"{kind}:{state['current_slice']}") in changes:
-                counters[f"review:{kind}:{state['current_slice']}"] = 0
+                counters[f"quality_review:{state['current_slice']}"] = 0
         if route in {"architecture", "requirement"}:
             counters["architecture_review"] = 0
         completed = [
@@ -753,17 +661,15 @@ class Nodes(Engine):
             "branch_errors": {"code": "", "tests": ""},
         }
 
-    def documentation(self, state):
-        result = self.call(
-            state,
-            "documentation",
-            {
-                **self.context(state),
-                "files": self.files(state)[0],
-                "tool_results": state["tool_results"],
-            },
-        )
+    def release_readiness(self, state):
+        context = {
+            **self.context(state),
+            "files": self.files(state)[0],
+            "tool_results": state["tool_results"],
+            "findings": state["findings"],
+        }
         required = {
+            "engineering_summary",
             "setup",
             "api",
             "configuration",
@@ -771,39 +677,31 @@ class Nodes(Engine):
             "adrs",
             "tests",
             "operations",
+            "known_risks",
             "release_notes",
             "rollback",
             "limitations",
             "tradeoffs",
-        }
-        if required - result.sections.keys():
-            raise ValueError("Documentation incomplete")
-        deps = [state["active"][f"acceptance:{s}"] for s in state["completed_slices"]]
-        return {
-            **self.artifact(state, "documentation", "documentation", result.model_dump(), deps),
-            "route": "release_readiness",
+            "deployment",
+            "packaging",
         }
 
-    def release_readiness(self, state):
-        result = self.call(
-            state,
-            "release_readiness",
-            {
-                "documentation": active_artifact(state, "documentation"),
-                "tool_results": state["tool_results"],
-                "findings": state["findings"],
-                "files": self.files(state)[0],
-            },
-        )
-        if {"rollback", "deployment", "limitations", "packaging"} - result.sections.keys():
-            raise ValueError("Release report lacks operational instructions")
+        def validate_report(result):
+            missing = required - result.sections.keys()
+            empty = [k for k, v in result.sections.items() if not v.strip()]
+            if missing or empty:
+                raise ValueError(
+                    f"Release report incomplete. Missing sections: {sorted(missing)}. Empty: {sorted(empty)}."
+                )
+
+        result = self.call(state, "release_readiness", context, validator=validate_report)
         return {
             **self.artifact(
                 state,
                 "release_report",
                 "release_report",
                 result.model_dump(),
-                [state["active"]["documentation"]],
+                [state["active"][f"acceptance:{s}"] for s in state["completed_slices"]],
             ),
             "route": "build",
         }
@@ -828,7 +726,7 @@ class Nodes(Engine):
             build["artifact_refs"]
         ) != set(refs):
             raise ValueError("Build evidence is stale")
-        deps = [state["active"][key] for key in ("build", "documentation", "release_report")]
+        deps = [state["active"][key] for key in ("build", "release_report")]
         update = self.artifact(
             state,
             "release",
@@ -888,7 +786,11 @@ class Nodes(Engine):
             "Planning proposed a scope change:"
         )
         branch_failure = any(state.get("branch_errors", {}).values())
-        if state.get("recovery_node") == "planning" or planning_scope_stop or branch_failure:
+        if (
+            state.get("recovery_node") in {"planning_design", "planning", "lld"}
+            or planning_scope_stop
+            or branch_failure
+        ):
             actions.insert(1, "revise")
         decision = HumanDecision.model_validate(
             interrupt(
@@ -938,23 +840,28 @@ class Nodes(Engine):
                 )
         route = state.get("recovery_node", "requirement")
         feedback = state.get("feedback", {})
-        if decision.action == "retry" and route != "planning":
-            plan_ref = state.get("active", {}).get("plan")
-            plan = state.get("artifacts", {}).get(plan_ref, {}) if plan_ref else {}
-            if plan.get("validity") == "VALID" and plan.get("approval_status") == "DRAFT":
-                route = "plan_approval"
+        route = {
+            "planning": "planning_design",
+            "lld": "planning_design",
+            "plan_approval": "planning_design",
+            "documentation": "release_readiness",
+        }.get(route, route)
         if decision.action == "revise":
-            if route != "planning" and planning_scope_stop:
-                route = "planning"
-            if route != "planning" and branch_failure:
+            if route != "planning_design" and planning_scope_stop:
+                route = "planning_design"
+            if route != "planning_design" and branch_failure:
                 route = "fork"
-            if route not in {"planning", "fork"}:
+            if route not in {"planning_design", "fork"}:
                 raise ValueError("Revision feedback is not supported for this safe stop")
             feedback = decision.model_dump()
         if decision.action == "accept_risk" and route == "architecture":
             working = self.apply(state, {"findings": findings})
             reviewed(working, "architecture")
             route = "architecture_approval"
+        if decision.action == "accept_risk" and route == "quality_review":
+            working = self.apply(state, {"findings": findings})
+            reviewed(working, f"quality:{state['current_slice']}")
+            route = "validate"
         if route in {"synchronize", "branch_generate", "branch_review"}:
             route = "fork"
         counters = {k: 0 for k in state["counters"]}

@@ -5,8 +5,8 @@ Status: accepted for the prototype.
 Context: a public interview repository needs reproducible execution without paid
 model credentials, cloud infrastructure or implied production safety guarantees.
 
-Decision: provide a labeled offline fixture, pluggable model interface, SQLite
-artifact/audit store and real local tools. Keep immutable content versions with
+Decision: provide a labeled offline fixture, a DeepSeek adapter behind a provider
+interface, filesystem artifact bodies, SQLite state/audit and real local tools. Keep immutable content versions with
 separate validity and active pointers. Require opt-in host execution and keep
 deployment outside the tool surface.
 

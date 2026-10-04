@@ -8,7 +8,7 @@ from ssdlc.state import Workflow, active_artifact
 
 @dataclass(frozen=True)
 class Policy:
-    max_review_cycles: int = 3
+    max_review_cycles: int = 2
     max_replans: int = 3
     max_provider_attempts: int = 2
     command_timeout: int = 60
@@ -58,9 +58,15 @@ def prohibited_findings(state: Workflow, artifact_id: str | None = None) -> list
 
 
 def reviewed(state: Workflow, key: str):
-    artifact = active_artifact(state, key)
-    review = state.get("reviews", {}).get(state["active"][key])
-    if not review or not review["complete"] or prohibited_findings(state, artifact["id"]):
+    active_artifact(state, key)
+    review_key = key
+    if key.startswith(("code:", "tests:")):
+        review_key = "quality:" + key.split(":", 1)[1]
+        quality = active_artifact(state, review_key)
+        if state["active"][key] not in quality["dependencies"]:
+            raise ValueError(f"Quality review does not cover {key}")
+    review = state.get("reviews", {}).get(state["active"][review_key])
+    if not review or not review["complete"] or prohibited_findings(state, review_key):
         raise ValueError(f"Review incomplete or prohibited findings for {key}")
 
 
@@ -97,7 +103,6 @@ def release_gate(state: Workflow):
         claimed = {test for values in tests["criterion_tests"].values() for test in values}
         if not claimed.issubset(final_passed):
             raise ValueError("Final candidate did not pass every slice's acceptance tests")
-    active_artifact(state, "documentation")
     active_artifact(state, "release_report")
     build = active_artifact(state, "build")["content"]
     if build["exit_status"] != 0:

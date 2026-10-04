@@ -224,9 +224,11 @@ class MockProvider:
                 migration_requirements="None",
                 regression_risk="Existing greeting behavior must remain unchanged",
             )
-        if role in {"documentation", "release_readiness"}:
+        if role == "release_readiness":
             return dict(
                 sections={
+                    "engineering_summary": "Approved synthetic greeting library with executed validation.",
+                    "known_risks": "See recorded findings and explicit risk acceptance.",
                     "setup": "Install the generated wheel in a virtual environment.",
                     "api": "greet(name: str) -> str; blank raises ValueError, non-string raises TypeError.",
                     "configuration": "No environment variables required.",
@@ -239,7 +241,7 @@ class MockProvider:
                     "limitations": "Offline fixture; not a generated production application.",
                     "tradeoffs": "Small package with synchronous pure function.",
                     "deployment": "Human deployment authorization required; this system never deploys.",
-                    "packaging": "Wheel built using the trusted Python tool profile.",
+                    "packaging": "Wheel built using the fixed local Python tools.",
                 }
             )
         requirement = context["requirement"]["content"]
@@ -296,11 +298,11 @@ class MockProvider:
                         tradeoffs=["Runtime dependency; smallest implementation for fixture"],
                         rationale="Fits approved synthetic scope",
                         requirement_refs=list(requirement["functional_requirements"]),
-                        affected_artifacts=["plan", "lld", "code", "tests"],
+                        affected_artifacts=["plan", "code", "tests"],
                     )
                 ],
             )
-        if role == "planning":
+        if role == "planning_design":
             return dict(
                 slices=[
                     dict(
@@ -309,25 +311,14 @@ class MockProvider:
                         depends_on=[],
                         requirement_refs=list(requirement["functional_requirements"]),
                         acceptance_criteria=[a["id"] for a in requirement["acceptance_criteria"]],
-                        design_artifacts=["lld:greeting"],
+                        design={
+                            key: "greeting.py exports greet(name): validate str, trim, reject blank, and format Hello, <name>!. Pure function; standard library only. Independent tests exercise normal, blank, and non-string inputs."
+                            for key in DESIGN_SECTIONS
+                        },
                         risks=["Input boundary ambiguity"],
-                        required_reviews=["code", "tests"],
-                        deterministic_validation=["lint", "static", "test", "build"],
-                        human_gates=["architecture", "release"],
                     )
                 ],
-                rationale="One coherent vertical slice",
-            )
-        if role == "lld":
-            return dict(
-                slice_id=context["slice"]["id"],
-                sections={
-                    k: "greeting.py exports greet(name): type-check str, strip, reject blank, format Hello, <name>!. Pure function; no persistence/concurrency state/logged PII. Tests cover trim, blank and type errors."
-                    for k in DESIGN_SECTIONS
-                },
-                requirement_refs=list(requirement["functional_requirements"]),
-                adr_refs=["ADR-001"],
-                acceptance_criteria=["AC1", "AC2"],
+                rationale="One coherent vertical slice with implementation-level design",
             )
         if role == "coding":
             return dict(

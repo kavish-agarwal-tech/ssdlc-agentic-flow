@@ -136,25 +136,14 @@ class WorkItem(Model):
     depends_on: list[str]
     requirement_refs: list[str]
     acceptance_criteria: list[str] = Field(min_length=1)
-    design_artifacts: list[str]
+    design: dict[str, str]
     risks: list[str]
-    required_reviews: list[str]
-    deterministic_validation: list[str]
-    human_gates: list[str]
 
 
 class Plan(Model):
     slices: list[WorkItem] = Field(min_length=1)
     rationale: str
     proposed_scope_changes: list[str] = Field(default_factory=list)
-
-
-class Design(Model):
-    slice_id: str
-    sections: dict[str, str]
-    requirement_refs: list[str]
-    adr_refs: list[str]
-    acceptance_criteria: list[str]
 
 
 DESIGN_SECTIONS = {
@@ -226,7 +215,7 @@ class FailureAnalysis(Model):
     category: Literal[
         "IMPLEMENTATION_DEFECT",
         "TEST_DEFECT",
-        "LLD_DEFECT",
+        "DESIGN_DEFECT",
         "ARCHITECTURE_DEFECT",
         "REQUIREMENT_DEFECT",
         "ENVIRONMENT_OR_TOOLING",

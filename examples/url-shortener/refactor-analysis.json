@@ -1,0 +1,192 @@
+{
+  "evidence_type": "Real DeepSeek requirement analyses after simplification",
+  "runs": [
+    {
+      "run": "url-shortener-schema-fix",
+      "provider": "deepseek:deepseek-flash:06de34178fc8",
+      "status": "WAITING_FOR_HUMAN",
+      "gate": "requirement",
+      "artifact_ref": "requirement@1",
+      "created_at": "2026-10-04T15:15:51.904082+00:00",
+      "audit_chain_valid": true,
+      "open_questions": [
+        {
+          "id": "Q-1",
+          "unclear": "Whether short links expire, and if so with what default TTL, maximum TTL, per-request override, and what an expired link returns.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-2",
+          "unclear": "Who may create short links, and by what credential (anonymous, API key, user login via OIDC, mutual TLS internal-only).",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-3",
+          "unclear": "Who may read analytics for a given short code.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-4",
+          "unclear": "Which URL schemes and forms are acceptable as input (http/https only, additional schemes, allowlist, or arbitrary absolute URIs).",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-5",
+          "unclear": "Whether submitting a long URL that already has a mapping returns the existing code or creates a new code.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-6",
+          "unclear": "Short code generation rules: length, alphabet, randomness, uniqueness scope, whether caller-supplied custom aliases are supported, and whether codes are case-sensitive.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-7",
+          "unclear": "The analytics consistency model: whether a click is written synchronously on the redirect path or emitted asynchronously, and what accuracy or loss window is acceptable.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-8",
+          "unclear": "Which event fields are captured and returned (timestamp, referrer, user agent, IP address, coarse geo, device), and which of those are considered personal data.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-9",
+          "unclear": "The applicable retention policy and compliance regime (for example GDPR/CCPA obligations), including how long mappings and analytics are kept and how deletion or erasure requests are honored.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-10",
+          "unclear": "The availability target for the resolution path and the intended behavior during datastore or cache outages (fail-closed with errors, or serve from cache/stale reads).",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-11",
+          "unclear": "Expected scale: peak and sustained create/resolve/analytics requests per second, total mappings, analytics events per day, growth horizon, and regional footprint.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-12",
+          "unclear": "Which store is authoritative for mappings versus caches and analytics, and how consistency between them is maintained and reconciled.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-13",
+          "unclear": "Whether and how resolution results are cached, the cache TTL, and how mutation, disablement, or deletion invalidates cached entries.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-14",
+          "unclear": "Mutability of a mapping: whether a short code can be repointed to a new long URL, disabled, or deleted, and whether a code once used can be reissued.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-15",
+          "unclear": "Which HTTP redirect status code is used (301, 302, 307, 308) and whether it differs for permanent versus temporary links.",
+          "classification": "NON_BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-16",
+          "unclear": "The abuse-prevention policy: rate limits, quotas, blocking or removal of malicious/phishing destinations, and who may perform takedown.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-17",
+          "unclear": "Logging scope and redaction: which events are logged, at what level, whether destination URLs and request metadata appear in logs, and log retention.",
+          "classification": "NON_BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-18",
+          "unclear": "Whether the create endpoint supports idempotency keys and retry-safe semantics.",
+          "classification": "NON_BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-19",
+          "unclear": "The ownership and tenancy model: shared global code namespace for all callers, per-tenant namespaces, or per-tenant instances.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-20",
+          "unclear": "The deployment target and operational envelope: local/demo single-node only, a container platform, or cloud-managed services, and what the production-oriented goal actually requires.",
+          "classification": "BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-21",
+          "unclear": "The precise liveness versus readiness semantics for the health endpoints.",
+          "classification": "PROPOSED_DEFAULT",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-22",
+          "unclear": "Timestamp and time semantics for analytics: timezone, precision, and clock source.",
+          "classification": "PROPOSED_DEFAULT",
+          "human_confirmation_required": true
+        }
+      ],
+      "agent_failure_count": 0,
+      "implementation_generated": false,
+      "tools_executed": 0,
+      "human_approvals": 0,
+      "human_decisions": {}
+    },
+    {
+      "run": "expiration-refactor",
+      "provider": "deepseek:deepseek-flash:06de34178fc8",
+      "status": "WAITING_FOR_HUMAN",
+      "gate": "requirement",
+      "artifact_ref": "requirement@2",
+      "created_at": "2026-10-04T15:13:15.875718+00:00",
+      "audit_chain_valid": true,
+      "open_questions": [
+        {
+          "id": "Q-SHORT-CODE-REUSE",
+          "unclear": "After an expired URL record is hard-deleted at the 30-day mark, may its short code ever be reissued, and who may authorize reuse?",
+          "classification": "NON_BLOCKING_AMBIGUITY",
+          "human_confirmation_required": true
+        },
+        {
+          "id": "Q-CLOCK-SOURCE",
+          "unclear": "Which clock source defines the expiration boundary when comparing expiration time against the current time?",
+          "classification": "PROPOSED_DEFAULT",
+          "human_confirmation_required": false
+        }
+      ],
+      "agent_failure_count": 0,
+      "implementation_generated": false,
+      "tools_executed": 0,
+      "human_approvals": 0,
+      "human_decisions": {
+        "Q-DEFAULT-TTL": "No default TTL; links are permanent unless explicit expiration is provided.",
+        "Q-EXPIRATION-MODE": "Optional expiration. Permanent links are allowed; no configurable mandatory mode is required for this workload.",
+        "Q-EXPIRED-HTTP": "410 Gone, without redirecting to the original destination.",
+        "Q-ANALYTICS-RETENTION": "Retain analytics for 30 days after expiration, then delete.",
+        "Q-REACTIVATION": "No reactivation; expiration is final.",
+        "Q-CLEANUP": "Daily cleanup, deleting expired records after 30 days.",
+        "Q-RETROACTIVE": "Existing links remain permanent; do not retroactively expire them.",
+        "Q-SOURCE-OF-TRUTH": "Database records are authoritative. A cache is not required by this policy."
+      }
+    }
+  ],
+  "preceding_attempt": "url-shortener-refactor safely stopped after two invalid responses; last error was an extra assumptions_note_removed key. The adapter instructions were clarified before the new greenfield run.",
+  "limitations": "Human clarification and approval are pending. No released greenfield application or subsequent analytics brownfield workload is claimed."
+}

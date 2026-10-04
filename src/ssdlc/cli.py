@@ -1,7 +1,6 @@
 """Local operator CLI. Approval identity is asserted by the trusted local user."""
 
 import argparse
-import importlib
 import json
 import logging
 import sys
@@ -41,8 +40,6 @@ class LLMProgressHandler(logging.Handler):
                 self._complete(details.get("operation", ""), role)
             elif action == "retry_attempted":
                 self._status(f"[retry] LLM response for {role} needs correction; retrying")
-            elif action == "provider_fallback":
-                self._status(f"[fallback] Switching provider for {role}")
             elif action == "agent_failure":
                 self._status(f"[working] LLM attempt for {role} failed validation")
             elif action == "safe_stop":
@@ -145,7 +142,7 @@ def available_actions(gate, artifact_refs=(), branch_errors=None):
     if (
         gate.get("gate") == "safe_stop"
         and (
-            gate.get("recovery_node") == "planning"
+            gate.get("recovery_node") in {"planning_design", "planning", "lld"}
             or planning_scope_stop
             or any((branch_errors or {}).values())
         )
@@ -302,7 +299,8 @@ def main(argv=None):
     parser.add_argument("--home", type=Path, default=Path(".ssdlc"))
     parser.add_argument(
         "--provider",
-        help="ollama, deepseek, mock, or trusted module:factory; otherwise use environment configuration",
+        choices=["deepseek", "mock"],
+        help="deepseek for real reasoning or mock for the offline greeting fixture",
     )
     parser.add_argument("--env-file", type=Path, default=Path(".env"))
     parser.add_argument(
@@ -312,11 +310,6 @@ def main(argv=None):
         "--allow-local-execution",
         action="store_true",
         help="Execute generated code on this host; use a disposable environment for untrusted models",
-    )
-    parser.add_argument(
-        "--tool-profile",
-        type=Path,
-        help="Operator-owned JSON commands: lint/static/test/build; never model-authored",
     )
     commands = parser.add_subparsers(dest="command", required=True)
     start = commands.add_parser("start")
@@ -350,9 +343,6 @@ def main(argv=None):
         help="Use explicitly labeled synthetic human decisions for the fixture only",
     )
     args = parser.parse_args(argv)
-    profile = (
-        json.loads(args.tool_profile.read_text(encoding="utf-8")) if args.tool_profile else None
-    )
     try:
         load_env_file(args.env_file)
         if args.verbose:
@@ -363,9 +353,6 @@ def main(argv=None):
             provider = MockProvider()
         elif args.provider == "mock" or args.command in {"inspect", "audit", "metrics", "export"}:
             provider = MockProvider()
-        elif args.provider and ":" in args.provider:
-            module, factory = args.provider.split(":", 1)
-            provider = getattr(importlib.import_module(module), factory)()
         else:
             import os
 
@@ -377,7 +364,6 @@ def main(argv=None):
             args.home,
             provider=provider,
             allow_execution=args.allow_local_execution,
-            profile=profile,
         ) as runtime:
             if args.command == "start":
                 with interactive_progress(args.interactive):

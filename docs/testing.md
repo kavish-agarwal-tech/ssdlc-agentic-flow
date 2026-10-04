@@ -1,52 +1,27 @@
-# Verification and interview demo
+# Testing and workload evidence
 
 ```powershell
-python -m pytest -q
-python -m ruff check src tests
-python -m ruff format --check src tests
-python -m build --wheel --no-isolation
-python -m ssdlc --allow-local-execution demo --scripted --run interview
-python -m ssdlc audit interview
-python -m ssdlc metrics interview
+.venv\Scripts\python -m ruff check src tests
+.venv\Scripts\python -m ruff format --check src tests
+.venv\Scripts\python -m pytest -q
+.venv\Scripts\python -m build --wheel --no-isolation
+.venv\Scripts\python -m ssdlc --allow-local-execution demo --scripted --run interview
 ```
 
-Use the project's virtual-environment interpreter. The real-tool workflow test
-requires the dev dependencies, including setuptools and build, installed locally.
-It does not download packages while validating a candidate.
+Install the locked dev dependencies before running tools; candidate validation does not install packages. Automated tests are offline. They use mocked HTTP for DeepSeek request/JSON/error behavior and deterministic providers for governance. Integration tests run the actual LangGraph workflow and actual Ruff, compilation, pytest/JUnit and wheel build against generated greeting files. A threading barrier proves parallel generation and common baseline without implementation exposure to test generation.
 
-Tests cover ambiguity blocking, exact version approval, persistence across Runtime
-instances, architecture/plan gates, bounded blocker review, real branch join, actual
-failed test routing and retry exhaustion, unaffected test reuse, artifact invalidation,
-audit integrity, path confinement, release evidence and metrics.
+Regression coverage includes persistent clarification/approval, exact version checks, semantic architecture repair before caching, rejection of invalid legacy cache formats, combined plan/design completeness and reference repair, independent test ownership, bounded architecture and shared quality review, failed-tool routing, unaffected sibling reuse, source snapshots, dependency invalidation, rollback history, audit integrity, path guards, release evidence and candidate tampering during human review. Obsolete separate design and plan-gate tests were replaced with combined-workflow checks.
 
-Additional tests verify real parallel branch entry with a threading barrier,
-absence of code in test-design context, brownfield impact before planning, rollback
-history preservation, stale approval rejection, and candidate tampering while the
-human gate is waiting. Provider tests use fake HTTP transports and configurable
-mock sequences for request schemas, model routing, timeout/failure budgets,
-schema repair, explicit fallback and secret omission.
+The mock greeting reaches READY_FOR_DEPLOYMENT with labeled synthetic approvals and real passing tools. This verifies the system plumbing; it is not real DeepSeek product evidence.
 
-Architecture regression tests cover missing and whitespace-only sections,
-semantic repair before caching, rejection of incomplete legacy caches in both
-SQLite and file formats, preservation of rejected response files, and exhaustion
-of the bounded provider budget with actionable missing-section details.
+For real DeepSeek, run `examples/url-shortener/requirement.txt` using the README command. For ambiguity analysis, start `examples/url-shortener/expiration.txt` with `--scenario ambiguous` and a new run ID. Human confirmation must resolve TTL, HTTP behavior, retention and cleanup choices. After a greenfield run has generated a source candidate, start `examples/url-shortener/brownfield-analytics.txt` with `--scenario brownfield --source <candidate-directory>`. Inspect actual source impact before approving the change. Do not substitute a hand-coded application for workflow output.
 
-LLD tests cover descriptive or invented acceptance references, duplicate IDs,
-incorrect slices, missing ADR/requirement references, incomplete sections, repair
-of cached designs, and bounded failure. Interactive and API checks preserve
-settled findings and prevent accepting the same risk again.
+Live runs stop at genuine clarification and approval gates. Historical `examples/url-shortener/analysis-attempt.json` records a previous attempt; it does not prove a released URL shortener. On October 4, 2026, `url-shortener-schema-fix` (greenfield) reached WAITING_FOR_HUMAN at requirement@1 using the configured DeepSeek model. `expiration-refactor` (ambiguous) reached the same clarification gate, then produced requirement@2 after the user confirmed optional expiration, permanent-by-default links, HTTP 410 for expired links, 30-day analytics retention, no reactivation, daily cleanup after 30 days, permanent existing links and authoritative database records. Requirement@2 is awaiting its separate human approval; model-proposed nonfunctional constraints still require review. The first greenfield attempt safely stopped after two invalid responses; making allowed output keys and correction behavior explicit fixed the subsequent analysis. [Measured live summaries](../examples/url-shortener/refactor-analysis.json) retain the actual questions, confirmed decisions and status. No full live URL-shortener completion or subsequent brownfield completion is claimed until saved tools and final human approval support it.
 
-Local Ollama setup was separately verified with a live schema-constrained smoke
-response from qwen3:1.7b through the native adapter. Run
-`python scripts/check_ollama.py` to repeat it. Automated tests remain offline.
+The updated [mock execution summary](../examples/minimal/execution.json) records the READY_FOR_DEPLOYMENT outcome, actual tool output, agent calls and audit integrity. After refactoring, 63 automated tests pass, Ruff lint/format checks pass and the package wheel builds.
 
-The fixture creates a greeting function plus independently specified tests, runs
-real tools and builds a wheel. Scripted human decisions are labeled simulation.
-For the interview, start without `--scripted`, inspect the gate payload, submit
-clarification, approve the new requirement version and inspect architecture before
-approval. Show artifact versions, audit lineage and the generated wheel. End with
-the readiness gate and explain that no production deployment occurs.
+Resume live clarification with:
 
-Negative test fixtures deliberately introduce failures **only in the test suite**
-to verify controls. Real generated product code is never sabotaged to manufacture
-a recovery story. No coverage percentage or real-model quality benchmark is claimed.
+```powershell
+.venv\\Scripts\\python -m ssdlc --home .ssdlc/refactor-live --provider deepseek --allow-local-execution resume url-shortener-schema-fix --interactive
+```

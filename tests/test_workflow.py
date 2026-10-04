@@ -231,7 +231,7 @@ def test_retry_legacy_safe_stop_reviews_existing_draft_plan(tmp_path, monkeypatc
         state = {
             "workflow_run_id": "legacy-plan-review",
             "safe_stop_reason": "Previous run stopped downstream of planning.",
-            "recovery_node": "synchronize",
+            "recovery_node": "lld",
             "findings": {},
             "counters": {},
             "branch_errors": {},
@@ -241,7 +241,7 @@ def test_retry_legacy_safe_stop_reviews_existing_draft_plan(tmp_path, monkeypatc
 
         result = nodes.safe_stop(state)
 
-    assert result["route"] == "plan_approval"
+    assert result["route"] == "planning_design"
 
 
 def test_requirement_provenance_fields_are_system_owned(tmp_path):
@@ -373,31 +373,6 @@ def test_branch_failure_revise_routes_feedback_to_branch_generation(tmp_path, mo
     assert result["feedback"]["rationale"] == decision["rationale"]
 
 
-def test_planning_repairs_no_scope_change_commentary(tmp_path):
-    class NoChangeCommentaryProvider(MockProvider):
-        def __init__(self):
-            self.planning_contexts = []
-
-        def generate(self, role, instructions, context, schema):
-            result = super().generate(role, instructions, context, schema)
-            if role == "planning":
-                self.planning_contexts.append(context)
-                if len(self.planning_contexts) == 1:
-                    result["proposed_scope_changes"] = [
-                        "No scope changes proposed; implement the approved scope."
-                    ]
-            return result
-
-    provider = NoChangeCommentaryProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = to_architecture(runtime, run="no-scope-commentary")
-        result = decide(runtime, "no-scope-commentary", result)
-
-    assert len(provider.planning_contexts) == 2
-    assert "validation_feedback" in provider.planning_contexts[1]
-    assert result["state"]["active"].get("plan") == "plan@1"
-
-
 def test_planning_repairs_unapproved_reference_identifiers(tmp_path):
     class IncorrectReferencesProvider(MockProvider):
         def __init__(self):
@@ -405,7 +380,7 @@ def test_planning_repairs_unapproved_reference_identifiers(tmp_path):
 
         def generate(self, role, instructions, context, schema):
             result = super().generate(role, instructions, context, schema)
-            if role == "planning":
+            if role == "planning_design":
                 self.planning_contexts.append(context)
                 if len(self.planning_contexts) == 1:
                     result["slices"][0]["requirement_refs"] = ["AC1", "architecture@1"]
@@ -420,7 +395,7 @@ def test_planning_repairs_unapproved_reference_identifiers(tmp_path):
         result = decide(runtime, "plan-reference-repair", result)
 
     assert len(provider.planning_contexts) == 2
-    assert "Requirement IDs" in provider.planning_contexts[1]["validation_feedback"]
+    assert "requirement_refs" in provider.planning_contexts[1]["validation_feedback"]
     plan = result["state"]["artifacts"][result["state"]["active"]["plan"]]["content"]
     requirement = result["state"]["artifacts"][result["state"]["active"]["requirement"]]["content"]
     requirement_ids = set(requirement["functional_requirements"]) | set(
@@ -431,42 +406,6 @@ def test_planning_repairs_unapproved_reference_identifiers(tmp_path):
     assert set(plan["slices"][0]["acceptance_criteria"]) <= acceptance_ids
 
 
-def test_planning_repairs_missing_review_and_validation_markers(tmp_path):
-    class DescriptiveControlsProvider(MockProvider):
-        def __init__(self):
-            self.planning_contexts = []
-
-        def generate(self, role, instructions, context, schema):
-            result = super().generate(role, instructions, context, schema)
-            if role == "planning":
-                self.planning_contexts.append(context)
-                if len(self.planning_contexts) == 1:
-                    result["slices"][0]["required_reviews"] = [
-                        "Peer code review",
-                        "Test coverage review",
-                    ]
-                    result["slices"][0]["deterministic_validation"] = [
-                        "pytest tests/test_greet.py",
-                        "flake8 greet.py",
-                        "Build the package",
-                    ]
-            return result
-
-    provider = DescriptiveControlsProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = to_architecture(runtime, run="plan-control-repair")
-        result = decide(runtime, "plan-control-repair", result)
-
-    assert len(provider.planning_contexts) == 2
-    feedback = provider.planning_contexts[1]["validation_feedback"]
-    assert "['code', 'tests']" in feedback
-    assert "['build', 'lint', 'static', 'test']" in feedback
-    plan = result["state"]["artifacts"][result["state"]["active"]["plan"]]["content"]
-    for item in plan["slices"]:
-        assert {"code", "tests"} <= set(item["required_reviews"])
-        assert {"lint", "static", "test", "build"} <= set(item["deterministic_validation"])
-
-
 def test_planning_safe_stop_allows_interactive_revise_feedback(tmp_path):
     class ScopeProposalProvider(MockProvider):
         def __init__(self):
@@ -474,7 +413,7 @@ def test_planning_safe_stop_allows_interactive_revise_feedback(tmp_path):
 
         def generate(self, role, instructions, context, schema):
             result = super().generate(role, instructions, context, schema)
-            if role == "planning":
+            if role == "planning_design":
                 self.planning_contexts.append(context)
                 if context.get("feedback", {}).get("action") != "revise":
                     result["proposed_scope_changes"] = ["Add an unapproved web API."]
@@ -498,184 +437,7 @@ def test_planning_safe_stop_allows_interactive_revise_feedback(tmp_path):
     assert provider.planning_contexts[-1]["feedback"]["action"] == "revise"
     assert "web API" in provider.planning_contexts[-1]["feedback"]["rationale"]
     assert result["state"]["active"].get("plan") == "plan@1"
-    assert result["interrupts"][0]["gate"] == "plan"
-
-
-def test_plan_requires_human_approval_before_lld_and_test_design(tmp_path):
-    class TrackingProvider(MockProvider):
-        def __init__(self):
-            self.roles = []
-
-        def generate(self, role, instructions, context, schema):
-            self.roles.append(role)
-            return super().generate(role, instructions, context, schema)
-
-    provider = TrackingProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = to_architecture(runtime, run="plan-approval")
-        result = decide(runtime, "plan-approval", result)
-
-        assert result["interrupts"][0]["gate"] == "plan"
-        assert result["interrupts"][0]["artifact_ref"] == "plan@1"
-        assert result["state"]["active"].get("plan") == "plan@1"
-        assert result["state"]["artifacts"]["plan@1"]["approval_status"] == "DRAFT"
-        assert "lld" not in provider.roles
-        assert "test_design" not in provider.roles
-
-        result = decide(runtime, "plan-approval", result)
-
-    assert "lld" in provider.roles
-    assert "test_design" in provider.roles
-    assert result["state"]["artifacts"]["plan@1"]["approval_status"] == "APPROVED"
-
-
-def test_plan_revision_returns_to_human_review(tmp_path):
-    with Runtime(tmp_path) as runtime:
-        result = to_architecture(runtime, run="plan-revision")
-        result = decide(runtime, "plan-revision", result)
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(
-            runtime,
-            "plan-revision",
-            result,
-            action="revise",
-            rationale="Split validation into clearer vertical slices.",
-        )
-
-    assert result["interrupts"][0]["gate"] == "plan"
-    assert result["interrupts"][0]["artifact_ref"] == "plan@2"
-    assert result["state"]["artifacts"]["plan@1"]["validity"] == "SUPERSEDED"
-    assert result["state"]["artifacts"]["plan@2"]["approval_status"] == "DRAFT"
-    assert result["state"]["active"].get("lld:greeting") is None
-
-
-@pytest.mark.parametrize(
-    "defect",
-    [
-        "descriptions",
-        "extensions",
-        "slice",
-        "sections",
-        "blank",
-        "adr_refs",
-        "requirement_refs",
-        "duplicates",
-    ],
-)
-def test_lld_contract_is_repaired_before_caching(tmp_path, defect):
-    class IncorrectFirstDesignProvider(MockProvider):
-        def __init__(self):
-            self.lld_contexts = []
-
-        def generate(self, role, instructions, context, schema):
-            result = super().generate(role, instructions, context, schema)
-            if role == "lld":
-                self.lld_contexts.append(context)
-                if len(self.lld_contexts) == 1:
-                    if defect == "descriptions":
-                        result["acceptance_criteria"] = ["AC1: greet returns a greeting"]
-                    elif defect == "extensions":
-                        result["acceptance_criteria"].append("New slice-specific criterion")
-                    elif defect == "slice":
-                        result["slice_id"] = "other-slice"
-                    elif defect == "sections":
-                        result["sections"].pop("contracts")
-                    elif defect == "blank":
-                        result["sections"]["contracts"] = "   "
-                    elif defect == "duplicates":
-                        result["acceptance_criteria"].append(result["acceptance_criteria"][0])
-                    else:
-                        result[defect] = []
-            return result
-
-    provider = IncorrectFirstDesignProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = decide(runtime, "lld-repair", to_architecture(runtime, "lld-repair"))
-        result = decide(runtime, "lld-repair", result)
-        assert len(provider.lld_contexts) == 2
-        assert "LLD contract invalid" in provider.lld_contexts[1]["validation_feedback"]
-        assert result["state"]["active"]["lld:greeting"] == "lld:greeting@1"
-        schema, instructions = CONTRACTS["lld"]
-        key = digest(
-            [
-                provider.name,
-                "lld",
-                instructions,
-                schema.model_json_schema(),
-                provider.lld_contexts[0],
-            ]
-        )
-        cached = runtime.repo.cached("lld-repair", key)
-        assert cached["acceptance_criteria"] == ["AC1", "AC2"]
-        assert cached["adr_refs"] == ["ADR-001"]
-        assert cached["sections"]["contracts"].strip()
-
-
-def test_incomplete_cached_lld_is_repaired_with_exact_ids(tmp_path):
-    class RecordingProvider(MockProvider):
-        def __init__(self):
-            self.lld_contexts = []
-
-        def generate(self, role, instructions, context, schema):
-            if role == "lld":
-                self.lld_contexts.append(context)
-            return super().generate(role, instructions, context, schema)
-
-    provider = RecordingProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = decide(runtime, "cached-lld", to_architecture(runtime, "cached-lld"))
-        result = decide(runtime, "cached-lld", result)
-        schema, instructions = CONTRACTS["lld"]
-        key = digest(
-            [
-                provider.name,
-                "lld",
-                instructions,
-                schema.model_json_schema(),
-                provider.lld_contexts[0],
-            ]
-        )
-        bad = runtime.repo.cached("cached-lld", key)
-        bad["acceptance_criteria"] = ["AC1: Description rather than an exact ID"]
-        bad["adr_refs"] = []
-        runtime.repo.cache("cached-lld", key, bad, replace=True)
-        state = result["state"]
-        _, nodes = runtime.graph("cached-lld")
-        update = nodes.lld(state)
-        assert update["active"]["lld:greeting"] == "lld:greeting@2"
-        assert len(provider.lld_contexts) == 2
-        feedback = provider.lld_contexts[1]["validation_feedback"]
-        assert "acceptance_criteria" in feedback and "adr_refs" in feedback
-        assert runtime.repo.cached("cached-lld", key)["acceptance_criteria"] == ["AC1", "AC2"]
-        assert any(
-            e["action"] == "cached_response_rejected" for e in runtime.repo.events("cached-lld")
-        )
-
-
-def test_invalid_lld_stops_after_bounded_attempts(tmp_path):
-    class AlwaysInvalidDesignProvider(MockProvider):
-        def __init__(self):
-            self.lld_calls = 0
-
-        def generate(self, role, instructions, context, schema):
-            result = super().generate(role, instructions, context, schema)
-            if role == "lld":
-                self.lld_calls += 1
-                result["acceptance_criteria"] = ["AC1: wrong format"]
-            return result
-
-    provider = AlwaysInvalidDesignProvider()
-    with Runtime(tmp_path, provider=provider) as runtime:
-        result = decide(runtime, "bounded-lld", to_architecture(runtime, "bounded-lld"))
-        result = decide(runtime, "bounded-lld", result)
-        assert result["interrupts"][0]["gate"] == "safe_stop"
-        assert result["state"]["recovery_node"] == "lld"
-        assert (
-            "acceptance_criteria must contain exactly these IDs"
-            in result["interrupts"][0]["reason"]
-        )
-        assert provider.lld_calls == runtime.policy.max_provider_attempts
-        assert "lld:greeting" not in result["state"]["active"]
+    assert result["interrupts"][0]["gate"] == "safe_stop"
 
 
 @pytest.mark.parametrize("status", ["RESOLVED", "ACCEPTED_RISK"])
@@ -688,7 +450,7 @@ def test_safe_stop_hides_settled_findings_and_risk_acceptance(status):
         "recovery_node": "lld",
     }
     actions = available_actions(gate)
-    assert actions == ["retry", "abort"]
+    assert actions == ["retry", "revise", "abort"]
     output = []
     display_gate(gate, actions=actions, output_fn=output.append)
     assert "architecture/old" not in "\n".join(output)
@@ -862,8 +624,6 @@ def test_full_real_graph_and_real_tools(tmp_path):
     with Runtime(tmp_path, allow_execution=True) as runtime:
         result = to_architecture(runtime)
         result = decide(runtime, "demo", result)
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "release", result["interrupts"]
         result = decide(runtime, "demo", result)
         assert result["state"]["workflow_status"] == "READY_FOR_DEPLOYMENT"
@@ -912,7 +672,7 @@ def test_bounded_review_and_blocker_safe_stop(tmp_path):
     with Runtime(tmp_path, provider=BlockingReviewer()) as runtime:
         result = to_architecture(runtime)
         assert result["interrupts"][0]["gate"] == "safe_stop"
-        assert result["state"]["counters"]["architecture_review"] == 3
+        assert result["state"]["counters"]["architecture_review"] == 2
         assert result["state"]["findings"]["architecture/ownership"]["status"] == "OPEN"
         with pytest.raises(ValueError, match="non-BLOCKER"):
             decide(runtime, "demo", result, "accept_risk", finding_ids=["architecture/ownership"])
@@ -938,8 +698,6 @@ def test_failed_tests_retry_budget_and_unaffected_test_artifact(tmp_path):
         allow_execution=True,
     ) as runtime:
         result = decide(runtime, "demo", to_architecture(runtime))
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "safe_stop"
         assert "Re-plan budget exhausted" in result["interrupts"][0]["reason"]
         assert result["state"]["active"]["tests:greeting"] == "tests:greeting@1"
@@ -951,8 +709,6 @@ def test_failed_tests_retry_budget_and_unaffected_test_artifact(tmp_path):
 def test_execution_disabled_stops_before_tools(tmp_path):
     with Runtime(tmp_path) as runtime:
         result = decide(runtime, "demo", to_architecture(runtime))
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "safe_stop"
         assert "Local execution disabled" in result["interrupts"][0]["reason"]
         assert not result["state"]["tool_results"]
@@ -974,12 +730,10 @@ def test_parallel_branches_share_baseline_without_code_leakage(tmp_path):
     provider = ConcurrentProvider()
     with Runtime(tmp_path, provider=provider) as runtime:
         result = decide(runtime, "demo", to_architecture(runtime))
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "safe_stop"
         assert "Local execution disabled" in result["interrupts"][0]["reason"]
         code, tests = provider.contexts["coding"], provider.contexts["test_design"]
-        for key in ("requirement", "architecture", "adrs", "lld", "slice"):
+        for key in ("requirement", "architecture", "adrs", "design", "slice"):
             assert code[key] == tests[key]
         assert "implementation" not in tests
 
@@ -1034,8 +788,6 @@ def test_stale_approval_does_not_consume_interrupt(tmp_path):
 def test_release_rechecks_candidate_after_human_wait(tmp_path):
     with Runtime(tmp_path, allow_execution=True) as runtime:
         result = decide(runtime, "demo", to_architecture(runtime))
-        assert result["interrupts"][0]["gate"] == "plan"
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "release"
         root = Path(result["interrupts"][0]["release"]["content"]["candidate"])
         (root / "greeting.py").write_text("# Changed after validation\n", encoding="utf-8")
@@ -1062,8 +814,128 @@ def test_high_risk_requires_explicit_human_disposition(tmp_path):
         assert result["state"]["findings"]["architecture/ownership"]["status"] == "ACCEPTED_RISK"
         assert "plan" not in result["state"]["active"]
         result = decide(runtime, "demo", result)
-        result = decide(runtime, "demo", result)
         assert result["interrupts"][0]["gate"] == "safe_stop"
         with pytest.raises(ValueError, match="unresolved non-BLOCKER"):
             decide(runtime, "demo", result, "accept_risk", finding_ids=["architecture/ownership"])
         assert runtime.inspect("demo")["interrupts"][0] == result["interrupts"][0]
+
+
+@pytest.mark.parametrize("defect", ["sections", "blank", "references", "coverage"])
+def test_combined_design_is_repaired_before_publication(tmp_path, defect):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "planning_design":
+                self.contexts.append(context)
+                if len(self.contexts) == 1:
+                    item = result["slices"][0]
+                    if defect == "sections":
+                        item["design"].pop("interfaces")
+                    elif defect == "blank":
+                        item["design"]["contracts"] = " "
+                    elif defect == "references":
+                        item["requirement_refs"] = ["unapproved"]
+                    else:
+                        item["acceptance_criteria"] = ["AC1"]
+            return result
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert result["state"]["active"]["plan"] == "plan@1"
+        assert len(provider.contexts) == 2
+        assert provider.contexts[1]["validation_feedback"]
+        assert "lld:greeting" not in result["state"]["active"]
+
+
+def test_shared_quality_review_is_bounded_and_runs_after_join(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.roles = []
+
+        def generate(self, role, instructions, context, schema):
+            self.roles.append(role)
+            if role == "quality_reviewer":
+                assert set(context["artifact"]["content"]) == {"code", "tests"}
+                return {"complete": False, "findings": []}
+            return super().generate(role, instructions, context, schema)
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert result["interrupts"][0]["gate"] == "safe_stop"
+        assert result["state"]["counters"]["quality_review:greeting"] == 2
+        assert provider.roles.count("planning_design") == 1
+        assert provider.roles.count("quality_reviewer") == 2
+        assert "code_reviewer" not in provider.roles
+        assert not result["state"]["tool_results"]
+
+
+def test_shared_review_requires_verified_resolution_on_new_pair(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.reviews = 0
+
+        def generate(self, role, instructions, context, schema):
+            if role == "quality_reviewer":
+                self.reviews += 1
+                if self.reviews == 1:
+                    return {
+                        "complete": True,
+                        "findings": [
+                            {
+                                "id": "contract",
+                                "category": "correctness",
+                                "severity": "HIGH",
+                                "description": "Verify blank-name contract",
+                                "rationale": "Review scenario",
+                                "affected_component": "greeting",
+                                "suggested_resolution": "Verify contract",
+                            }
+                        ],
+                    }
+                prior = context["previous_findings"][0]
+                assert context["artifact"]["version"] > prior["artifact_version"]
+                return {
+                    "complete": True,
+                    "findings": [],
+                    "resolutions": [
+                        {
+                            "finding_id": prior["id"],
+                            "author_response": "Confirmed contract",
+                            "actual_change": "Regenerated code and tests against the contract",
+                            "resolution_reason": "Review confirmed the behavior",
+                            "reviewer_verification": "Checked blank validation and negative tests",
+                        }
+                    ],
+                }
+            return super().generate(role, instructions, context, schema)
+
+    with Runtime(tmp_path, provider=Provider()) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        state = result["state"]
+        assert "Local execution disabled" in result["interrupts"][0]["reason"]
+        assert state["active"]["quality:greeting"] == "quality:greeting@2"
+        assert state["findings"]["quality:greeting/contract"]["status"] == "RESOLVED"
+
+
+def test_design_failure_routes_to_combined_plan_and_invalidates_children(tmp_path):
+    class Provider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "failure_analysis":
+                result["category"] = "DESIGN_DEFECT"
+            return result
+
+    with Runtime(tmp_path, provider=Provider()) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        _, nodes = runtime.graph("demo")
+        update = nodes.failure_analysis(result["state"])
+        assert update["route"] == "planning_design"
+        assert update["artifacts"]["plan@1"]["validity"] == "INVALIDATED"
+        assert update["artifacts"]["code:greeting@1"]["validity"] != "VALID"
+        assert update["artifacts"]["tests:greeting@1"]["validity"] != "VALID"
+        assert "architecture@1" not in update["artifacts"]
