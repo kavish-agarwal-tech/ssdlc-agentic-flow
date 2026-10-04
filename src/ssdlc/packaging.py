@@ -159,6 +159,10 @@ def create_bundle(state, nodes, evidence, destination: Path):
             )
             for section, text in item["design"].items():
                 slices.extend([f"### {section.replace('_', ' ').title()}", "", text, ""])
+            for path, declarations in item.get("api_contract", {}).items():
+                slices.extend(
+                    [f"### Shared API: `{path}`", "", "```python", declarations.rstrip(), "```", ""]
+                )
             slices.extend(["### Risks", "", *[f"- {risk}" for risk in item["risks"]], ""])
         write("documents/04-plan-and-design.md", "\n".join(slices))
         write_json("evidence/workflow-history.json", evidence)

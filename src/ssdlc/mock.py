@@ -315,6 +315,7 @@ class MockProvider:
                             key: "greeting.py exports greet(name): validate str, trim, reject blank, and format Hello, <name>!. Pure function; standard library only. Independent tests exercise normal, blank, and non-string inputs."
                             for key in DESIGN_SECTIONS
                         },
+                        api_contract={"greeting.py": "def greet(name: str) -> str: ...\n"},
                         risks=["Input boundary ambiguity"],
                     )
                 ],

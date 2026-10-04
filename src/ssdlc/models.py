@@ -137,6 +137,7 @@ class WorkItem(Model):
     requirement_refs: list[str]
     acceptance_criteria: list[str] = Field(min_length=1)
     design: dict[str, str]
+    api_contract: dict[str, str] = Field(default_factory=dict)
     risks: list[str]
 
 

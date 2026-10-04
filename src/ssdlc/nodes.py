@@ -6,6 +6,7 @@ from pathlib import Path
 
 from langgraph.types import interrupt
 
+from ssdlc.contracts import validate_contract, validate_implementation, validate_test_imports
 from ssdlc.engine import Engine
 from ssdlc.models import (
     ARCHITECTURE_SECTIONS,
@@ -356,6 +357,9 @@ class Nodes(Engine):
                 return
             errors, seen, covered = [], set(), set()
             for item in plan.slices:
+                validate_contract(item.api_contract)
+                for name in item.api_contract:
+                    safe_path(Path(state["workspace"]), name)
                 if item.id in seen or set(item.depends_on) - seen:
                     errors.append("Slices must be a topologically ordered DAG with unique IDs.")
                 safe_path(Path(state["workspace"]), item.id)
@@ -407,6 +411,9 @@ class Nodes(Engine):
 
     def branch_generate(self, state, kind):
         key = f"{kind}:{state['current_slice']}"
+        context = self.context(state, design=True, include_code=kind == "code")
+        contract = context["slice"].get("api_contract", {})
+        validate_contract(contract)
         try:
             active_artifact(state, key)
             prior_review = state["reviews"].get(state["active"][key], {})
@@ -416,7 +423,6 @@ class Nodes(Engine):
                 return {}
         except ValueError:
             pass
-        context = self.context(state, design=True, include_code=kind == "code")
         context["previous_findings"] = [
             f
             for f in state["findings"].values()
@@ -443,6 +449,7 @@ class Nodes(Engine):
                 if kind == "code" and is_test:
                     raise ValueError("Coding agent attempted to author acceptance tests")
             if kind == "tests":
+                validate_test_imports(contract, result.files)
                 if set(context["slice"]["acceptance_criteria"]) != set(result.criterion_tests):
                     raise ValueError(
                         "Test traceability must map exact current slice acceptance IDs"
@@ -450,6 +457,9 @@ class Nodes(Engine):
                 for tests in result.criterion_tests.values():
                     if not tests or any(t.split("::")[0] not in result.files for t in tests):
                         raise ValueError("Traceability references absent test files")
+            else:
+                existing, _ = self.files(state)
+                validate_implementation(contract, {**existing, **result.files})
 
         result = self.call(
             state, "coding" if kind == "code" else "test_design", context, validator=validate_bundle
@@ -515,6 +525,24 @@ class Nodes(Engine):
 
     def synchronize(self, state):
         errors = [v for v in state.get("branch_errors", {}).values() if v]
+        if any("ContractError:" in error for error in errors):
+            count = state["counters"].get("replans", 0)
+            if count >= self.policy.max_replans:
+                raise ValueError(
+                    "Shared API contract repair budget exhausted; revise planning_design"
+                )
+            self.event(
+                state, "replan_triggered", "synchronize", "Shared API contract requires repair"
+            )
+            return {
+                "route": "planning_design",
+                "counters": {"replans": count + 1, f"quality_review:{state['current_slice']}": 0},
+                "feedback": {
+                    "contract_errors": errors,
+                    "instruction": "Repair the shared API contract before generation. Preserve approved scope.",
+                },
+                "branch_errors": {"code": "", "tests": ""},
+            }
         if errors:
             raise ValueError("; ".join(errors))
         baseline(state)

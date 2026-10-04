@@ -117,6 +117,8 @@ For a generation stop caused by an incomplete design or an undecided requirement
 
 For the URL-shortener DNS ambiguity, use `requirement` with the rationale: “DNS failure or resolution returning no addresses must return structured 503 and persist nothing. Preserve all other approved requirements.” Review the resulting requirement before approving it. The subsequent shared design must name the exact injected resolver, configuration interface, store error type, and durable store constructor/reopen lifecycle. Required restart tests must execute rather than skip a missing adapter.
 
+Shared interface conflicts are now checked earlier: every slice needs a Python `api_contract` containing exact file paths and public declaration stubs. Planning validates it, then code signatures/data fields and direct test imports are checked before quality review. Persistent contract mismatches automatically return to planning within the replan budget. For an existing run with an older plan, restart the CLI and choose `retry` at its generation stop to run this recovery. This preserves approvals and does not waive tests; genuine product ambiguity still requires requirement revision.
+
 For file-based decisions, start without `--interactive`, inspect the gate, then use `resume <run> --decision <file.json>`. A decision has `actor`, `action`, `rationale`, and the gate's `artifact_ref` when present; clarification adds `answers` keyed by question IDs. Clarification and approval are separate submissions.
 
 | Symptom | Next step |

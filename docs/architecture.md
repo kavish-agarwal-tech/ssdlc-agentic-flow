@@ -35,6 +35,8 @@ Requirements preserve original input and actual human answers as system-owned pr
 
 One Plan response contains ordered vertical slices with requirement references, acceptance IDs, risks and implementation design. Code and independent tests consume the same approved baseline and slice design concurrently. The test designer does not receive generated implementation files or code-author output. Shared Quality Review assesses the joined pair. Release Readiness combines engineering documentation, operations, limitations and measured evidence.
 
+Each slice also contains a shared Python API contract as declaration stubs. Planning validates it before either generator runs; generated public signatures, data fields and direct test imports are checked before shared review. Persistent contract mismatches return to planning under the existing replan budget. Runtime behavior remains subject to independent tests, review and actual execution.
+
 Pydantic validates shape. Stage validators enforce exact references, coverage, meaningful required sections, dependency order, paths, file ownership and criterion-to-test mappings. Responses enter the cache only after validation; cached responses are checked again. Strict schemas can still reject a model response after bounded repair attempts, so model availability does not guarantee success.
 
 ## Filesystem and database boundary

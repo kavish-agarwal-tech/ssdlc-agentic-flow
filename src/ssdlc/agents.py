@@ -97,6 +97,15 @@ for role in ("architecture_reviewer", "quality_reviewer"):
 for role, guidance in {
     "planning_design": (
         "The shared design is the interface contract for independently generated code and tests. "
+        "Prefer a few coherent vertical slices and direct explicit dependency injection. "
+        "Keep the public surface small; avoid factories, discovery, compatibility wrappers and "
+        "extra abstraction layers unless the approved architecture requires them. "
+        "EVERY slice must include api_contract, a map of exact Python source paths to public "
+        "declaration stubs (valid Python, function/method bodies are ... only). Declare exact "
+        "constructors and parameter names/kinds/default presence, injectable dependencies, "
+        "configuration/response dataclass fields, error classes and durable store lifecycle. "
+        "Include each public module used by acceptance tests. These stubs are design declarations, "
+        "not production implementation or acceptance tests. No executable function bodies. "
         "Specify exact module paths, public class/function names, constructor and method signatures, "
         "return fields, exception types and dependency injection for each test seam. For required "
         "durability, specify the concrete approved store adapter and its constructor/reopen lifecycle "
@@ -105,11 +114,17 @@ for role, guidance in {
         "not an invented default."
     ),
     "coding": (
+        "The slice api_contract declarations are authoritative: use those exact file paths, "
+        "public names, fields and callable signatures. Implement the stubs; do not leave ellipses. "
         "Implement the exact public interfaces and injection seams named in the shared design, "
         "including configuration, resolver, clock, error types and persistence lifecycle. "
         "Missing seam details belong in deviations for upstream design revision."
     ),
     "test_design": (
+        "Use the slice api_contract stubs as the exact public import and invocation contract. "
+        "A design choice permitted by the approved requirements (such as choosing 201 within an "
+        "approved success response category) is not a scope deviation. Do not ask humans to "
+        "reconfirm settled design choices. Genuine product ambiguity remains an upstream conflict. "
         "Use exact imports and public interfaces from the shared design. Do not discover guessed "
         "interfaces with reflection, try unrelated constructors, or silently fall back to live DNS. "
         "Inject deterministic resolver/store failures through the specified seams and exception types. "

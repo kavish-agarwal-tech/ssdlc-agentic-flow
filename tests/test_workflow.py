@@ -1298,3 +1298,77 @@ def test_revision_target_cannot_bypass_a_normal_approval_gate(tmp_path):
         with pytest.raises(ValueError, match="supported safe-stop revision"):
             decide(runtime, "demo", result, "revise", revision_target="requirement")
         assert runtime.inspect("demo")["interrupts"] == result["interrupts"]
+
+
+def test_missing_api_contract_repaired_during_planning_before_generation(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.plans = []
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "planning_design":
+                self.plans.append(context)
+                if len(self.plans) == 1:
+                    result["slices"][0].pop("api_contract")
+            if role in {"coding", "test_design"}:
+                assert len(self.plans) == 2
+                assert context["slice"]["api_contract"]["greeting.py"]
+            return result
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert "api_contract" in provider.plans[-1]["validation_feedback"]
+        assert "Local execution disabled" in result["interrupts"][0]["reason"]
+
+
+def test_legacy_missing_contract_returns_to_planning_with_bounded_recovery(tmp_path):
+    with Runtime(tmp_path) as runtime:
+        state = decide(runtime, "demo", to_architecture(runtime))["state"]
+        _, nodes = runtime.graph("demo")
+        state["artifacts"][state["active"]["plan"]]["content"]["slices"][0].pop("api_contract")
+        # An older saved plan is rejected before either independent generation call.
+        branch = nodes.guarded("branch_generate", lambda s: nodes.branch_generate(s, "tests"))(
+            state
+        )
+        assert "ContractError:" in branch["safe_stop_reason"]
+        state["branch_errors"] = {"code": "", "tests": branch["safe_stop_reason"]}
+        update = nodes.synchronize(state)
+        assert update["route"] == "planning_design"
+        assert update["counters"]["replans"] == 1
+        assert update["feedback"]["contract_errors"]
+        state["counters"]["replans"] = runtime.policy.max_replans
+        with pytest.raises(ValueError, match="repair budget exhausted"):
+            nodes.synchronize(state)
+
+
+def test_signature_conflict_replans_automatically_before_quality_review(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.coding_calls = 0
+            self.quality_calls = 0
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "coding":
+                self.coding_calls += 1
+                if not context.get("feedback", {}).get("contract_errors"):
+                    result["files"]["greeting.py"] = result["files"]["greeting.py"].replace(
+                        "def greet(name: str)", "def greet(person: str)"
+                    )
+            elif role == "quality_reviewer":
+                self.quality_calls += 1
+                assert self.coding_calls == 3
+            elif role == "test_design":
+                assert "implementation" not in context
+            return result
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert result["state"]["active"]["plan"] == "plan@2"
+        assert result["state"]["counters"]["replans"] == 1
+        assert "Local execution disabled" in result["interrupts"][0]["reason"]
+        assert provider.quality_calls == 1
+        assert runtime.repo.verify_audit("demo")

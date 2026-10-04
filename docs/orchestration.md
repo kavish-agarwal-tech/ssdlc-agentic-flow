@@ -8,7 +8,7 @@ flowchart TD
   H1 --> A["Architecture author + independent review"]
   A --> H2["Human: approve architecture and ADRs"]
   H2 --> B["Brownfield impact<br/>brownfield runs only"]
-  B --> P["Combined planning and per-slice design"]
+  B --> P["Planning, slice design<br/>shared API contract checked"]
   P --> Fork["Current slice: parallel generation"]
   Fork --> C["Coding"]
   Fork --> T["Independent test design"]
@@ -76,6 +76,10 @@ At a supported generation/planning stop, `revise` accepts an optional `revision_
 Code/test deviations are validated before cache publication and on cache replay. The provider gets bounded corrective feedback for implementation shortcuts while genuine upstream conflicts remain a safe stop. The shared design specifies exact public interfaces and injection seams for both independent branches; tests must not guess APIs, use unintended live DNS, or skip required persistence evidence.
 
 Generation failures do not offer `accept_risk`: accepting earlier review findings cannot clear a failed bundle. Runtime also rejects that action for older saved generation interrupts. Required evidence and BLOCKER findings still need actual fixes and verification.
+
+Planning now includes `api_contract` for each slice: exact Python source paths and public declaration stubs, including constructor/method signatures, injected collaborators, data fields and error types. Missing contracts, unspecified concrete constructors and function implementations in stubs are rejected with bounded planning feedback before generation. Both branches receive the same stubs; these are design declarations, not generated production code shared with the test author.
+
+Before quality review, static AST checks compare production names, callable parameter shapes and declared data fields against these stubs, and check direct test imports from the declared application modules. They do not execute generated code or prove runtime behavior, typing, inherited APIs or error semantics. Required acceptance tests still provide that evidence. A persistent `ContractError` returns to combined planning automatically within `Policy.max_replans`; an older plan without stubs follows the same recovery when resumed. Budget exhaustion still pauses for human review. No additional graph node or human gate is introduced.
 
 ## Brownfield scope
 
