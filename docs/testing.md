@@ -31,6 +31,11 @@ semantic repair before caching, rejection of incomplete legacy caches in both
 SQLite and file formats, preservation of rejected response files, and exhaustion
 of the bounded provider budget with actionable missing-section details.
 
+LLD tests cover descriptive or invented acceptance references, duplicate IDs,
+incorrect slices, missing ADR/requirement references, incomplete sections, repair
+of cached designs, and bounded failure. Interactive and API checks preserve
+settled findings and prevent accepting the same risk again.
+
 Local Ollama setup was separately verified with a live schema-constrained smoke
 response from qwen3:1.7b through the native adapter. Run
 `python scripts/check_ollama.py` to repeat it. Automated tests remain offline.

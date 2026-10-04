@@ -493,23 +493,44 @@ class Nodes(Engine):
     def lld(self, state):
         approved(state, "plan")
         context = self.context(state)
-        result = self.call(state, "lld", {**context, "feedback": state.get("feedback", {})})
         item = context["slice"]
-        if result.slice_id != item["id"] or set(result.acceptance_criteria) != set(
-            item["acceptance_criteria"]
-        ):
-            raise ValueError("LLD scope differs from approved plan")
-        if DESIGN_SECTIONS - result.sections.keys() or not all(result.sections.values()):
-            raise ValueError("LLD contract incomplete")
-        if set(result.adr_refs) != {a["id"] for a in context["adrs"]} or set(
-            result.requirement_refs
-        ) != set(item["requirement_refs"]):
-            raise ValueError("LLD traceability incomplete")
         deps = [state["active"]["plan"]]
         for dependency in item["depends_on"]:
             if dependency not in state["completed_slices"]:
                 raise ValueError("Slice dependency has not passed acceptance")
             deps.append(state["active"][f"acceptance:{dependency}"])
+
+        def validate_lld(result):
+            problems = []
+            if result.slice_id != item["id"]:
+                problems.append(f"slice_id must be exactly {item['id']!r}.")
+            for field, expected in (
+                ("acceptance_criteria", item["acceptance_criteria"]),
+                ("requirement_refs", item["requirement_refs"]),
+                ("adr_refs", [adr["id"] for adr in context["adrs"]]),
+            ):
+                actual = getattr(result, field)
+                if set(actual) != set(expected) or len(actual) != len(set(actual)):
+                    problems.append(
+                        f"{field} must contain exactly these IDs, once each: {sorted(expected)}. "
+                        "Use IDs only; descriptions, extensions and deferral notes belong in sections."
+                    )
+            missing = DESIGN_SECTIONS - result.sections.keys()
+            empty = [key for key, value in result.sections.items() if not value.strip()]
+            if missing or empty:
+                problems.append(
+                    f"Missing sections: {sorted(missing)}. Empty sections: {sorted(empty)}. "
+                    "Include every required section with meaningful text."
+                )
+            if problems:
+                raise ValueError("LLD contract invalid. " + " ".join(problems))
+
+        result = self.call(
+            state,
+            "lld",
+            {**context, "feedback": state.get("feedback", {})},
+            validator=validate_lld,
+        )
         return {
             **self.artifact(
                 state, f"lld:{item['id']}", "lld", result.model_dump(mode="json"), deps

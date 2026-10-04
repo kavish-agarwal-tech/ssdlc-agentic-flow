@@ -33,7 +33,7 @@ CONTRACTS = {
     ),
     "lld": (
         Design,
-        "Specify module layout, functions, interfaces, DTO contracts, data structures, persistence, validation, errors, concurrency, interactions, logging, metrics and test seams. Use only the approved technology, requirements and ADRs.",
+        "Specify module layout, functions, interfaces, DTO contracts, data structures, persistence, validation, errors, concurrency, interactions, logging, metrics and test seams. Use only the approved technology, requirements and ADRs. Set slice_id to the exact current slice id. Copy acceptance_criteria and requirement_refs from the current slice as lists of exact IDs only; do not add descriptions, extensions, deferral notes, or criteria from other slices. Put all explanatory details in sections. adr_refs must list every supplied ADR artifact's id exactly once, without version suffixes. Follow validation_feedback and return a complete corrected design.",
     ),
     "coding": (
         FileBundle,

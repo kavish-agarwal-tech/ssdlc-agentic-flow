@@ -166,9 +166,10 @@ class Runtime:
                 if not parsed.finding_ids or any(
                     fid not in snapshot.values["findings"]
                     or snapshot.values["findings"][fid]["severity"] == "BLOCKER"
+                    or snapshot.values["findings"][fid]["status"] in {"RESOLVED", "ACCEPTED_RISK"}
                     for fid in parsed.finding_ids
                 ):
-                    raise ValueError("Select existing non-BLOCKER findings")
+                    raise ValueError("Select existing unresolved non-BLOCKER findings")
             if (
                 parsed.action == "rollback"
                 and parsed.target_ref not in snapshot.values["artifacts"]

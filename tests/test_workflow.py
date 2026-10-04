@@ -11,6 +11,7 @@ from ssdlc.agents import CONTRACTS
 from ssdlc.cli import (
     LLMProgressHandler,
     available_actions,
+    display_gate,
     interactive_session,
     prompt_decision,
 )
@@ -548,6 +549,152 @@ def test_plan_revision_returns_to_human_review(tmp_path):
     assert result["state"]["active"].get("lld:greeting") is None
 
 
+@pytest.mark.parametrize(
+    "defect",
+    [
+        "descriptions",
+        "extensions",
+        "slice",
+        "sections",
+        "blank",
+        "adr_refs",
+        "requirement_refs",
+        "duplicates",
+    ],
+)
+def test_lld_contract_is_repaired_before_caching(tmp_path, defect):
+    class IncorrectFirstDesignProvider(MockProvider):
+        def __init__(self):
+            self.lld_contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "lld":
+                self.lld_contexts.append(context)
+                if len(self.lld_contexts) == 1:
+                    if defect == "descriptions":
+                        result["acceptance_criteria"] = ["AC1: greet returns a greeting"]
+                    elif defect == "extensions":
+                        result["acceptance_criteria"].append("New slice-specific criterion")
+                    elif defect == "slice":
+                        result["slice_id"] = "other-slice"
+                    elif defect == "sections":
+                        result["sections"].pop("contracts")
+                    elif defect == "blank":
+                        result["sections"]["contracts"] = "   "
+                    elif defect == "duplicates":
+                        result["acceptance_criteria"].append(result["acceptance_criteria"][0])
+                    else:
+                        result[defect] = []
+            return result
+
+    provider = IncorrectFirstDesignProvider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "lld-repair", to_architecture(runtime, "lld-repair"))
+        result = decide(runtime, "lld-repair", result)
+        assert len(provider.lld_contexts) == 2
+        assert "LLD contract invalid" in provider.lld_contexts[1]["validation_feedback"]
+        assert result["state"]["active"]["lld:greeting"] == "lld:greeting@1"
+        schema, instructions = CONTRACTS["lld"]
+        key = digest(
+            [
+                provider.name,
+                "lld",
+                instructions,
+                schema.model_json_schema(),
+                provider.lld_contexts[0],
+            ]
+        )
+        cached = runtime.repo.cached("lld-repair", key)
+        assert cached["acceptance_criteria"] == ["AC1", "AC2"]
+        assert cached["adr_refs"] == ["ADR-001"]
+        assert cached["sections"]["contracts"].strip()
+
+
+def test_incomplete_cached_lld_is_repaired_with_exact_ids(tmp_path):
+    class RecordingProvider(MockProvider):
+        def __init__(self):
+            self.lld_contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            if role == "lld":
+                self.lld_contexts.append(context)
+            return super().generate(role, instructions, context, schema)
+
+    provider = RecordingProvider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "cached-lld", to_architecture(runtime, "cached-lld"))
+        result = decide(runtime, "cached-lld", result)
+        schema, instructions = CONTRACTS["lld"]
+        key = digest(
+            [
+                provider.name,
+                "lld",
+                instructions,
+                schema.model_json_schema(),
+                provider.lld_contexts[0],
+            ]
+        )
+        bad = runtime.repo.cached("cached-lld", key)
+        bad["acceptance_criteria"] = ["AC1: Description rather than an exact ID"]
+        bad["adr_refs"] = []
+        runtime.repo.cache("cached-lld", key, bad, replace=True)
+        state = result["state"]
+        _, nodes = runtime.graph("cached-lld")
+        update = nodes.lld(state)
+        assert update["active"]["lld:greeting"] == "lld:greeting@2"
+        assert len(provider.lld_contexts) == 2
+        feedback = provider.lld_contexts[1]["validation_feedback"]
+        assert "acceptance_criteria" in feedback and "adr_refs" in feedback
+        assert runtime.repo.cached("cached-lld", key)["acceptance_criteria"] == ["AC1", "AC2"]
+        assert any(
+            e["action"] == "cached_response_rejected" for e in runtime.repo.events("cached-lld")
+        )
+
+
+def test_invalid_lld_stops_after_bounded_attempts(tmp_path):
+    class AlwaysInvalidDesignProvider(MockProvider):
+        def __init__(self):
+            self.lld_calls = 0
+
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "lld":
+                self.lld_calls += 1
+                result["acceptance_criteria"] = ["AC1: wrong format"]
+            return result
+
+    provider = AlwaysInvalidDesignProvider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        result = decide(runtime, "bounded-lld", to_architecture(runtime, "bounded-lld"))
+        result = decide(runtime, "bounded-lld", result)
+        assert result["interrupts"][0]["gate"] == "safe_stop"
+        assert result["state"]["recovery_node"] == "lld"
+        assert (
+            "acceptance_criteria must contain exactly these IDs"
+            in result["interrupts"][0]["reason"]
+        )
+        assert provider.lld_calls == runtime.policy.max_provider_attempts
+        assert "lld:greeting" not in result["state"]["active"]
+
+
+@pytest.mark.parametrize("status", ["RESOLVED", "ACCEPTED_RISK"])
+def test_safe_stop_hides_settled_findings_and_risk_acceptance(status):
+    finding = {"id": "architecture/old", "severity": "LOW", "status": status}
+    gate = {
+        "gate": "safe_stop",
+        "actions": ["retry", "accept_risk", "abort"],
+        "findings": [finding],
+        "recovery_node": "lld",
+    }
+    actions = available_actions(gate)
+    assert actions == ["retry", "abort"]
+    output = []
+    display_gate(gate, actions=actions, output_fn=output.append)
+    assert "architecture/old" not in "\n".join(output)
+    assert gate["findings"] == [finding]
+
+
 def test_llm_progress_handler_reports_wait_retry_and_completion():
     output = io.StringIO()
     handler = LLMProgressHandler(stream=output)
@@ -914,3 +1061,9 @@ def test_high_risk_requires_explicit_human_disposition(tmp_path):
         assert result["interrupts"][0]["gate"] == "architecture"
         assert result["state"]["findings"]["architecture/ownership"]["status"] == "ACCEPTED_RISK"
         assert "plan" not in result["state"]["active"]
+        result = decide(runtime, "demo", result)
+        result = decide(runtime, "demo", result)
+        assert result["interrupts"][0]["gate"] == "safe_stop"
+        with pytest.raises(ValueError, match="unresolved non-BLOCKER"):
+            decide(runtime, "demo", result, "accept_risk", finding_ids=["architecture/ownership"])
+        assert runtime.inspect("demo")["interrupts"][0] == result["interrupts"][0]

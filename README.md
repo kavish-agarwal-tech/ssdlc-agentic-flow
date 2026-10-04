@@ -122,6 +122,12 @@ requirement mappings, and valid ADR IDs inside the provider retry loop. Missing
 sections are named in repair feedback. An incomplete cached response is rejected
 and replaced only after a valid repair; its original file remains as evidence.
 
+LLD responses follow the same repair boundary: slice, acceptance-criterion,
+requirement and ADR references must match the approved plan exactly. Descriptions
+and design notes belong in document sections rather than reference lists. Safe-stop
+prompts omit resolved or accepted findings, and those findings cannot be accepted
+again to bypass an unrelated design failure.
+
 ## Agents and controls
 
 Role-specific structured contracts cover requirement analysis, architecture,

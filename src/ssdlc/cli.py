@@ -162,7 +162,9 @@ def available_actions(gate, artifact_refs=(), branch_errors=None):
         if pending:
             actions.remove("approve")
     if "accept_risk" in actions and not any(
-        finding.get("severity") != "BLOCKER" for finding in gate.get("findings", [])
+        finding.get("severity") != "BLOCKER"
+        and finding.get("status", "OPEN") not in {"RESOLVED", "ACCEPTED_RISK"}
+        for finding in gate.get("findings", [])
     ):
         actions.remove("accept_risk")
     if "rollback" in actions and not artifact_refs:
@@ -179,6 +181,12 @@ def display_gate(gate, actions=None, output_fn=print):
     if gate.get("notice"):
         output_fn(gate["notice"])
     details = {key: value for key, value in gate.items() if key not in {"actions", "gate"}}
+    if gate["gate"] == "safe_stop" and "findings" in details:
+        details["findings"] = [
+            finding
+            for finding in details["findings"]
+            if finding.get("status", "OPEN") not in {"RESOLVED", "ACCEPTED_RISK"}
+        ]
     output_fn(json.dumps(details, indent=2, ensure_ascii=False))
     output_fn("Available actions: " + ", ".join(actions or gate["actions"]))
 
