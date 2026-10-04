@@ -6,7 +6,7 @@ This is a planning backlog, not an implementation claim or a commitment to build
 
 | Priority | Work | Current evidence and completion condition |
 |---|---|---|
-| P1 | Complete the real DeepSeek greenfield URL shortener | Analysis reached a genuine clarification gate. Completion needs confirmed requirements, architecture/ADR approval, workflow-generated code/tests, real passing tools/build and final approval. |
+| P1 | Complete the real DeepSeek greenfield URL shortener | A complete permanent-link draft now defines 15 requirements and 28 mapped criteria; the older TTL run is retained. Completion needs real analysis, requirement/architecture approval, workflow-generated code/tests, passing tools/build and final approval. |
 | P1 | Complete expiration behavior validation | Confirmed policy is saved in requirement v2; approval and implementation are pending. Verify permanent-by-default links, HTTP 410, retention, final expiration and scheduled cleanup against generated tests. |
 | P1 | Run a real analytics brownfield extension | Mock/source-snapshot integration tests exist. A live run needs generated URL-shortener source, impact/compatibility evidence and final approval. |
 

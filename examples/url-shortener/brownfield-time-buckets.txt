@@ -1,0 +1,14 @@
+Extend the existing workflow-generated URL shortener with UTC hourly and daily
+time-bucketed click reporting through its analytics API. Basic per-code counts
+already exist; this enhancement must provide genuinely new grouped reporting.
+
+Inspect the real generated source first. Preserve create/redirect behavior,
+permanent mappings, anonymous demo access, retained-event privacy, current
+from/to window semantics and the existing ungrouped analytics response when the
+new grouping option is absent. Reuse existing recorded events where possible;
+do not invent historical data or require a new external infrastructure service.
+
+Analyze API compatibility, storage/indexing, bucket boundary and empty-bucket
+semantics, migration needs, tests and regression risks. Surface genuine unresolved
+product choices before approval. Run real regression and grouped-report tests,
+document the change, and use the normal architecture/final approval gates.

@@ -82,6 +82,15 @@ The CLI loads `.env` by default; `--env-file <path>` selects another file. Nonem
 .venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution start --requirement examples/url-shortener/requirement.txt --run url-shortener-1 --interactive
 ```
 
+For the simpler first release, use the [complete permanent-link specification](examples/url-shortener/requirement-complete.txt). It defines exact HTTP behavior, failure handling and 28 mapped acceptance criteria, while leaving framework/datastore choices to architecture approval. It is a new draft baseline; keep earlier runs intact.
+
+```powershell
+$env:LLM_MAX_OUTPUT_TOKENS = "65536"
+.venv\Scripts\python -m ssdlc --provider deepseek --allow-local-execution start --requirement examples/url-shortener/requirement-complete.txt --run url-permanent-v1 --interactive
+```
+
+Review and approve the analyzed requirement, then architecture/ADRs, then final release. No TTL, expiry response or mapping-age purge belongs in this first release. Use the existing expiration example afterward for the ambiguous enhancement. For brownfield analytics, use [time-bucketed reporting](examples/url-shortener/brownfield-time-buckets.txt), since basic counts already exist in this baseline. Final wheel build/sign-off are platform gates, not application tests that depend on future approval.
+
 The input is initial intent. Answer blocking questions before approving the resulting version. Review any proposed stack or performance target. The fixed toolchain currently supports Python; third-party packages required by generated code must already be installed in the CLI environment. Candidate checks do not install dependencies.
 
 | Human gate | Your decision | What follows |

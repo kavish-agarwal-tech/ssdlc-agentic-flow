@@ -1,0 +1,285 @@
+# URL Shortener — complete first-release requirement
+
+Version: 1.0 draft, October 4, 2026. Scenario: GREENFIELD.
+Status: Input for real Requirement Agent analysis and human review. This is not
+an approved workflow artifact and does not replace existing saved approvals.
+
+## 1. Objective, decisions and scope
+
+Deliver a small, runnable local HTTP URL-shortener service THROUGH the real
+DeepSeek SSDLC workflow: create a short URL, follow it, read redirect counts,
+and query health. Produce actual source, independent tests, measured validation/
+build evidence, a wheel, and readable setup/operations/design documentation.
+
+The user selected PERMANENT LINKS ONLY for this first release. Expiration is a
+separate assignment enhancement. Do not implement TTL input, expiry fields/checks,
+410 responses, mapping-retention purge, reactivation or an expiration scheduler.
+The user also chose 503 with no persistence for DNS failure/no resolved addresses.
+
+Preserve previous demo choices: anonymous APIs; HTTP/HTTPS targets; creation-time
+DNS policy; sequential encoded unique codes; no deduplication; immutable targets;
+durable authoritative storage; 302 redirects; asynchronous analytics; no cache,
+application rate limiter or URL/client data in logs; no committed performance SLO.
+
+Explicit draft details for requirement review: the routes/schemas/limits below,
+90-day analytics-event retention, operator-only privacy deletion, and a repeatable
+20-request concurrency check. Mappings have NO age-based retention limit. Analytics
+retention does not determine link lifetime. Privacy deletion is a removal exception
+to ordinary immutability, not a public API. Freshness applies during healthy
+analytics operation, not across observable best-effort losses.
+
+This deliberately establishes a NEW baseline rather than silently changing
+url-cli-1's approved TTL scope. Requirement Agent must expose genuine blocking
+questions/contradictions and preserve these decisions, not invent owners or SLOs.
+Human requirement, architecture/ADR and final release approvals remain required.
+
+This is an interview demo, not an authorized public production deployment. Exclude
+UI, accounts, owner roles, custom aliases, link editing, deduplication, billing,
+distributed services and cloud deployment. Architecture chooses an approved stack
+runnable with the existing Python test/wheel toolchain, preferably one process
+and minimal dependencies. No infrastructure account or network package installation
+is part of candidate execution. Framework, datastore technology, module names,
+classes and queue mechanism are architecture/design choices, not dictated here.
+Do not manually build a separate workload implementation outside the agents.
+
+## 2. Shared configuration and time rules
+
+All timestamps are timezone-aware UTC, serialized as RFC 3339 with Z. Capture one
+now per operation. Use injectable clock/resolver/store failures in tests; do not
+sleep for freshness or retention boundaries. Bind to loopback by default.
+
+Document and validate startup configuration:
+- canonical_short_base_url: HTTP/HTTPS origin, no credentials/query/fragment/path
+  except optional trailing slash; example http://localhost:8080.
+- service_alias_hosts: canonical host plus deployment aliases rejected as targets.
+- analytics_retention_seconds = 7776000 (90 days from event timestamp).
+- analytics_freshness_seconds = 60 during healthy processing.
+- durable store location, bind port, queue capacity (at least 20 for the demo)
+  and maintenance trigger defined
+  by approved architecture/design.
+Invalid configuration prevents startup with a sanitized actionable message.
+The service must not need the orchestrator's DeepSeek key. Policy defaults must
+not be silently changed or described as unapproved production guarantees.
+
+## 3. Functional requirements and exact HTTP contract
+
+FR-01 Create: POST /api/links, application/json, exactly {"url":"https://example.com/a"}.
+url must be a string of at most 2048 ASCII characters. Missing/wrong-type url,
+malformed JSON and extra keys including ttl_seconds return 400 INVALID_REQUEST.
+Overlength URL returns 400 INVALID_URL; body exceeding 8192 bytes returns 413
+REQUEST_TOO_LARGE; unsupported media type returns 415 UNSUPPORTED_MEDIA_TYPE.
+Accept application/json with optional UTF-8 charset; invalid UTF-8 is 400
+INVALID_REQUEST and other media types/charsets are 415.
+All rejections persist nothing. Return 201 only after durable mapping commit:
+  {"code":"...","short_url":"http://localhost:8080/r/...","created_at":"...Z"}
+Return exactly these fields, no target/expiry. Use configured canonical origin,
+never request Host. Repeated identical targets create separate codes/records.
+No idempotency or deduplication guarantee is made for retried create requests.
+
+FR-02 Target policy: accept absolute ASCII HTTP/HTTPS URLs with nonempty host and
+valid port. Require percent encoding for non-ASCII components. Reject unsupported
+scheme, credentials, malformed host/port/escapes, raw whitespace/control characters,
+and leading/trailing whitespace: 400 INVALID_URL, no write. Preserve an accepted
+string exactly; parsing for validation must not normalize the stored target.
+
+Reject any target host matching a service alias, case-insensitively and ignoring
+one trailing dot, regardless of scheme/port/path: 400 SELF_TARGET, no write.
+Resolve DNS hosts only on creation; apply the same address policy to IP literals
+without DNS. If ANY result is non-global IPv4/IPv6, return 400 TARGET_NOT_PUBLIC.
+Include private, loopback, link-local, multicast, unspecified, reserved and
+IPv4-mapped non-global addresses. Mixed public/non-global results are rejected.
+Resolver failure or empty results returns 503 TARGET_RESOLUTION_UNAVAILABLE,
+with no write, distinct from 400 policy rejection. Do not fetch target HTTP
+content. Redirect does not resolve DNS again; later DNS changes remain an explicit
+demo risk, not a production SSRF/anti-abuse protection guarantee.
+
+FR-03 Codes/storage: use a durable monotonic sequence encoded with a documented,
+case-sensitive URL-safe alphabet. Architecture chooses exact alphabet/length;
+shared design supplies the same constants/format to both generators. Concurrent
+creates must never collide or overwrite a record. Allocate sequence and insert
+mapping atomically or provide equivalent durable uniqueness; gaps are acceptable.
+Never reuse a deleted code, including after restart. Persist code, exact target
+and creation time in ONE authoritative durable store. Mappings remain permanent
+and survive process restart. In-memory fakes are unit-test seams, not application
+storage or restart evidence. No mapping cache exists.
+
+FR-04 Redirect: GET /r/{code} for an existing mapping returns 302, exact stored
+Location and Cache-Control: no-store. Preserve case, percent escapes, query order
+and fragment. Every valid-code lookup reads the authoritative store; no expiry.
+Unknown/malformed codes return 404 LINK_NOT_FOUND with no Location. Validate code
+syntax before storage access: malformed codes remain 404 during an outage.
+Valid-code lookup with unavailable storage returns 503 STORE_UNAVAILABLE, even
+for previously resolved codes; no stale fallback or fabricated not-found result.
+Failures also use no-store. Public update/retarget/extension/reactivation/deletion
+routes do not exist. Trusted privacy deletion removes a record, not retargets it.
+
+FR-05 Analytics capture: each successful GET/302 attempts ONE asynchronous event
+with unique event ID, code and UTC timestamp only. Create/health/analytics/failed
+redirect/HEAD requests add no event. Separate successful GET requests count
+separately. Redirect completion must not wait for analytics writes/retries.
+Queue rejection/overflow, worker failure or analytics outage cannot fail the
+redirect; emit a sanitized failure/drop count. Under healthy dependencies/worker,
+accepted events appear exactly once within 60 seconds. Retrying one event must
+not double-count it. Persisted events survive restart. Queue/crash/outage losses
+before durable capture are allowed and observable; freshness does not promise
+lossless recovery. Late events cannot recreate a deleted mapping or its analytics.
+
+FR-06 Analytics read: GET /api/links/{code}/analytics supports optional from/to.
+Both must be supplied together, parse as UTC RFC 3339 and satisfy from < to <= now;
+otherwise 400 INVALID_WINDOW. Omitted parameters use
+from=max(created_at, now-retention_seconds), to=now. Count retained events in
+[from,to). A start older than retention cutoff returns 400 WINDOW_OUTSIDE_RETENTION.
+For an existing code return 200 with exactly:
+  {"code":"...","from":"...Z","to":"...Z","click_count":0,
+   "retention_seconds":7776000,"freshness_seconds":60}
+Count is a nonnegative integer; no matching events means zero/200. Unknown,
+malformed or deleted codes return 404 LINK_NOT_FOUND. Mapping OR analytics store
+failure returns 503 STORE_UNAVAILABLE, never fabricated zero. Return no target,
+raw events, event identifiers, IP/user-agent. Freshness is the healthy-operation
+contract, not measured per-event lag or a lossless-delivery claim.
+
+FR-07 Health: GET /health/live returns 200 {"status":"alive"} when responsive,
+independent of DNS/stores. GET /health/ready performs an ACTUAL mapping-store probe
+and returns 200 {"status":"ready"} or 503 {"status":"not_ready"}. Probes create
+no mapping/event. Analytics failure is documented degradation, not a create/
+redirect readiness failure, since analytics capture is best-effort.
+
+FR-08 Maintenance/privacy: exclude events at event_time+90 days from retained
+counts even before physical purge. Purge old EVENTS opportunistically or through
+a trusted local operator maintenance command; pin/document the trigger in design.
+Cleanup is idempotent and NEVER removes a permanent mapping due to age.
+A trusted operator privacy-delete command accepts a code and removes its mapping
+and analytics before reporting success. An absent code is idempotent; storage
+failure is visible and cannot falsely report success. Pending events cannot
+resurrect deleted data. No public deletion endpoint exists. Shared design pins
+operator command syntax and transaction/failure behavior.
+
+FR-09 Errors/methods: Create/link/analytics/redirect failures are JSON:
+  {"error_code":"...","message":"sanitized explanation"}
+Use the statuses/categories above; unexpected failure is 500 INTERNAL_ERROR.
+Never disclose target, stack trace, SQL, credentials or client identifiers. Known
+routes with unsupported methods return 405 METHOD_NOT_ALLOWED plus accurate Allow;
+unknown paths return sanitized 404. HEAD returns 405 METHOD_NOT_ALLOWED with an
+accurate Allow header and adds no click. Health payloads follow FR-07, including
+its readiness 503 payload, rather than this common link-error envelope.
+Unknown paths use 404 ROUTE_NOT_FOUND; code lookups use 404 LINK_NOT_FOUND.
+
+## 4. Nonfunctional requirements and invariants
+
+NFR-01 Correctness: one immutable target per code; no code reuse; failed validation/
+transactions leave no mapping; target and Location identical; deterministic
+analytics windows; no public mutation or hidden age-based expiration.
+NFR-02 Reliability: required store/DNS failures fail closed; real file-backed
+restart evidence for mappings/persisted events; analytics outside redirect's
+critical path with documented best-effort losses, not impossible outage guarantees.
+NFR-03 Privacy/observability: persist no IP/user-agent in analytics/diagnostics;
+do not log request URLs/bodies, targets, queries, headers or client identifiers.
+HTTP access logging must comply too. Emit sanitized aggregate create/redirect/
+validation/dependency-failure/analytics-drop counts. No URLs or unbounded/user-
+controlled metric labels.
+NFR-04 Demo concurrency: exercise 20 concurrent valid creates and 20 concurrent
+stored-code redirects without duplicate/lost mappings or capacity-induced 5xx
+with healthy dependencies. Record outcomes; no invented latency/throughput/uptime SLO.
+NFR-05 Scope/security: anonymous create/redirect/analytics/health; repeated valid
+requests receive no application-defined 429; loopback bind by default. Document
+enumerable codes, creation-only DNS policy, event loss and absent production abuse
+controls. No deployment is authorized.
+NFR-06 Delivery: fresh setup/config/start/stop, actual HTTP examples, tests,
+maintenance, limitations and rollback instructions; actual wheel containing the
+service/entry point; no real credentials; orchestration and service configs separate.
+
+## 5. Acceptance criteria and traceability
+
+Assert exact status/error_code/fields/persistence effects, not generic failures.
+Use injected clock/resolver/failures. Required tests cannot skip a missing durable
+adapter or guess APIs with reflection. Every FR/NFR maps to at least one AC.
+
+AC-01 [FR-01]: Anonymous valid create returns exact 201 fields, canonical short URL
+and one committed record matching target/time.
+AC-02 [FR-01]: Missing/wrong-type input, malformed JSON and TTL/unknown keys return
+400 INVALID_REQUEST; overlength URL is 400 INVALID_URL; oversized body is 413;
+wrong media type is 415. No failed case persists a mapping.
+AC-03 [FR-01]: Identical accepted targets create distinct codes/records.
+AC-04 [FR-02]: Scheme, credentials, whitespace/control, bad port/escapes and raw
+non-ASCII fail with 400 INVALID_URL and no write.
+AC-05 [FR-02]: Non-global IPv4/IPv6, IPv4-mapped non-global and mixed results fail
+400 TARGET_NOT_PUBLIC; public results accept creation.
+AC-06 [FR-02]: Canonical/alias host case/trailing-dot/port/path variants fail
+400 SELF_TARGET without persistence.
+AC-07 [FR-02]: Resolver error/empty result is 503 TARGET_RESOLUTION_UNAVAILABLE,
+no record; redirects never invoke the resolver.
+AC-08 [FR-03, NFR-04]: 20 concurrent creates yield 20 unique committed records,
+retained without overwrites after reopening the real store.
+AC-09 [FR-03, NFR-01]: Failed storage transaction leaves no mapping; deleted code
+is never reused, including after restart; sequence gaps are permitted.
+AC-10 [FR-04]: Existing code returns 302, exact Location and no-store; case, percent
+escapes, query order and fragment remain identical.
+AC-11 [FR-04]: Advance clock past 30/60/90 days: mapping still redirects; no expiry
+field, 410 response or age-based mapping purge exists.
+AC-12 [FR-04]: Unknown/malformed is 404 without Location; malformed stays 404 during
+outage; valid-code storage outage is 503 with no stale fallback.
+AC-13 [FR-04]: Public mutation cannot retarget, expire or remove a mapping.
+AC-14 [FR-05]: One event per successful GET/302; none for other/failed/HEAD requests;
+repeated delivery of one event does not double-count.
+AC-15 [FR-05, NFR-02]: Block analytics writes and prove redirect completes without
+waiting for completion/retries; failures/overflow increment drop counters.
+AC-16 [FR-05]: Healthy accepted events become visible within 60 seconds using
+controlled clock/worker execution; outages are tested under their stated exception.
+AC-17 [FR-06]: Anonymous reads return exact fields, zero/correct retained counts
+and [from,to) boundaries; default-window event times precede query time.
+AC-18 [FR-06]: Incomplete/invalid/reversed/future/too-old windows return specified
+400; unknown/deleted code is 404; required-store outage is 503, never zero.
+AC-19 [FR-07]: Liveness remains 200 during store/DNS failure; actual-store readiness
+is 200/503 and probes create no record/event.
+AC-20 [FR-08]: At 90-day event boundary, queries exclude and cleanup purges events;
+cleanup is idempotent, permanent mapping survives, and new events remain countable.
+AC-21 [FR-08]: Operator deletion removes mapping/events before success, is idempotent,
+reports storage failure and rejects late-event resurrection; removed-code GET is 404.
+AC-22 [FR-09]: Methods/paths/unexpected failure use specified sanitized responses,
+accurate Allow where applicable and no error Location; HEAD records no event.
+AC-23 [NFR-02]: Create mapping and persisted events, stop/restart actual service
+against same durable location; verify exact target/time/retained counts.
+AC-24 [NFR-03]: Captured HTTP/application logs and metrics never contain test URL/
+query, IP, user-agent or unique secret marker; sanitized outcomes/drop counts exist.
+AC-25 [NFR-04]: 20 concurrent redirects resolve correctly; retained count after
+healthy worker completion is correct, without invented performance claims.
+AC-26 [NFR-05]: Anonymous requests work, repeated valid requests return no application
+429 and default bind is loopback; documented limitations match actual behavior.
+AC-27 [NFR-06]: Actual HTTP integration tests start service on an ephemeral local
+port and exercise create/redirect/analytics/health. Inspect 302 without following
+it/contacting target; public IP-literal input can avoid live DNS.
+AC-28 [NFR-06]: Application packaging metadata, documented service entry point,
+and README cover setup/configuration, HTTP examples, tests, maintenance, limitations
+and rollback. Running the service requires no model/API credential. Final wheel
+build and human sign-off are separate platform gates below, not pytest assertions.
+
+## 6. Shared design and assignment completion
+
+Use a few coherent vertical slices; a proposal is create/validation/durable store,
+then redirect/health/permanence, then analytics/maintenance/delivery. Planning owns
+the final DAG and AC allocation; later-slice work is deferred, not an early defect.
+Before generation, api_contract must pin exact Python paths/names, callable and
+constructor signatures, config/response fields, errors, resolver/clock/store
+injection, real store constructor/reopen lifecycle, code alphabet/length, HEAD
+handling, analytics processing/cleanup and operator command syntax. Avoid factories,
+discovery and compatibility shims unless actually required by approved architecture.
+Tests receive requirements/design/stubs, not generated implementation. Real
+durability cannot be replaced with in-memory evidence or a skipped test.
+
+These AC IDs belong to a NEW baseline; never overwrite old approved artifacts
+or reuse old IDs with different meaning. Keep requirement.txt as the original
+ambiguity demo. Start a fresh run with this complete input. A draft or mock greeting
+does not establish URL-shortener completion: require real generated source,
+passing independent tests, actual final wheel build and human final approval,
+then ssdlc package. Delivery must include readable requirements/architecture/ADRs/
+design, source/tests, JUnit/tool/build evidence and approved decisions/limitations.
+Installed-wheel smoke testing is recommended and remains pending unless actually
+executed. These platform completion conditions are not application test criteria:
+do not assert a later build or future human approval inside an acceptance test.
+
+After this permanent-link service exists, expiration.txt becomes the ambiguous
+enhancement: confirm optional expiry, retention/cleanup and migration that keeps
+existing links permanent, with new approvals. For analytics brownfield work,
+add genuinely new time-bucketed reporting; basic counts already exist here.
+Production auth/rate limiting, ownership/deduplication, stronger DNS policy,
+durable event delivery, measured SLOs and hosting remain future enhancements.
