@@ -93,3 +93,32 @@ for role in ("architecture_reviewer", "quality_reviewer"):
         instructions
         + " Reuse exact IDs from previous_findings, including any existing namespace; do not prefix them again. Put still-open or partially fixed issues in findings with the same ID. resolutions contains ONLY fully verified fixes against a newer artifact, with nonempty author_response, actual_change, reviewer_verification and resolution_reason. Never put 'not resolved' assessments in resolutions. Do not resolve findings from another artifact or repeat already settled resolutions.",
     )
+
+for role, guidance in {
+    "planning_design": (
+        "The shared design is the interface contract for independently generated code and tests. "
+        "Specify exact module paths, public class/function names, constructor and method signatures, "
+        "return fields, exception types and dependency injection for each test seam. For required "
+        "durability, specify the concrete approved store adapter and its constructor/reopen lifecycle "
+        "so a restart test can use real persistence. Do not leave these interfaces to discovery or "
+        "guesswork. Preserve approved scope; unresolved product behavior requires a scope proposal, "
+        "not an invented default."
+    ),
+    "coding": (
+        "Implement the exact public interfaces and injection seams named in the shared design, "
+        "including configuration, resolver, clock, error types and persistence lifecycle. "
+        "Missing seam details belong in deviations for upstream design revision."
+    ),
+    "test_design": (
+        "Use exact imports and public interfaces from the shared design. Do not discover guessed "
+        "interfaces with reflection, try unrelated constructors, or silently fall back to live DNS. "
+        "Inject deterministic resolver/store failures through the specified seams and exception types. "
+        "Assert the required status and absence of persistence, not generic error categories. "
+        "Required acceptance criteria must execute; never skip required durability because an adapter "
+        "is missing. Test it with the specified real durable store and reopen lifecycle. "
+        "If the shared design lacks a necessary contract or the requirements leave product behavior "
+        "undecided, report the genuine gap in deviations; do not guess or suppress it."
+    ),
+}.items():
+    schema, instructions = CONTRACTS[role]
+    CONTRACTS[role] = schema, instructions + " " + guidance

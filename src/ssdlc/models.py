@@ -271,6 +271,7 @@ class HumanDecision(Model):
     answers: dict[str, str] = Field(default_factory=dict)
     finding_ids: list[str] = Field(default_factory=list)
     target_ref: str | None = None
+    revision_target: Literal["requirement", "planning_design"] | None = None
 
 
 class Approval(Model):

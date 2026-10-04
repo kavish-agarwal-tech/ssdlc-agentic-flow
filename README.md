@@ -113,6 +113,10 @@ That run's recorded requirement v2 contains the confirmed expiration policy and 
 
 Interactive EOF or Ctrl+C leaves the run resumable. Approvals require actor, rationale and exact current artifact reference; interactive mode supplies the reference. At a safe stop, inspect the reason/evidence before choosing an available action. Retry renews a bounded budget; supported revision supplies feedback; rollback preserves history and invalidates descendants; abort ends the run. BLOCKER risks cannot be accepted. See [recovery rules](docs/orchestration.md).
 
+For a generation stop caused by an incomplete design or an undecided requirement, choose `revise`. After your name and rationale, select the revision target: `generation` to correct a bundle, `planning_design` to specify the shared interfaces, or `requirement` to clarify product behavior. Requirement revision creates a new draft and returns to human requirement approval; architecture/ADRs must then be reviewed and approved again. It does not accept findings or waive tests. No finding ID is needed.
+
+For the URL-shortener DNS ambiguity, use `requirement` with the rationale: “DNS failure or resolution returning no addresses must return structured 503 and persist nothing. Preserve all other approved requirements.” Review the resulting requirement before approving it. The subsequent shared design must name the exact injected resolver, configuration interface, store error type, and durable store constructor/reopen lifecycle. Required restart tests must execute rather than skip a missing adapter.
+
 For file-based decisions, start without `--interactive`, inspect the gate, then use `resume <run> --decision <file.json>`. A decision has `actor`, `action`, `rationale`, and the gate's `artifact_ref` when present; clarification adds `answers` keyed by question IDs. Clarification and approval are separate submissions.
 
 | Symptom | Next step |

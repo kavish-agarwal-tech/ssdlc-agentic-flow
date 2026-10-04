@@ -131,6 +131,8 @@ class Runtime:
                 "Planning proposed a scope change:"
             )
             branch_failure = any(snapshot.values.get("branch_errors", {}).values())
+            if branch_failure and "accept_risk" in allowed_actions:
+                allowed_actions.remove("accept_risk")
             if gate.get("gate") == "safe_stop" and (
                 gate.get("recovery_node") in {"planning_design", "planning", "lld"}
                 or planning_scope_stop
@@ -139,6 +141,10 @@ class Runtime:
                 allowed_actions.append("revise")
             if parsed.action not in allowed_actions:
                 raise ValueError("Decision is not permitted at this gate")
+            if parsed.revision_target and (
+                parsed.action != "revise" or gate.get("gate") != "safe_stop"
+            ):
+                raise ValueError("revision_target requires a supported safe-stop revision")
             if gate.get("artifact_ref") and parsed.artifact_ref != gate["artifact_ref"]:
                 raise ValueError("Decision requires exact current artifact_ref")
             if gate["gate"] == "requirement":

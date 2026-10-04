@@ -427,6 +427,14 @@ class Nodes(Engine):
             context["previous_artifact"] = state["artifacts"][state["active"][key]]
 
         def validate_bundle(result):
+            if result.deviations:
+                raise ValueError(
+                    "Implementation/design deviation requires upstream revision: "
+                    + "; ".join(result.deviations)
+                    + ". Correct implementation shortcuts within the approved design, including "
+                    "missing test seams or skipped required evidence. Preserve genuine scope "
+                    "conflicts; do not hide them or invent human approval."
+                )
             for name in result.files:
                 safe_path(Path(state["workspace"]), name)
                 is_test = name.startswith("tests/") or Path(name).name.startswith("test_")
@@ -446,11 +454,6 @@ class Nodes(Engine):
         result = self.call(
             state, "coding" if kind == "code" else "test_design", context, validator=validate_bundle
         )
-        if result.deviations:
-            raise ValueError(
-                "Implementation/design deviation requires upstream approval: "
-                + "; ".join(result.deviations)
-            )
         deps = [state["active"]["plan"]]
         if kind == "code":
             deps += [state["active"][f"code:{s}"] for s in state["completed_slices"]]
@@ -786,6 +789,8 @@ class Nodes(Engine):
             "Planning proposed a scope change:"
         )
         branch_failure = any(state.get("branch_errors", {}).values())
+        if branch_failure:
+            actions.remove("accept_risk")
         if (
             state.get("recovery_node") in {"planning_design", "planning", "lld"}
             or planning_scope_stop
@@ -801,6 +806,9 @@ class Nodes(Engine):
                     "recovery_node": state.get("recovery_node"),
                     "actions": actions,
                     "options": "Inspect evidence, correct the provider/tool configuration, explicitly renew a bounded budget, or abort.",
+                    "revision_targets": ["generation", "planning_design", "requirement"]
+                    if "revise" in actions
+                    else [],
                 }
             )
         )
@@ -869,11 +877,16 @@ class Nodes(Engine):
                     )
                 route = "fork"
         if decision.action == "revise":
+            if decision.revision_target:
+                if "revise" not in actions:
+                    raise ValueError("Upstream revision is not supported for this safe stop")
+                route = decision.revision_target
             if route != "planning_design" and planning_scope_stop:
-                route = "planning_design"
-            if route != "planning_design" and branch_failure:
+                if route != "requirement":
+                    route = "planning_design"
+            if route not in {"planning_design", "requirement"} and branch_failure:
                 route = "fork"
-            if route not in {"planning_design", "fork"}:
+            if route not in {"requirement", "planning_design", "fork"}:
                 raise ValueError("Revision feedback is not supported for this safe stop")
             feedback = decision.model_dump()
         if decision.action == "accept_risk" and route == "architecture":

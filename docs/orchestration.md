@@ -71,6 +71,12 @@ Safe-stop choices depend on evidence: retry, supported revision, rollback, eligi
 
 At a quality-review safe stop with open HIGH/BLOCKER findings, `retry` renews the budget and invalidates the current code/test pair so the branches revise it before review. No finding ID is needed for retry. Review resolutions are validated before caching, including on replay: missing verification, unchanged versions, unknown targets and assessments beginning with “not resolved” must be corrected within the response-attempt budget. New finding IDs are qualified once; exact historical IDs remain usable.
 
+At a supported generation/planning stop, `revise` accepts an optional `revision_target`: `requirement` returns to requirement analysis and separate approval; `planning_design` returns to the common per-slice contract; omitting it corrects generation (or the current planning proposal). Interactive mode asks for the target after the rationale. Old saved interrupts also support these targets when branch errors identify a generation failure. Replacing an upstream artifact invalidates its descendants and preserves history. Product decisions supplied in the rationale are input to analysis, not approval of the resulting document.
+
+Code/test deviations are validated before cache publication and on cache replay. The provider gets bounded corrective feedback for implementation shortcuts while genuine upstream conflicts remain a safe stop. The shared design specifies exact public interfaces and injection seams for both independent branches; tests must not guess APIs, use unintended live DNS, or skip required persistence evidence.
+
+Generation failures do not offer `accept_risk`: accepting earlier review findings cannot clear a failed bundle. Runtime also rejects that action for older saved generation interrupts. Required evidence and BLOCKER findings still need actual fixes and verification.
+
 ## Brownfield scope
 
 The source snapshot allows at most 100 selected files and 150,000 bytes. It includes `.py`, `.go`, `.java`, `.md`, `.toml`, `.json` and `.yaml`, excluding hidden directories and common build/dependency outputs. These extensions do not imply non-Python execution support. Over-budget snapshots are rejected, not silently truncated; provide a focused workspace.

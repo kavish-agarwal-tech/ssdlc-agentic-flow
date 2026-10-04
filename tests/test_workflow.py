@@ -338,6 +338,10 @@ def test_interactive_actions_offer_revise_for_branch_failure():
     }
 
     assert "revise" in available_actions(gate, branch_errors={"code": "generation failed"})
+    assert "accept_risk" not in available_actions(
+        {**gate, "findings": [{"severity": "HIGH", "status": "OPEN"}]},
+        branch_errors={"code": "generation failed"},
+    )
 
 
 def test_branch_failure_revise_routes_feedback_to_branch_generation(tmp_path, monkeypatch):
@@ -1192,3 +1196,105 @@ def test_retry_does_not_overwrite_artifact_published_before_failed_checkpoint(tm
         assert runtime.repo.artifact("demo", "quality:greeting@2")["content"] == {
             "attempt": "failed review"
         }
+
+
+@pytest.mark.parametrize("target", ["requirement", "planning_design"])
+def test_branch_stop_can_revise_upstream_without_approving_it(tmp_path, target):
+    class Provider(MockProvider):
+        def generate(self, role, instructions, context, schema):
+            result = super().generate(role, instructions, context, schema)
+            if role == "test_design" and not context.get("feedback", {}).get("revision_target"):
+                result["deviations"] = ["The shared design is missing a required test seam"]
+            return result
+
+    with Runtime(tmp_path, provider=Provider()) as runtime:
+        result = decide(runtime, "demo", to_architecture(runtime))
+        assert result["state"]["recovery_node"] == "synchronize"
+        assert "accept_risk" not in result["interrupts"][0]["actions"]
+        with pytest.raises(ValueError, match="not permitted"):
+            decide(runtime, "demo", result, "accept_risk", finding_ids=["old-finding"])
+        assert "tests:greeting" not in result["state"]["active"]
+        old_requirement = result["state"]["active"]["requirement"]
+        old_plan = result["state"]["active"]["plan"]
+        result = decide(
+            runtime,
+            "demo",
+            result,
+            "revise",
+            revision_target=target,
+            rationale="Clarify the requirement"
+            if target == "requirement"
+            else "Define exact seams",
+        )
+        state = result["state"]
+        assert state["feedback"]["revision_target"] == target
+        assert state["artifacts"][old_plan]["validity"] != "VALID"
+        if target == "requirement":
+            assert result["interrupts"][0]["gate"] == "requirement"
+            assert state["active"]["requirement"] != old_requirement
+            assert state["artifacts"][state["active"]["requirement"]]["approval_status"] == "DRAFT"
+            assert state["artifacts"][state["active"]["architecture"]]["validity"] != "VALID"
+        else:
+            assert state["active"]["requirement"] == old_requirement
+            assert state["active"]["plan"] == "plan@2"
+            assert "Local execution disabled" in result["interrupts"][0]["reason"]
+        assert runtime.repo.verify_audit("demo")
+
+
+def test_cached_branch_deviation_is_rejected_and_repaired_before_publication(tmp_path):
+    class Provider(MockProvider):
+        def __init__(self):
+            self.contexts = []
+
+        def generate(self, role, instructions, context, schema):
+            if role == "test_design":
+                self.contexts.append(context)
+            return super().generate(role, instructions, context, schema)
+
+    provider = Provider()
+    with Runtime(tmp_path, provider=provider) as runtime:
+        state = decide(runtime, "demo", to_architecture(runtime))["state"]
+        schema, instructions = CONTRACTS["test_design"]
+        key = digest(
+            [
+                provider.name,
+                "test_design",
+                instructions,
+                schema.model_json_schema(),
+                provider.contexts[0],
+            ]
+        )
+        bad = runtime.repo.cached("demo", key)
+        bad["deviations"] = ["Skip durability when the adapter is missing"]
+        runtime.repo.cache("demo", key, bad, replace=True)
+        # Replay from before branch generation, as an older checkpoint would.
+        state = dict(state, reviews={}, active=dict(state["active"]))
+        del state["active"]["tests:greeting"]
+        _, nodes = runtime.graph("demo")
+        update = nodes.branch_generate(state, "tests")
+        assert len(provider.contexts) == 2
+        assert "Skip durability" in provider.contexts[-1]["validation_feedback"]
+        assert "do not hide" in provider.contexts[-1]["validation_feedback"]
+        assert (
+            update["artifacts"][update["active"]["tests:greeting"]]["content"]["deviations"] == []
+        )
+        assert runtime.repo.cached("demo", key)["deviations"] == []
+        assert any(e["action"] == "cached_response_rejected" for e in runtime.repo.events("demo"))
+
+
+def test_interactive_safe_stop_revision_selects_upstream_target():
+    gate = {"gate": "safe_stop", "actions": ["revise"]}
+    replies = iter(
+        ["revise", "human", "DNS failures return 503 with nothing persisted", "requirement"]
+    )
+    decision = prompt_decision(gate, input_fn=lambda _: next(replies), output_fn=lambda _: None)
+    assert decision["revision_target"] == "requirement"
+    assert decision["rationale"] == "DNS failures return 503 with nothing persisted"
+
+
+def test_revision_target_cannot_bypass_a_normal_approval_gate(tmp_path):
+    with Runtime(tmp_path) as runtime:
+        result = to_architecture(runtime)
+        with pytest.raises(ValueError, match="supported safe-stop revision"):
+            decide(runtime, "demo", result, "revise", revision_target="requirement")
+        assert runtime.inspect("demo")["interrupts"] == result["interrupts"]

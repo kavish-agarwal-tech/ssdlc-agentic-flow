@@ -138,6 +138,8 @@ def unanswered_questions(gate):
 
 def available_actions(gate, artifact_refs=(), branch_errors=None):
     actions = list(gate["actions"])
+    if any((branch_errors or {}).values()) and "accept_risk" in actions:
+        actions.remove("accept_risk")
     planning_scope_stop = gate.get("reason", "").startswith("Planning proposed a scope change:")
     if (
         gate.get("gate") == "safe_stop"
@@ -210,6 +212,22 @@ def prompt_decision(gate, artifact_refs=(), actions=None, input_fn=None, output_
         "rationale": rationale,
         "artifact_ref": gate.get("artifact_ref"),
     }
+    if action == "revise" and gate["gate"] == "safe_stop":
+        targets = {"generation", "planning_design", "requirement"}
+        while True:
+            target = (
+                input_fn(
+                    "Revision target [generation / planning_design / requirement] [generation]: "
+                )
+                .strip()
+                .lower()
+                or "generation"
+            )
+            if target in targets:
+                break
+            output_fn("Choose generation, planning_design or requirement.")
+        if target != "generation":
+            decision["revision_target"] = target
     if action in {"clarify", "revise"}:
         questions = unanswered_questions(gate)
         answers = {}
