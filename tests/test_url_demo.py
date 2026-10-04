@@ -87,6 +87,10 @@ def test_three_offline_cli_scenarios_generate_validate_build_and_package(
         delivery = home / "deliverables" / run / "release-v1"
         assert (delivery / "application" / "url_shortener.py").exists()
         assert not (delivery / "application" / "greeting.py").exists()
+        delivery_readme = (delivery / "README.md").read_text(encoding="utf-8")
+        assert "application/README.md" in delivery_readme
+        assert "MOCK / DETERMINISTIC MODE" in delivery_readme
+        assert "this is a greeting fixture" not in delivery_readme
         assert list((delivery / "distribution").glob("*.whl"))
         assert delivery.with_name(run + "-release-v1.zip").exists()
 

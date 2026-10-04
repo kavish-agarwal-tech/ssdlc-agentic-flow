@@ -144,6 +144,14 @@ Default delivery:
 
 For an approved generic run use `python -m ssdlc package <run>`. Packaging refuses pending approval, stale/tampered evidence and existing destinations. Use the final package for human navigation; internal artifacts remain versioned.
 
+For an interviewer handoff beside this repository, export the approved run to a sibling folder:
+
+```powershell
+.venv\Scripts\python -m ssdlc package demo-greenfield --output ..\url-shortener
+```
+
+This creates `url-shortener/` beside `schwab-assignment/`, plus a sibling ZIP. Open its top-level README, then `application/README.md` for running the app; `documents/` and `evidence/` retain approved artifacts and actual validation. The destination must be new. The original run remains available for audit and resume.
+
 ## 5. Real validation and build evidence
 
 ```powershell

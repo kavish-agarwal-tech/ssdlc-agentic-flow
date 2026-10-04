@@ -222,6 +222,11 @@ def create_bundle(state, nodes, evidence, destination: Path):
                     "",
                     "## Start here",
                     "",
+                    *(
+                        ["- [Application source and execution guide](application/README.md)"]
+                        if "README.md" in files
+                        else []
+                    ),
                     *[f"- [{title}](documents/{name})" for name, title in sorted(document_links)],
                     "",
                     "## Contents",
@@ -234,7 +239,7 @@ def create_bundle(state, nodes, evidence, destination: Path):
                     "- `manifest.json`: artifact references and SHA-256 checksums for package files.",
                     "",
                     "Follow the release-readiness document for application setup, configuration and API usage. The package does not install dependencies or start the application.",
-                    "If the provider is `mock-fixture-v1`, this is a greeting fixture with synthetic approvals, not a live-model URL-shortener release.",
+                    "If the provider is `mock-fixture-v1`, this is MOCK / DETERMINISTIC MODE: the application uses bounded templates rather than real-LLM generation. Consult `evidence/human-approvals.json` for the actual approval records.",
                     "",
                 ]
             ),
