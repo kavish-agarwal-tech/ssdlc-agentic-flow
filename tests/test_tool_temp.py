@@ -1,10 +1,12 @@
 import io
 import json
 import logging
+import subprocess
+import sys
 from pathlib import Path
 
 from ssdlc.cli import LLMProgressHandler
-from ssdlc.tools import Executor, tree_digest
+from ssdlc.tools import Executor, publish_wheels, tree_digest
 from ssdlc.url_demo import failure_analysis
 
 
@@ -73,3 +75,21 @@ def test_deterministic_progress_does_not_claim_llm_execution():
         handler.close()
     assert "Deterministic agent" in output.getvalue()
     assert "LLM" not in output.getvalue()
+
+
+def test_wheel_publication_preserves_bytes_and_restores_inheritance(tmp_path):
+    distribution = tmp_path / "dist"
+    distribution.mkdir()
+    wheel = distribution / "example.whl"
+    content = b"unchanged built wheel bytes"
+    wheel.write_bytes(content)
+    if sys.platform == "win32":
+        subprocess.run(["icacls", str(wheel), "/inheritance:d"], check=True, capture_output=True)
+        before = subprocess.check_output(["icacls", str(wheel)], text=True)
+        assert "(I)" not in before
+    publish_wheels(tmp_path)
+    assert wheel.read_bytes() == content
+    assert list(distribution.iterdir()) == [wheel]
+    if sys.platform == "win32":
+        after = subprocess.check_output(["icacls", str(wheel)], text=True)
+        assert "(I)" in after

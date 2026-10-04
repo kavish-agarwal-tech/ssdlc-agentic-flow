@@ -84,6 +84,24 @@ def tree_digest(root: Path) -> str:
     return h.hexdigest()
 
 
+def publish_wheels(root: Path):
+    """Keep wheel bytes, replacing build temp-file ACLs with folder inheritance.
+
+    On Windows, a backend's secure temporary wheel can retain owner-only access
+    when moved into dist. A normal new file inherits the workspace directory's
+    permissions, including the operator who owns it. Do not copy file metadata.
+    """
+    for wheel in sorted((root / "dist").glob("*.whl")):
+        source = safe_path(root, "dist/" + wheel.name)
+        published = safe_path(root, f"dist/.wheel-{uid()}.tmp")
+        try:
+            with published.open("xb") as target:
+                target.write(source.read_bytes())
+            published.replace(source)
+        finally:
+            published.unlink(missing_ok=True)
+
+
 class Executor:
     def __init__(
         self,
@@ -161,6 +179,12 @@ class Executor:
             status, output = 124, "Command timed out; no pass evidence produced"
         except OSError as exc:
             status, output = 127, type(exc).__name__
+        if tool == "build" and status == 0 and sys.platform == "win32":
+            try:
+                publish_wheels(cwd)
+            except OSError as exc:
+                status = 1
+                output += f"\nCannot publish readable build outputs: {type(exc).__name__}: {exc}"
         if tree_digest(cwd) != before:
             status, output = 125, output + "\nValidation modified tracked inputs; evidence rejected"
         return ToolResult(

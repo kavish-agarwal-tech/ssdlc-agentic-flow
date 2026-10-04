@@ -50,6 +50,8 @@ Tools run in the assembled candidate using the CLI interpreter. They install no 
 
 Each tool invocation uses a unique `runs/<run>/tool-tmp/<id>/` directory for temporary files. Pytest receives an explicit `--basetemp` beneath it, avoiding shared Windows `pytest-of-unknown` permissions. Temporary directories stay outside the candidate and are not exported in the application package. Safe stops show failed tool commands/output; deterministic progress is labeled as an agent rather than an LLM call.
 
+On Windows, successful generated wheel builds publish byte-identical wheel files with the output folder's inherited permissions. This avoids owner-only backend temporary-file ACLs preventing the normal operator from packaging an agent-built wheel. The regression test verifies unchanged bytes and restored inheritance; publication errors mark the build failed rather than approving an unreadable output.
+
 The application is a local prototype with synchronous SQLite counting. Health is liveness, not readiness. HTTPServer, local actor identities and filesystem guards do not establish production hosting, authentication or process isolation. Metrics count tool events; JUnit reports individual tests. No coverage percentage or model-quality score is claimed.
 
 ## Recorded evidence
@@ -57,6 +59,8 @@ The application is a local prototype with synchronous SQLite counting. Health is
 On October 4, 2026, local verification passed **108 platform tests**, Ruff lint/format checks and a platform wheel build. A separately installed platform wheel completed the actual greenfield workflow and folder/ZIP packaging using its bundled templates. The three recorded scenarios passed **10, 11 and 11 generated application tests**, respectively, plus compilation, lint and wheel build. These are measured results from the default deterministic path.
 
 The Windows temp-directory recovery follow-up passed **111 platform tests** and the wheel build. The user's `demo-greenfield` run retried validation with workspace-owned temporary directories, passed its ten application tests and build, and reached the separate final human release gate. Its earlier failed attempts remain in audit history; no final approval was supplied by the recovery.
+
+After the user approved the release, wheel access was repaired by restoring its existing folder permissions without changing its SHA-256 hash, and the delivery folder/ZIP was successfully exported. The permanent wheel-publication follow-up passed **112 platform tests**, lint/format checks and the platform build. Normal operator read access was verified for the delivery README, wheel and ZIP.
 
 The [offline execution summary](../examples/url-shortener/offline-execution.json) records dated scenario results, actual tool output, approvals, artifact references, JUnit counts and audit integrity. These are deterministic template results with synthetic approvals, not live-LLM evidence. Rerun validation after future changes.
 
