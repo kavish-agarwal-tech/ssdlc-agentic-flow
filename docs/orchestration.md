@@ -48,6 +48,7 @@ BLOCKER and HIGH findings prevent normal progress. A human can explicitly accept
 | Failure-analysis replans | 3 per run before explicit renewal | `Policy.max_replans` |
 | Local command timeout | 60 seconds per command | `Policy.command_timeout` |
 | DeepSeek HTTP timeout | 180 seconds per request | `LLM_TIMEOUT` |
+| DeepSeek response output cap | 32768 tokens | `LLM_MAX_OUTPUT_TOKENS` |
 
 Policy limits are constructor settings in the Python API; the CLI does not expose all of them. Human retry explicitly renews counters at a safe stop; it does not fix an underlying provider, artifact or environment problem.
 

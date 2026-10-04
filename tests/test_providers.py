@@ -43,6 +43,30 @@ def test_deepseek_configuration_and_request(monkeypatch):
     assert payload["model"] == "deepseek-flash"
     assert payload["response_format"] == {"type": "json_object"}
     assert timeout == 180
+    assert payload["max_tokens"] == 32768
+
+
+def test_configured_output_budget_is_sent_and_does_not_change_resume_identity(monkeypatch):
+    requests = []
+
+    def open_request(request, timeout):
+        requests.append(json.loads(request.data))
+        return Response({"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]})
+
+    monkeypatch.setattr("urllib.request.urlopen", open_request)
+    provider = provider_from_environment(
+        {"DEEPSEEK_API_KEY": "test-key", "LLM_MAX_OUTPUT_TOKENS": "65536"}
+    )
+    assert provider.name == DeepSeekProvider(api_key="test-key").name
+    with pytest.raises(ProviderError, match="max_tokens=65536.*LLM_MAX_OUTPUT_TOKENS"):
+        provider.generate("coding", "", {}, Document)
+    assert requests[0]["max_tokens"] == 65536
+
+
+@pytest.mark.parametrize("budget", [0, -1, True, 1.5])
+def test_invalid_output_budget_rejected(budget):
+    with pytest.raises(ValueError, match="positive integer"):
+        DeepSeekProvider(api_key="test-key", max_output_tokens=budget)
 
 
 def test_deepseek_requires_api_key():

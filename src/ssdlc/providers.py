@@ -18,7 +18,12 @@ class DeepSeekProvider:
     """DeepSeek-compatible hosted chat API with JSON-object output."""
 
     def __init__(
-        self, model="deepseek-flash", api_key="", base_url="https://api.deepseek.com", timeout=180
+        self,
+        model="deepseek-flash",
+        api_key="",
+        base_url="https://api.deepseek.com",
+        timeout=180,
+        max_output_tokens=32768,
     ):
         parsed = urlparse(base_url)
         if (
@@ -32,10 +37,17 @@ class DeepSeekProvider:
             raise ValueError("DeepSeek URL must be HTTP(S) without credentials, query or fragment")
         if not model.strip() or not api_key.strip() or timeout <= 0:
             raise ValueError("DeepSeek model, API key and positive timeout are required")
+        if (
+            isinstance(max_output_tokens, bool)
+            or not isinstance(max_output_tokens, int)
+            or max_output_tokens <= 0
+        ):
+            raise ValueError("DeepSeek max_output_tokens must be a positive integer")
         self.model = model
         self.api_key = api_key
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
+        self.max_output_tokens = max_output_tokens
         identity = json.dumps([model, self.base_url], sort_keys=True)
         self.name = "deepseek:" + model + ":" + sha256(identity.encode()).hexdigest()[:12]
 
@@ -59,6 +71,7 @@ class DeepSeekProvider:
             "response_format": {"type": "json_object"},
             "stream": False,
             "temperature": 0,
+            "max_tokens": self.max_output_tokens,
         }
         request = urllib.request.Request(
             self.base_url + "/chat/completions",
@@ -78,7 +91,9 @@ class DeepSeekProvider:
             choice = data["choices"][0]
             if choice.get("finish_reason") == "length":
                 raise ProviderError(
-                    "DeepSeek response incomplete; increase output budget or reduce scope"
+                    f"DeepSeek response incomplete at max_tokens={self.max_output_tokens}; "
+                    "increase LLM_MAX_OUTPUT_TOKENS within the model limit or revise "
+                    "planning_design to reduce the current slice. Partial output was not accepted."
                 )
             value = json.loads(choice["message"]["content"])
             if not isinstance(value, dict):

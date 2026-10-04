@@ -42,4 +42,5 @@ def provider_from_environment(env=None):
         values.get("LLM_API_KEY") or values.get("DEEPSEEK_API_KEY", ""),
         values.get("LLM_BASE_URL", "https://api.deepseek.com"),
         timeout=float(values.get("LLM_TIMEOUT", "180")),
+        max_output_tokens=int(values.get("LLM_MAX_OUTPUT_TOKENS", "32768")),
     )

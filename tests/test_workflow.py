@@ -1372,3 +1372,28 @@ def test_signature_conflict_replans_automatically_before_quality_review(tmp_path
         assert "Local execution disabled" in result["interrupts"][0]["reason"]
         assert provider.quality_calls == 1
         assert runtime.repo.verify_audit("demo")
+
+
+def test_cli_source_change_does_not_submit_a_decision_or_call_provider(monkeypatch):
+    result = {
+        "state": {"workflow_run_id": "demo", "artifacts": {}},
+        "interrupts": [{"gate": "safe_stop", "actions": ["retry"]}],
+    }
+
+    class RuntimeStub:
+        def resume(self, run, decision):
+            pytest.fail("Changed CLI must not submit a decision")
+
+    monkeypatch.setattr("ssdlc.cli.source_fingerprint", lambda: "changed")
+    replies = iter(["retry", "human", "Recover"])
+    messages = []
+    assert (
+        interactive_session(
+            RuntimeStub(), result, input_fn=lambda _: next(replies), output_fn=messages.append
+        )
+        is result
+    )
+    assert any(
+        "Restart the CLI" in message and "No decision was submitted" in message
+        for message in messages
+    )

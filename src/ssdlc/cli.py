@@ -5,6 +5,7 @@ import json
 import logging
 import sys
 from contextlib import contextmanager
+from hashlib import sha256
 from itertools import cycle
 from pathlib import Path
 from threading import Event, Lock, Thread
@@ -12,6 +13,16 @@ from threading import Event, Lock, Thread
 from ssdlc.config import load_env_file, provider_from_environment
 from ssdlc.mock import MINIMAL_REQUIREMENT, MockProvider
 from ssdlc.runtime import Runtime
+
+
+def source_fingerprint(root=None):
+    root = root or Path(__file__).parent
+    return sha256(
+        b"".join(path.name.encode() + path.read_bytes() for path in sorted(root.glob("*.py")))
+    ).hexdigest()
+
+
+LOADED_SOURCE_FINGERPRINT = source_fingerprint()
 
 
 class LLMProgressHandler(logging.Handler):
@@ -290,6 +301,12 @@ def interactive_session(runtime, result, input_fn=None, output_fn=print):
                 input_fn=input_fn,
                 output_fn=output_fn,
             )
+            if source_fingerprint() != LOADED_SOURCE_FINGERPRINT:
+                output_fn(
+                    "Application code changed after this CLI started. No decision was submitted. "
+                    "Restart the CLI and resume the same run to load the updated recovery logic."
+                )
+                return result
             try:
                 result = runtime.resume(run, decision)
             except ValueError as exc:

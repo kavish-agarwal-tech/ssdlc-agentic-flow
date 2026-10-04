@@ -72,6 +72,7 @@ Edit `.env` locally and set `DEEPSEEK_API_KEY` to your real key. Keep it out of 
 | `DEEPSEEK_API_KEY` | Required for live runs; nonempty `LLM_API_KEY` takes precedence. |
 | `LLM_BASE_URL` | `https://api.deepseek.com`; the adapter appends `/chat/completions`. |
 | `LLM_TIMEOUT` | `180` seconds per HTTP request. |
+| `LLM_MAX_OUTPUT_TOKENS` | `32768` tokens per response; sent as `max_tokens`. Increase within your model's limit if code generation is truncated, or reduce the slice. |
 
 The CLI loads `.env` by default; `--env-file <path>` selects another file. Nonempty process environment values override file values; empty entries can be filled from the file. This is a simple `KEY=value` loader, without shell evaluation or variable expansion.
 
@@ -118,6 +119,8 @@ For a generation stop caused by an incomplete design or an undecided requirement
 For the URL-shortener DNS ambiguity, use `requirement` with the rationale: “DNS failure or resolution returning no addresses must return structured 503 and persist nothing. Preserve all other approved requirements.” Review the resulting requirement before approving it. The subsequent shared design must name the exact injected resolver, configuration interface, store error type, and durable store constructor/reopen lifecycle. Required restart tests must execute rather than skip a missing adapter.
 
 Shared interface conflicts are now checked earlier: every slice needs a Python `api_contract` containing exact file paths and public declaration stubs. Planning validates it, then code signatures/data fields and direct test imports are checked before quality review. Persistent contract mismatches automatically return to planning within the replan budget. For an existing run with an older plan, restart the CLI and choose `retry` at its generation stop to run this recovery. This preserves approvals and does not waive tests; genuine product ambiguity still requires requirement revision.
+
+Restart a running CLI after source or environment changes. Interactive sessions detect changed Python source before submitting the next decision and exit without consuming the saved gate. They cannot reload code already running. Changing the output-token budget preserves provider identity for resume; truncated responses are never accepted as artifacts.
 
 For file-based decisions, start without `--interactive`, inspect the gate, then use `resume <run> --decision <file.json>`. A decision has `actor`, `action`, `rationale`, and the gate's `artifact_ref` when present; clarification adds `answers` keyed by question IDs. Clarification and approval are separate submissions.
 
