@@ -335,6 +335,15 @@ def main(argv=None):
     export = commands.add_parser("export")
     export.add_argument("run")
     export.add_argument("--output", required=True, type=Path)
+    package = commands.add_parser(
+        "package", help="Create a readable folder and ZIP after final approval"
+    )
+    package.add_argument("run")
+    package.add_argument(
+        "--output",
+        type=Path,
+        help="New output directory; defaults to <home>/deliverables/<run>/release-v<version>",
+    )
     demo = commands.add_parser("demo")
     demo.add_argument("--run", default="minimal-demo")
     demo.add_argument(
@@ -351,7 +360,13 @@ def main(argv=None):
             if args.provider and args.provider != "mock":
                 raise ValueError("Fixture demo requires the mock provider")
             provider = MockProvider()
-        elif args.provider == "mock" or args.command in {"inspect", "audit", "metrics", "export"}:
+        elif args.provider == "mock" or args.command in {
+            "inspect",
+            "audit",
+            "metrics",
+            "export",
+            "package",
+        }:
             provider = MockProvider()
         else:
             import os
@@ -404,6 +419,8 @@ def main(argv=None):
                 emit(runtime.metrics(args.run))
             elif args.command == "export":
                 print(runtime.export(args.run, args.output))
+            elif args.command == "package":
+                emit(runtime.package(args.run, args.output))
             elif args.command == "demo":
                 result = runtime.start(MINIMAL_REQUIREMENT, args.run)
                 if args.scripted:

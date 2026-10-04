@@ -17,7 +17,7 @@ The implementation follows the original assignment and [SupplementaryPrompt.txt]
 | **Brownfield change support** | Snapshots existing source, analyzes impact and assembles a changed candidate without modifying the supplied source directory. |
 | **Traceability and inspection** | Connects requirement IDs, acceptance criteria, artifacts, reviews and executed tests. CLI commands expose saved state, audit integrity, timing/count metrics and exports. |
 | **Real and offline model modes** | Uses DeepSeek for live reasoning and a labeled deterministic greeting fixture for repeatable tests without an API key. |
-| **Documented release readiness** | Produces one engineering/operations report with measured evidence, risks, setup, release notes and rollback guidance before final approval. |
+| **Documented release and delivery package** | Produces an engineering/operations report before approval. After approval, `package` exports a readable folder and ZIP with application, documents, wheel and evidence. |
 
 The design keeps probabilistic model proposals separate from deterministic approvals, routing and tool evidence. There is one combined planning/design response, one shared quality review and one release-documentation stage, keeping the workflow compact.
 
@@ -103,7 +103,7 @@ Global options go **before** `start`, `resume` or other commands. Run IDs contai
 .venv\Scripts\python -m ssdlc export url-shortener-1 --output .ssdlc/url-shortener-1-export.json
 ```
 
-Inspection, audit, metrics and export do not call DeepSeek. Resume requires the original provider identity, including model and base URL. If you start with `--home <directory>`, supply the same home for every subsequent command. For example, resume the previously created local expiration run with:
+Inspection, audit, metrics, export and packaging do not call DeepSeek. Resume requires the original provider identity, including model and base URL. If you start with `--home <directory>`, supply the same home for every subsequent command. For example, resume the previously created local expiration run with:
 
 ```powershell
 .venv\Scripts\python -m ssdlc --home .ssdlc/refactor-live --provider deepseek --allow-local-execution resume expiration-refactor --interactive
@@ -125,7 +125,45 @@ For file-based decisions, start without `--interactive`, inspect the gate, then 
 | Schema/review/replan budget exhausted | Review feedback and correct the cause; retry alone can repeat the failure. |
 | Legacy checkpoint in a removed node | Start a new run and retain history. Legacy safe stops naming planning/design recover through combined planning/design. |
 
-## Artifacts and generated solution
+## 6. Package the approved generated solution
+
+Once the run reaches `READY_FOR_DEPLOYMENT`, create its delivery folder and ZIP:
+
+```powershell
+.venv\Scripts\python -m ssdlc package url-shortener-1
+```
+
+The default folder is `.ssdlc/deliverables/url-shortener-1/release-v1/`, with a sibling `url-shortener-1-release-v1.zip`. Use the same `--home` as the original run. Start with the package's `README.md`; it links to the numbered documents and explains the contents.
+
+```text
+release-v1/
+  README.md
+  application/                   # final source and tests, original project layout
+  distribution/                  # built wheel files
+  documents/
+    01-requirements.md
+    02-architecture.md
+    03-decisions/ADR-001.md
+    04-plan-and-design.md
+    05-release-readiness.md
+    06-brownfield-impact.md       # brownfield releases only
+    07-validation-and-review.md
+  artifacts/                     # final JSON, e.g. requirement-v0002.json
+  evidence/                      # JUnit, tool results, reviews, approvals, audit, metrics
+  manifest.json                  # artifact references and exported-file SHA-256 hashes
+```
+
+All active artifacts are exported with readable names and versions. Full saved history, including earlier artifact versions, is retained in `evidence/workflow-history.json`. Only the final assembled application is copied; intermediate candidates and caches are excluded. Tests remain inside the application's original layout so their imports continue to work.
+
+Choose another **new** output directory if needed:
+
+```powershell
+.venv\Scripts\python -m ssdlc package url-shortener-1 --output .ssdlc/deliverables/url-shortener-handoff
+```
+
+Existing packages are not overwritten. Packaging checks final approval, release evidence, candidate integrity and audit integrity. It does not run models, change workflow state, install dependencies or deploy the application. A pending or failed run cannot be labeled as a final delivery package. File checksums describe exported bytes; they are not a digital signature.
+
+## Internal artifacts and generated solution
 
 Default storage:
 
@@ -142,7 +180,7 @@ Default storage:
     candidates/<digest>/...    # source, tests, .results.xml and dist/*.whl
 ```
 
-Artifact content is versioned on the filesystem. SQLite indexes it and holds audit/checkpoint state; checkpoints also serialize workflow data. Section-based artifacts, including architecture and release reports, have Markdown companions. Requirements and plans are JSON; a dedicated readable renderer is a proposed enhancement.
+Artifact content is versioned on the filesystem. SQLite indexes it and holds audit/checkpoint state; checkpoints also serialize workflow data. Section-based artifacts, including architecture and release reports, have Markdown companions. Requirements and plans are JSON internally; the final delivery package renders both as readable Markdown.
 
 Find the validated candidate through `inspect`: `state.artifacts[state.active.release].content.candidate` at the release gate, or the build artifact's `content.cwd`. Follow the generated release report's setup/API instructions to run the application manually. The SSDLC CLI validates and packages it; it does not host it.
 

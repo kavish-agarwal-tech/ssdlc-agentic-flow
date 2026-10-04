@@ -214,6 +214,24 @@ class Runtime:
         destination.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         return destination
 
+    def package(self, run, destination: Path | None = None):
+        from ssdlc.packaging import create_bundle
+
+        _, nodes = self.graph(run)
+        owner = uid()
+        self.repo.acquire(run, owner)
+        try:
+            evidence = self.inspect(run)
+            state = evidence["state"]
+            evidence["audit"] = self.repo.events(run)
+            evidence["audit_chain_valid"] = self.repo.verify_audit(run)
+            evidence["metrics"] = self.metrics(run)
+            version = state["artifacts"].get(state["active"].get("release"), {}).get("version", 1)
+            destination = destination or self.home / "deliverables" / run / f"release-v{version}"
+            return create_bundle(state, nodes, evidence, destination)
+        finally:
+            self.repo.release(run, owner)
+
     def metrics(self, run):
         events = self.repo.events(run)
         counts = {

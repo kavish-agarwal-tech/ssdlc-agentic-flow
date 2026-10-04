@@ -20,6 +20,8 @@ Regression coverage includes persistent clarification/approval, exact version ch
 
 Quality-recovery regressions cover validation of resolutions before caching and on cache replay, blank verification/author fields, unresolved assessments incorrectly placed in resolutions, unknown/cross-artifact targets, conflicting finding/resolution IDs, legacy duplicated namespaces, and retry routing to actual branch revision while preserving open blockers.
 
+Delivery-package tests run a complete fixture through actual tests/build and final synthetic approval. They verify readable document names, source/test layout, wheel/JUnit evidence, all active artifact references, exported-file checksums and ZIP contents. They also check that packaging does not change saved workflow state, refuses pending approval or changed source, cleans up an incomplete export and does not overwrite an existing package.
+
 The mock greeting reaches READY_FOR_DEPLOYMENT with labeled synthetic approvals and real passing tools. This verifies the system plumbing; it is not real DeepSeek product evidence.
 
 ## How the generated solution is tested

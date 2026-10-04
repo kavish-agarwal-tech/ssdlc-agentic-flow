@@ -16,7 +16,7 @@ The [live evidence summary](../examples/url-shortener/refactor-analysis.json) is
 
 | Priority | Enhancement | Current limitation | Small next step |
 |---|---|---|---|
-| P1 | Clearer artifact review | Large JSON payloads are cumbersome; requirements/plans lack Markdown companions. | Add readable summaries with exact IDs/version links, retaining authoritative JSON and explicit decisions. |
+| P1 | Clearer artifact review before final approval | The approved delivery package has readable requirement/plan documents; interactive gates still show large JSON payloads. | Reuse readable summaries at the gates, retaining authoritative JSON, exact IDs and explicit decisions. |
 | P1 | Stronger alignment with human intent | Schemas cannot establish that every proposed requirement or performance target was requested. | Highlight new assumptions, acceptance criteria and changed decisions before approval. |
 | P1 | Early stack/dependency feasibility checks | Architecture can propose packages/languages the fixed executor cannot run; candidate tools install nothing. | Check approved stack/packages against the CLI environment before generation and stop with actionable feedback. |
 | P2 | Better failure/retry guidance | Model diagnosis can be wrong; renewing a budget may repeat failures. | Summarize failed commands and affected versions; add regression examples for misclassification. |
@@ -24,6 +24,7 @@ The [live evidence summary](../examples/url-shortener/refactor-analysis.json) is
 | P2 | Realistic multi-slice validation | The real-tool fixture is a small greeting; controls do not prove broad model effectiveness. | Exercise cumulative files/tests, migrations and recovery with a compact workload; record live-model evidence separately. |
 | P2 | Checkpoint/interruption recovery | Removed-node checkpoints need a fresh run; a killed process may leave a lease. | Add compatibility checks and an explicit stale-lease recovery path after confirming the owning process stopped. |
 | P2 | Usage/cost visibility | Metrics report counts/durations, not token usage or spend. | Record provider-reported usage; distinguish measured usage from cost estimates. |
+| P2 | Distribution fingerprints at build time | Delivery manifests hash exported wheels; existing build evidence does not fingerprint each wheel when created. | Record wheel checksums during build and verify them again at packaging. |
 | P2 | Isolated generated-code execution | Code/build hooks run on the host; guards are not process isolation. | If needed beyond a trusted demo, add one tested isolation boundary with time/resource/network controls. |
 | P3 | Authenticated approvals/external audit | Actor names are local assertions; audit storage is local. | Add identity and external audit retention when multi-user or production governance is required. |
 

@@ -27,6 +27,7 @@ flowchart LR
 | Providers | `providers.py`, `mock.py` | DeepSeek JSON-mode HTTP calls or the deterministic greeting fixture; no synthetic fallback. |
 | Persistence | `persistence.py` | Immutable content files, Markdown/source companions, mutable metadata and a local audit hash chain. |
 | Tools | `tools.py` | Confined candidate materialization and actual fixed Python commands with captured evidence. |
+| Delivery packaging | `packaging.py`, `Runtime.package` | Export an approved release as a readable folder/ZIP, with named documents, source/tests, wheel, artifact references and evidence. No model calls or workflow changes. |
 
 ## Engineering artifacts
 
