@@ -47,6 +47,8 @@ Packages must already be available in the CLI environment: generated dependency 
 
 The [complete first-release input](../examples/url-shortener/requirement-complete.txt) is a new permanent-link baseline selected by the user. Its local checks confirm 15 unique FR/NFR definitions, 28 unique acceptance criteria and complete reference coverage. These structural checks do not establish semantic approval or a working service. Real requirement analysis, human requirement/architecture approval, generated code/tests, tool/build evidence and final sign-off remain necessary. Preserve the old TTL run as historical evidence rather than changing its approved artifacts in place.
 
+On October 4, 2026, after explicit authorization to send this specification to DeepSeek, run `url-permanent-v1` produced `requirement@1` and reached `WAITING_FOR_HUMAN`. It retained 28 acceptance criteria, raised 11 questions (one classified blocking), and passed audit-chain verification. The [real analysis snapshot](../examples/url-shortener/permanent-v1-analysis.json) is explicitly unapproved. The model's proposed durable analytics capture exceeds the best-effort input and needs review; no architecture, code, tests/build or release approval was performed.
+
 For this baseline, the [time-bucketed analytics enhancement](../examples/url-shortener/brownfield-time-buckets.txt) supplies a meaningful brownfield change; basic per-code counts already belong to the first release. The expiration input remains a separate ambiguous enhancement of generated permanent-link source.
 
 These commands require your DeepSeek key and real human decisions. Use fresh run IDs or resume the existing runs. Global flags come before the subcommand.
